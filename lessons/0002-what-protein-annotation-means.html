@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第 2 课：蛋白质注释究竟是什么</title>
+  <style>
+    :root{--ink:#172033;--muted:#5f6b7a;--line:#d9e0e8;--accent:#2457d6;--soft:#f4f7fb;--warn:#fff6df;--ok:#eaf8ef}
+    body{max-width:960px;margin:auto;padding:40px 24px 80px;color:var(--ink);font:17px/1.75 system-ui,sans-serif}
+    h1,h2,h3{line-height:1.25}h2{margin-top:2.3rem;border-bottom:1px solid var(--line);padding-bottom:.35rem}
+    code{background:var(--soft);padding:.1em .35em;border-radius:4px}pre{overflow:auto;background:#101827;color:#f6f8fb;padding:18px;border-radius:10px}
+    table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:10px;vertical-align:top}th{background:var(--soft);text-align:left}
+    .goal,.exercise,.warning,.idea{padding:16px 18px;border-radius:10px;margin:18px 0}.goal{background:var(--soft);border-left:5px solid var(--accent)}
+    .warning{background:var(--warn);border-left:5px solid #d79600}.idea{background:var(--ok);border-left:5px solid #28864b}.exercise{border:2px solid var(--accent)}.muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <h1>第 2 课：蛋白质注释究竟是什么</h1>
+  <p class="muted">SeqEvi 学习轨道 · 生物学与计算推理基础</p>
+  <div class="goal"><strong>本课目标：</strong>面对一条工具输出，能区分输入事实、计算证据、生物学推断和最终注释陈述，不把“相似”直接说成“功能已经证明”。</div>
+
+  <h2>1. 序列是一种物质配方，不是功能标签</h2>
+  <p>蛋白质是由氨基酸残基通过肽键连接形成的链。FASTA 中的字母是残基类型的符号表示。不同侧链具有不同大小、电荷、疏水性和反应性；残基顺序影响链如何折叠，折叠形成的三维形状又影响结合、催化、支撑、运输和信号等能力。</p>
+  <pre>氨基酸序列
+    ↓ 物理化学相互作用与细胞环境
+三维结构、动态构象与结构域组合
+    ↓ 结合位点、活性位点、相互作用界面
+分子能力
+    ↓ 细胞位置、伙伴、表达与调控
+生物学作用</pre>
+  <p>这条链解释了为什么序列包含功能线索，也解释了为什么仅凭序列通常不能把全部生物学功能当作直接观测值。</p>
+
+  <h2>2. 注释是带证据来源的陈述集合</h2>
+  <p>“蛋白注释”不是一个单独字段。它可以包含蛋白名称、家族、结构域、活性位点、催化反应、分子功能、通路、亚细胞定位、跨膜区、信号肽及其他特征。关键不只是标签内容，还包括标签来自实验、人工审阅、序列比较、统计模型还是自动规则。</p>
+  <table><tr><th>层次</th><th>例子</th><th>性质</th></tr>
+    <tr><td>输入事实</td><td>规范化序列是 MKWV…，长度 312</td><td>由输入直接得到</td></tr>
+    <tr><td>计算证据</td><td>与数据库序列形成显著局部比对；某 Pfam profile 在 42–186 命中</td><td>算法与资源共同产生</td></tr>
+    <tr><td>生物学推断</td><td>可能属于某同源家族；该区间可能折叠为某结构域</td><td>从证据到生物含义的推理</td></tr>
+    <tr><td>注释陈述</td><td>含某结构域；可能具有某催化活性；关联某 GO term</td><td>可供数据库和用户消费的结构化主张</td></tr>
+    <tr><td>溯源与边界</td><td>数据库版本、模型 ID、分数、阈值、规则、证据类型</td><td>说明主张为什么可信、适用于什么条件</td></tr>
+  </table>
+
+  <h2>3. 为什么比较序列能够提供线索</h2>
+  <p>共同祖先产生的蛋白会在演化中积累替换、插入和删除。如果某些残基对折叠、结合或催化特别重要，破坏它们的变异往往更难保留下来，于是相关位置会表现得更保守。比较未知序列与已研究序列，可以寻找这种超过随机预期的保守模式。</p>
+  <div class="warning"><strong>相似性与同源性不同：</strong>相似性是可计算的程度；同源性是“是否源自共同祖先”的关系。通常不说“70% 同源”，而说“70% 序列一致性，支持同源关系”。同源也不自动等于功能完全相同。</div>
+
+  <h2>4. 比对实际在计算什么</h2>
+  <p>比对把 query 与 subject 的字符安排到对应位置，并允许插入 gap。每个残基配对由替换矩阵打分：在演化中常见或化学性质相近的替换通常惩罚较小，不合理替换惩罚较大；开启和延伸 gap 也有代价。算法寻找高分局部或全局对应关系。</p>
+  <pre>Query:   M A K V L - G D L G T
+           | : |   | | | |
+Subject: M S K V L A G D L G T
+
+总分 = 残基配对分数之和 - gap 代价</pre>
+  <p>原始高分还不够，因为数据库越大，偶然出现高分片段的机会越多。E-value 表示在给定搜索空间中，按随机模型预期出现“同样好或更好”匹配的次数。越小通常越显著，但显著只表示“不太像随机巧合”，并不自动证明具体功能。</p>
+
+  <h2>5. 从显著相似到功能标签仍有距离</h2>
+  <ul>
+    <li>比对可能只覆盖一个短结构域，而不是整个蛋白。</li>
+    <li>同一家族的 paralog 可能演化出不同底物或调控方式。</li>
+    <li>多结构域蛋白的整体作用取决于结构域组合和顺序。</li>
+    <li>关键催化残基可能已经突变，整体相似仍然很高。</li>
+    <li>数据库中的来源注释本身可能只是计算转移，而非实验事实。</li>
+    <li>细胞定位、物种背景、相互作用伙伴和表达条件也影响实际作用。</li>
+  </ul>
+  <div class="idea"><strong>安全推理原则：</strong>工具直接支持多强的主张，就输出多强的主张。结构域命中首先支持“存在该结构域的证据”，不应无条件升级为“整条蛋白已经证明执行某个精确反应”。</div>
+
+  <h2>6. 不同工具位于推理链的不同位置</h2>
+  <table><tr><th>工具或资源</th><th>主要比较对象</th><th>直接产物的典型意义</th></tr>
+    <tr><td>DIAMOND</td><td>query 序列对大型蛋白序列库</td><td>快速局部相似性命中与统计量</td></tr>
+    <tr><td>eggNOG-mapper</td><td>搜索结果加正交群和功能知识</td><td>正交关系及由其转移的广泛功能注释</td></tr>
+    <tr><td>HMMER + Pfam</td><td>序列对家族或结构域的 profile HMM</td><td>某区间匹配某蛋白家族或结构域模型</td></tr>
+    <tr><td>InterProScan</td><td>序列对多个成员数据库的 signatures</td><td>整合的家族、结构域、位点等匹配；具体内容取决于启用的应用</td></tr>
+    <tr><td>dbCAN</td><td>序列对 CAZyme 专门模型和参考知识</td><td>碳水化合物活性酶家族相关证据</td></tr>
+    <tr><td>SeqEvi</td><td>不发明新的生物学搜索模型</td><td>调用明确适配器、验证身份、缓存证据并交付可消费结果</td></tr>
+  </table>
+  <p>后续课程会逐个拆解这些方法。当前只需掌握：它们的直接输出、推断层次和适用主张并不相同。</p>
+
+  <h2>7. 为什么 SeqEvi 叫 Sequence Evidence</h2>
+  <p>同一条序列可以同时拥有 eggNOG 的正交证据、Pfam 的结构域证据和 dbCAN 的 CAZyme 家族证据。这些证据互补，但行粒度、字段和语义不同。SeqEvi 保留适配器原生语义，而不把所有结果硬压进一张“万能功能表”。EvidenceKey 还把工具、数据库、参数和解释合同固定下来，使注释主张可以审计。</p>
+
+  <div class="exercise">
+    <h2>检索练习</h2>
+    <p>未知蛋白 Q 与一个经过实验验证的酶 R 得到如下结果：</p>
+    <ul>
+      <li>70% sequence identity；</li>
+      <li>比对覆盖 Q 与 R 各自长度的 95%；</li>
+      <li>E-value = 1e-60；</li>
+      <li>但尚未检查关键催化残基、物种背景或结构域组成。</li>
+    </ul>
+    <ol>
+      <li>这里的直接输入事实是什么？</li>
+      <li>计算证据是什么？</li>
+      <li>可以提出什么合理推断？</li>
+      <li>为什么暂时不能说“Q 已被实验证明具有与 R 完全相同的功能”？</li>
+    </ol>
+  </div>
+
+  <h2>来源</h2>
+  <ul>
+    <li><a href="https://www.ncbi.nlm.nih.gov/books/NBK26911/">NCBI Bookshelf: Protein Function</a></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/books/NBK1734/">NCBI Bookshelf: BLAST QuickStart</a></li>
+    <li><a href="https://www.uniprot.org/help/uniprotkb">UniProtKB Help</a></li>
+    <li><a href="https://www.uniprot.org/help/automatic_annotation">UniProt Automatic Annotation</a></li>
+    <li><a href="https://interpro-documentation.readthedocs.io/en/latest/entries_info.html">InterPro Entries: essential information</a></li>
+  </ul>
+</body>
+</html>
