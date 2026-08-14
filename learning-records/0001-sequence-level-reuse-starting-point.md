@@ -1,3 +1,7 @@
+---
+Status: superseded by LR-0003
+---
+
 # Sequence-level reuse is the starting point
 
 The learner correctly identified that annotation reuse is organized around the
