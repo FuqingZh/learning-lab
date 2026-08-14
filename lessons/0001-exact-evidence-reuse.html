@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第 1 课：何时可以复用序列注释</title>
+  <style>
+    :root{--ink:#172033;--muted:#5f6b7a;--line:#d9e0e8;--accent:#2457d6;--soft:#f4f7fb;--warn:#fff6df}
+    body{max-width:900px;margin:auto;padding:40px 24px 80px;color:var(--ink);font:17px/1.72 system-ui,sans-serif}
+    h1,h2{line-height:1.25}h2{margin-top:2.2rem;border-bottom:1px solid var(--line);padding-bottom:.35rem}
+    code{background:var(--soft);padding:.1em .35em;border-radius:4px}pre{overflow:auto;background:#101827;color:#f6f8fb;padding:18px;border-radius:10px}
+    table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:10px;vertical-align:top}th{background:var(--soft);text-align:left}
+    .goal,.exercise,.warning{padding:16px 18px;border-radius:10px;margin:18px 0}.goal{background:var(--soft);border-left:5px solid var(--accent)}
+    .warning{background:var(--warn);border-left:5px solid #d79600}.exercise{border:2px solid var(--accent)}.muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <h1>第 1 课：何时可以复用序列注释</h1>
+  <p class="muted">SeqEvi 学习轨道 · 基础能力 1</p>
+  <div class="goal"><strong>目标：</strong>看到两个注释请求时，能判断应当复用、重新计算，还是不能缓存，并指出 EvidenceKey 的变化。</div>
+
+  <h2>1. 先拆开三个对象</h2>
+  <ol>
+    <li><strong>输入记录</strong>：FASTA 中的一条记录，有本次调用的标题和 InputID。</li>
+    <li><strong>蛋白序列</strong>：规范化后的氨基酸内容；不同标题可以指向同一序列。</li>
+    <li><strong>注释证据</strong>：明确工具环境用明确数据库和参数解释该序列所得的结果。</li>
+  </ol>
+  <p>序列相同只回答被研究对象相同，没有回答研究方法和知识库相同。</p>
+
+  <h2>2. 从字符到 SequenceID</h2>
+  <p>SeqEvi 去除 ASCII 空白、转大写、移除至多一个末端星号，再验证字符。规范序列的 ASCII 字节经 SHA-512/24 和 URL-safe Base64 编码，形成 SQ. 标识。</p>
+  <table><tr><th>输入</th><th>规范化</th><th>身份</th></tr>
+    <tr><td>sample_A: mkwv tfisll*</td><td>MKWVTFISLL</td><td rowspan="2">相同 SequenceID</td></tr>
+    <tr><td>customer_982: MKWVTFISLL</td><td>MKWVTFISLL</td></tr>
+  </table>
+  <p>标题只属于调用映射，不进入共享序列表；项目号、客户名和 accession 不会冒充内容身份。</p>
+
+  <h2>3. 完整 EvidenceKey</h2>
+  <pre>EvidenceKey = (
+    SequenceID,
+    AdapterContractVersion,
+    ToolRuntimeDigest,
+    ResourceID,
+    SemanticParameters,
+)</pre>
+  <ul>
+    <li><strong>SequenceID</strong>：研究哪条规范蛋白序列。</li>
+    <li><strong>AdapterContractVersion</strong>：SeqEvi 如何调用、解析、关联和解释结果。</li>
+    <li><strong>ToolRuntimeDigest</strong>：实际执行环境的不可变身份，而不只是版本字符串。</li>
+    <li><strong>ResourceID</strong>：实际注释数据库的不可变身份。</li>
+    <li><strong>SemanticParameters</strong>：全部会改变科学结果的参数，包括显式默认值。</li>
+  </ul>
+  <div class="warning"><strong>校准：</strong>同一序列加相同工具版本仍不足以复用。数据库、语义参数或适配器解释规则任一变化，都是另一份合法证据。</div>
+
+  <h2>4. “只做一次”的精确定义</h2>
+  <blockquote>对一个完整且完全相同的 EvidenceKey，只需保存一个不可变终态；未来映射到该 key 的输入记录都可复用。</blockquote>
+  <p>hit 与成功的 no_hit 都是可缓存终态。失败、超时、损坏输出或适配器拒绝不是可复用证据。</p>
+  <p>线程数、临时目录和日志级别若不改变科学语义，属于运行方式，不改变 key；E-value、taxonomy scope、搜索模式和数据库内容会改变 key。</p>
+
+  <h2>5. 逻辑一次与物理一次</h2>
+  <p>EvidenceKey 回答结果是否等价；并发协调回答两个进程会不会同时浪费计算。唯一约束可以保证最终只有一份权威记录，但两个客户端仍可能同时观察到 miss。claim/lease 用于减少重复执行，不属于科学身份。</p>
+
+  <h2>6. InputID 如何取回结果</h2>
+  <p>多个 InputID 可 many-to-one 映射到同一 SequenceID，再由 SequenceID 关联证据。这样既全局去重，又能按本次输入的 ID 和顺序交付结果。</p>
+
+  <div class="exercise"><h2>无提示检索练习</h2><ol>
+    <li>FASTA 标题不同；规范序列和其余 key 全相同。</li>
+    <li>序列与 eggNOG-mapper 版本相同，但数据库升级。</li>
+    <li>所有 key 相同，上一次成功结束但没有命中。</li>
+    <li>所有 key 相同，上一次超时退出。</li>
+    <li>所有内容相同，只把线程数从 8 改为 64，且上游保证不改变科学结果。</li>
+  </ol><p>分别回答“复用、重新计算或不能缓存”，并指出理由。</p></div>
+
+  <h2>来源</h2>
+  <ul>
+    <li><a href="https://github.com/FuqingZh/seqevi/blob/main/docs/architecture/20260720-v1.0-sequence-evidence-contract.md">Sequence and Evidence Contract v1.0</a></li>
+    <li><a href="https://github.com/FuqingZh/seqevi/blob/main/docs/architecture/20260720-v1.0-adapter-contract.md">Adapter Contract v1.0</a></li>
+    <li><a href="https://github.com/FuqingZh/seqevi/blob/main/docs/architecture/20260720-v1.0-seqevi-architecture.md">SeqEvi v1 Architecture</a></li>
+  </ul>
+</body>
+</html>
