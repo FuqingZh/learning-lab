@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly -a TRACKS=(
+  "bioinformatics-systems"
+  "scientific-ai-platforms"
+)
+
+is_known_track() {
+  local candidate=$1
+  local track
+
+  for track in "${TRACKS[@]}"; do
+    if [[ "${candidate}" == "${track}" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+for path in \
+  README.md \
+  MISSION.md \
+  CURRICULUM.md \
+  RESOURCES.md \
+  NOTES.md \
+  GLOSSARY.md \
+  docs/README.md \
+  docs/implementation-plans/20260820-v1.0-knowledge-map-implementation-plan.md \
+  learning-records/README.md \
+  lessons/README.md \
+  maps/README.md \
+  site/index.html
+do
+  if [[ ! -f "${path}" ]]; then
+    echo "missing required workspace entrypoint: ${path}" >&2
+    exit 1
+  fi
+done
+
+for track in "${TRACKS[@]}"; do
+  for path in \
+    "tracks/${track}/README.md" \
+    "tracks/${track}/CURRICULUM.md" \
+    "tracks/${track}/RESOURCES.md" \
+    "learning-records/${track}"
+  do
+    if [[ ! -e "${path}" ]]; then
+      echo "missing track boundary: ${path}" >&2
+      exit 1
+    fi
+  done
+done
+
+if [[ ! -f "tracks/bioinformatics-systems/SYSTEMS-MAP.md" ]]; then
+  echo "missing required systems-map entrypoint: tracks/bioinformatics-systems/SYSTEMS-MAP.md" >&2
+  exit 1
+fi
+
+for root in tracks learning-records lessons; do
+  while IFS= read -r directory; do
+    track=${directory##*/}
+    if ! is_known_track "${track}"; then
+      echo "unknown track directory: ${directory}" >&2
+      exit 1
+    fi
+  done < <(find "${root}" -mindepth 1 -maxdepth 1 -type d -print)
+done
+
+mapfile -t flat_records < <(
+  find learning-records -mindepth 1 -maxdepth 1 -type f ! -name README.md -print
+)
+if ((${#flat_records[@]})); then
+  echo "learning records must be placed under a track:" >&2
+  printf '  %s\n' "${flat_records[@]}" >&2
+  exit 1
+fi
+
+mapfile -t flat_lessons < <(
+  find lessons -mindepth 1 -maxdepth 1 -type f ! -name README.md -print
+)
+if ((${#flat_lessons[@]})); then
+  echo "lessons must be placed under a track:" >&2
+  printf '  %s\n' "${flat_lessons[@]}" >&2
+  exit 1
+fi
+
+mapfile -t numbered_lessons < <(
+  find lessons -mindepth 2 -type f -printf '%p\n' \
+    | awk -F/ '$NF ~ /^[0-9][0-9][0-9][0-9]-/'
+)
+if ((${#numbered_lessons[@]})); then
+  echo "lesson filenames must use semantic topics, not global numbers:" >&2
+  printf '  %s\n' "${numbered_lessons[@]}" >&2
+  exit 1
+fi
+
+python3 scripts/build-knowledge-map.py validate
+python3 tests/knowledge-map/test_validation.py
+python3 tests/knowledge-map/test_markdown_render.py
+python3 tests/knowledge-map/test_site_render.py
+python3 scripts/check-knowledge-map-generated.py
+
+echo "learning-lab structure: ok"

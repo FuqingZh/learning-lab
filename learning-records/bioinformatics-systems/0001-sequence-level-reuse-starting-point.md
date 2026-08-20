@@ -1,5 +1,5 @@
 ---
-Status: superseded by LR-0003
+Status: superseded by [exact evidence reuse mastery](0003-exact-evidence-reuse-mastered.md)
 ---
 
 # Sequence-level reuse is the starting point

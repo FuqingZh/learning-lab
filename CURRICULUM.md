@@ -1,81 +1,26 @@
-# SeqEvi Systems Curriculum
+# Learning Track Index
 
-This map preserves the whole journey while each session teaches only one
-bounded, demonstrable capability.
+The workspace contains independent capability tracks. Each session advances
+one bounded, demonstrable capability inside one track; concepts are promoted to
+shared reference material only after they prove transferable.
 
-## 0. Systems reasoning
+## Active tracks
 
-Separate biological facts, scientific contracts, software representations,
-operational settings, and deployment choices. Learn to read invariants,
-provenance, identities, states, and failure evidence.
+1. [Bioinformatics Systems](tracks/bioinformatics-systems/CURRICULUM.md)
+   uses SeqEvi as its anchor case and proceeds from proteins and sequence
+   identity through annotation, storage, concurrency, deployment, and result
+   consumption.
+2. [Scientific AI Platforms](tracks/scientific-ai-platforms/CURRICULUM.md)
+   uses Bio Plot Platform as its anchor case and studies authority, secure
+   capabilities, deterministic platform contracts, probabilistic models,
+   scientific validation, isolation, and evolution.
 
-## 1. Proteins and FASTA
+## Selection rule
 
-Amino acids, residues, proteins, alphabets, ambiguity and stop markers; bytes,
-text encodings, FASTA headers and records, streaming parsing and validation.
-
-## 2. Content identity
-
-Canonicalization, equality, aliases, hashing, collisions, SHA-512, MD5
-compatibility, GA4GH refget, and content-addressed systems. Explain why a
-project, filename, accession, and header are not sequence identity.
-
-## 3. Annotation evidence
-
-Annotation as an evidence-producing computation; the complete EvidenceKey;
-hit, cached no-hit, failure, immutability, exact reuse, and provenance.
-
-## 4. Bioinformatics search
-
-Alignment, scoring, E-values, homology, orthology, profile HMMs, domains,
-signatures, and functional transfer. Compare eggNOG-mapper/DIAMOND,
-InterProScan/Pfam/HMMER, and dbCAN.
-
-## 5. Adapter boundaries
-
-Upstream tools versus adapters, native schemas, thin normalization, runtime
-digest, resource lock, scientific versus operational parameters, parser
-contracts, raw artifacts, and acceptance tests.
-
-## 6. An annotation invocation
-
-Parse, stage, deduplicate, look up, compute misses, validate, commit, and
-materialize. Study Python values, batching, files, subprocesses, environments,
-working directories, process groups, timeout, and cancellation.
-
-## 7. Data consumption
-
-Rows, columns, schemas, nulls, grain and joins; TSV, JSON, Parquet, DuckDB, SQL,
-Polars lazy execution, projection, predicate pushdown, and stable domain APIs.
-
-## 8. The Store
-
-Metadata versus immutable artifacts; SQLite, PostgreSQL, POSIX files,
-transactions, uniqueness, idempotency, atomicity, integrity, and recovery.
-
-## 9. Concurrency
-
-Races, duplicate work, locks, claims, leases, fencing, renewal, deadlines,
-cancellation, ownership loss, and ambiguous network outcomes. Distinguish
-correctness, compute deduplication, and prompt cancellation.
-
-## 10. Deployment
-
-Processes, users, UID/GID, permissions, mounts, HTTP, authentication, TLS,
-secrets, services and observability; containers, OCI identities, supply-chain
-evidence, profiles, setup, and external resources.
-
-## 11. Workflow integration
-
-Cromwell/WDL, shared Store access, and site deployment, while preserving
-SeqEvi's independence from workflow engines, CephFS, Docker, Kubernetes, and
-specific products.
-
-## 12. Validation and evolution
-
-Unit, contract, integration, concurrency, scientific-equivalence, benchmark,
-failure-injection and release tests; compatibility, schema evolution,
-reproducibility, licenses, notices, SBOM, provenance, and release gates.
+A source repository does not automatically create a track. Create a track only
+when it has an independent learning outcome, curriculum, resources, and review
+cadence. Otherwise use the repository as a case inside the capability track it
+helps teach.
 
 ## Learning rule
 

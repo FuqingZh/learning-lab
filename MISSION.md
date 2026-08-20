@@ -1,20 +1,20 @@
-# Mission: Master bioinformatics systems through real repositories
+# Mission: Master scientific systems through real repositories
 
 ## Why
 Build enough scientific and computing understanding to reason independently
-about SeqEvi and related repositories: not merely operate their commands, but
-explain why their contracts exist, diagnose failures from first principles,
-and make sound design decisions as the systems evolve.
+about bioinformatics and AI-enabled scientific systems: not merely operate
+their commands, but explain why their contracts exist, diagnose failures from
+first principles, and transfer sound design judgment to unfamiliar repositories.
 
 ## Success looks like
-- Explain SeqEvi end to end, from protein residues and FASTA bytes through
-  external annotation, exact evidence identity, storage, concurrency, and
-  consumable results.
-- Given a cache, annotation, process, database, or distributed-concurrency
-  failure, identify the violated layer and derive a defensible diagnosis from
-  observable evidence.
-- Review or design an adapter and its public interface without conflating tool,
-  resource, execution, schema, storage, and deployment concerns.
+- Explain the active systems end to end, from scientific inputs and evidence
+  through contracts, execution, storage, validation, and consumable results.
+- Given a scientific, security, process, database, model-boundary, or
+  distributed-concurrency failure, identify the violated layer and derive a
+  defensible diagnosis from observable evidence.
+- Review or design a public boundary without conflating scientific truth,
+  probabilistic inference, tool execution, identity, schema, storage,
+  authorization, validation, and deployment concerns.
 - Retrieve and apply the important concepts later without depending on copied
   explanations or memorized command lines.
 
@@ -29,5 +29,4 @@ and make sound design decisions as the systems evolve.
 ## Out of scope
 - Automatically changing engineering repositories as part of a lesson.
 - Treating personal learning notes as team-authoritative documentation.
-- Pursuing unrelated topics that do not yet support understanding or operating
-  the bioinformatics systems in scope.
+- Pursuing unrelated topics that do not support an active learning track.
