@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260819T120000+0800-idempotency-recall
+started_at: 2026-08-19T12:00:00+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: idempotency
+  next: partial-failure
+  summary: 请求超时不能证明操作失败；下次继续判断如何恢复权威状态。
+evidence:
+  - concept: idempotency
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: false

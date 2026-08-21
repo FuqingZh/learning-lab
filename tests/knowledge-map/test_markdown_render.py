@@ -64,11 +64,15 @@ class TestKnowledgeMapMarkdownRender(unittest.TestCase):
             self.assertIn("## Typed local graph", idempotency)
             self.assertIn("|prerequisite|", idempotency)
             self.assertIn("Effective evidence", idempotency)
-            response_equality = (output / "concepts" / "response-equality.md").read_text(
-                encoding="utf-8"
-            )
-            self.assertIn("Contrasts with: [Idempotency]", response_equality)
-            self.assertIn("---|contrasts with|", response_equality)
+            self.assertIn("Prerequisite: [Partial failure]", idempotency)
+            for retired in (
+                "authoritative-readback.md",
+                "logical-operation.md",
+                "operation-scope.md",
+                "response-equality.md",
+                "retry-safe-operation.md",
+            ):
+                self.assertNotIn(f"concepts/{retired}", first)
             seqevi = (output / "case-labs" / "seqevi.md").read_text(encoding="utf-8")
             self.assertIn("## Strict membership", seqevi)
             self.assertIn("hub alone does not create membership", seqevi)

@@ -12,10 +12,8 @@ Use a track, case-lab, or focal page for a more complete local view.
 ```mermaid
 flowchart LR
   idempotency["Idempotency"]
-  logical_operation["Logical operation"]
   partial_failure["Partial failure"]
   side_effect["Side effect"]
-  idempotency -->|prerequisite| logical_operation
   idempotency -->|prerequisite| partial_failure
   idempotency -->|prerequisite| side_effect
 ```
@@ -25,8 +23,7 @@ flowchart LR
 | Concept | Kind | Mastery | Summary |
 | --- | --- | --- | --- |
 | [Idempotency](../concepts/idempotency.md) | foundation | mastered | Repeating one logical operation preserves its intended final effect. |
-| [Logical operation](../concepts/logical-operation.md) | foundation | mastered | The user-intended unit of work, which can require more than one transport request or execution attempt. |
 | [Partial failure](../concepts/partial-failure.md) | foundation | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
-| [Side effect](../concepts/side-effect.md) | foundation | mastered | An externally observable state change caused by an operation. |
+| [Side effect](../concepts/side-effect.md) | foundation | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
 
 Back to [Knowledge Map](README.md).

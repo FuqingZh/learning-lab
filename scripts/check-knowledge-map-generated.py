@@ -15,6 +15,7 @@ SOURCE_DIRECTORIES = (
     "case-labs",
     "concepts",
     "learning-records",
+    "learning-state",
     "lessons",
     "scripts",
     "tracks",

@@ -10,38 +10,17 @@ Direct concepts are explicitly taught or reused by this track. Contextual concep
 
 | Concept | Kind | Mastery | Summary |
 | --- | --- | --- | --- |
-| [Authoritative readback](../../concepts/authoritative-readback.md) | mechanism | mastered | Recovering an uncertain operation by checking durable authoritative state through its stable identity. |
 | [Partial failure](../../concepts/partial-failure.md) | foundation | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
-| [Retry-safe operation](../../concepts/retry-safe-operation.md) | pattern | mastered | An operation that can be attempted again after an uncertain response without duplicating its intended side effects. |
 
 ## One-hop prerequisite context
 
-| Concept | Kind | Mastery | Summary |
-| --- | --- | --- | --- |
-| [Idempotency](../../concepts/idempotency.md) | foundation | mastered | Repeating one logical operation preserves its intended final effect. |
-| [Logical operation](../../concepts/logical-operation.md) | foundation | mastered | The user-intended unit of work, which can require more than one transport request or execution attempt. |
-| [Side effect](../../concepts/side-effect.md) | foundation | mastered | An externally observable state change caused by an operation. |
+No concepts match this view.
 
 ## Typed relationships
 
 ```mermaid
 flowchart LR
-  authoritative_readback["Authoritative readback"]
-  idempotency["Idempotency"]
-  logical_operation["Logical operation"]
   partial_failure["Partial failure"]
-  retry_safe_operation["Retry-safe operation"]
-  side_effect["Side effect"]
-  authoritative_readback -->|enables| retry_safe_operation
-  authoritative_readback -->|prerequisite| logical_operation
-  authoritative_readback -->|prerequisite| partial_failure
-  authoritative_readback ---|related to| idempotency
-  idempotency -->|prerequisite| logical_operation
-  idempotency -->|prerequisite| partial_failure
-  idempotency -->|prerequisite| side_effect
-  retry_safe_operation -->|prerequisite| idempotency
-  retry_safe_operation -->|prerequisite| partial_failure
-  retry_safe_operation -->|prerequisite| side_effect
 ```
 
 Back to [Knowledge Map](../README.md).

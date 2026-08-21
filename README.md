@@ -1,6 +1,6 @@
 # Learning Lab
 
-This is Fuqing Zhang's private, persistent workspace for building transferable
+This is Fuqing Zhang's public, persistent workspace for building transferable
 understanding across scientific software and its computing foundations.
 
 The repository records a learning mission, trusted sources, demonstrated
@@ -36,6 +36,10 @@ not authoritative product documentation and not implementation requirements.
 - `case-labs/`: thin repository hubs; the existence of a hub does not establish
   concept membership.
 - `maps/` and `site/`: generated projections; never edit them as authorities.
+- `learning-state/sessions/`: append-only, concept-level evidence from short
+  learning encounters; generated due and capability state is not hand-edited.
+- `.agents/skills/learning-lab-tutor/`: the low-friction three-minute learning
+  workflow used by compatible AI agents.
 - `reference/`: compressed cross-track recall material, created only when real
   reuse exists.
 
@@ -55,6 +59,15 @@ Run `bash scripts/check-structure.sh` after changing workspace structure or
 adding a record, lesson, or concept. See the
 [concept authoring guide](docs/how-to-guides/20260820-v1.0-add-knowledge-concept-how-to-guide.md)
 before changing the graph schema or evidence links.
+
+## Ambient learning
+
+Ask a compatible agent to use `$learning-lab-tutor`, or simply say that you
+have a few minutes and want to continue. The default session restores the last
+thread in at most two short sentences, advances one coherent knowledge
+increment, uses at most one retrieval or transfer check, and records the next
+resume point automatically. The full design and evidence boundaries are in the
+[Ambient Learning implementation plan](docs/implementation-plans/20260821-v1.1-ambient-learning-implementation-plan.md).
 
 ## 2026-08-17 migration
 

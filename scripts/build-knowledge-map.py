@@ -9,6 +9,7 @@ browser projections are separate consumers of the data emitted by
 from __future__ import annotations
 
 import argparse
+import datetime as datetime_module
 import json
 import math
 import re
@@ -16,6 +17,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import yaml
 from yaml.constructor import ConstructorError
@@ -36,7 +38,13 @@ LIST_FIELDS = (
     "records",
 )
 RELATIONSHIP_FIELDS = ("prerequisites", "enables", "contrasts_with", "related")
+TERMINOLOGY_FIELDS = frozenset({"preferred_english_term", "checked_on", "sources"})
+TERMINOLOGY_SOURCE_FIELDS = frozenset({"url", "publisher", "kind"})
+TERMINOLOGY_SOURCE_KINDS = frozenset(
+    {"standard", "peer-reviewed", "textbook", "professional-documentation"}
+)
 STABLE_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 RECORD_STATE = re.compile(r"-(developing|mastered)\.md$")
 OBSIDIAN_CONCEPT_LINK = re.compile(
     r"^\[\[concepts/([a-z0-9]+(?:-[a-z0-9]+)*)\]\]$"
@@ -338,6 +346,81 @@ def normalize_extensions(raw: dict[str, Any], *, path: Path) -> dict[str, Any]:
     }
 
 
+def normalize_publisher(value: str) -> str:
+    """Normalize a publisher only for structural source-independence checks."""
+
+    return " ".join(value.split()).casefold()
+
+
+def validate_terminology(raw: dict[str, Any], *, title: str, path: Path) -> None:
+    """Validate provenance structure without judging a term's semantic authority."""
+
+    terminology = raw.get("terminology")
+    if not isinstance(terminology, dict):
+        raise KnowledgeMapError(f"{path}: terminology must be a mapping")
+    if set(terminology) != TERMINOLOGY_FIELDS:
+        raise KnowledgeMapError(
+            f"{path}: terminology must contain exactly: "
+            "preferred_english_term, checked_on, sources"
+        )
+
+    preferred = require_nonempty_string(
+        terminology["preferred_english_term"],
+        field="terminology.preferred_english_term",
+        path=path,
+    )
+    if preferred != title:
+        raise KnowledgeMapError(
+            f"{path}: terminology.preferred_english_term must equal title"
+        )
+
+    checked_on = terminology["checked_on"]
+    if not isinstance(checked_on, str) or not ISO_DATE.fullmatch(checked_on):
+        raise KnowledgeMapError(f"{path}: terminology.checked_on must be a quoted ISO date")
+    try:
+        datetime_module.date.fromisoformat(checked_on)
+    except ValueError as error:
+        raise KnowledgeMapError(
+            f"{path}: terminology.checked_on must be a valid ISO date"
+        ) from error
+
+    sources = terminology["sources"]
+    if not isinstance(sources, list) or len(sources) < 2:
+        raise KnowledgeMapError(f"{path}: terminology.sources must contain at least two sources")
+
+    urls: set[str] = set()
+    publishers: set[str] = set()
+    for source in sources:
+        if not isinstance(source, dict) or set(source) != TERMINOLOGY_SOURCE_FIELDS:
+            raise KnowledgeMapError(
+                f"{path}: terminology.sources entries must contain exactly: url, publisher, kind"
+            )
+        url = require_nonempty_string(source["url"], field="terminology.sources.url", path=path)
+        parsed_url = urlparse(url)
+        if parsed_url.scheme != "https" or not parsed_url.netloc:
+            raise KnowledgeMapError(f"{path}: terminology.sources.url must be an HTTPS URL")
+        if url in urls:
+            raise KnowledgeMapError(f"{path}: terminology.sources URLs must be unique")
+        urls.add(url)
+
+        publisher = require_nonempty_string(
+            source["publisher"], field="terminology.sources.publisher", path=path
+        )
+        normalized_publisher = normalize_publisher(publisher)
+        if normalized_publisher in publishers:
+            raise KnowledgeMapError(
+                f"{path}: terminology.sources publishers must be unique after normalization"
+            )
+        publishers.add(normalized_publisher)
+
+        kind = require_nonempty_string(source["kind"], field="terminology.sources.kind", path=path)
+        if kind not in TERMINOLOGY_SOURCE_KINDS:
+            raise KnowledgeMapError(
+                f"{path}: terminology.sources.kind must be one of "
+                f"{', '.join(sorted(TERMINOLOGY_SOURCE_KINDS))}"
+            )
+
+
 def parse_concept(root: Path, path: Path) -> dict[str, Any]:
     raw = load_frontmatter(path, required=True)
     for field in REQUIRED_SCALARS + LIST_FIELDS:
@@ -352,9 +435,12 @@ def parse_concept(root: Path, path: Path) -> dict[str, Any]:
             f"{path}: kind must be one of {', '.join(sorted(KNOWN_KINDS))}"
         )
 
+    title = require_nonempty_string(raw["title"], field="title", path=path)
+    validate_terminology(raw, title=title, path=path)
+
     node = {
         "id": identifier,
-        "title": require_nonempty_string(raw["title"], field="title", path=path),
+        "title": title,
         "summary": require_nonempty_string(raw["summary"], field="summary", path=path),
         "kind": kind,
         "tracks": require_unique_strings(raw["tracks"], field="tracks", path=path, ids=True),
