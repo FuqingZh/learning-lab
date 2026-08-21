@@ -184,26 +184,21 @@ _Avoid_: Sandbox escape, ordinary validation error
 
 **Idempotency**:
 The property that repeating the same logical operation produces the same final
-intended business effect as performing it once.
+intended business effect as performing it once. It does not require identical
+response bytes, exactly-once delivery, or guaranteed success; it is what can
+make a retry safe after an uncertain outcome for the same intended work.
 _Avoid_: Identical response bytes, request delivered exactly once
 
 **Side effect**:
-An externally observable state change caused by an operation, such as creating
-a Job, updating a database record, consuming quota, or writing a result file.
-_Avoid_: Return value, internal calculation
+An observable change to execution or its environment caused by evaluation or an
+operation. Assignments, increment operations, function calls, creating a Job,
+updating a database record, consuming quota, and writing a result file can all
+be side effects.
+_Avoid_: Return value alone, value-only calculation
 
 **Idempotency key**:
 A stable identifier for one logical operation across multiple request attempts;
-a genuinely new operation requires a new key.
-_Avoid_: Identifier for one network attempt, reusable operation type
-
-**Retry-safe**:
-An operation can be attempted again after an uncertain response without
-duplicating its intended side effects.
-_Avoid_: Guaranteed success, request executed only once
-
-**Operation scope**:
-The operation type or namespace within which an idempotency key identifies one
-logical operation; the same key in different scopes does not denote the same
-operation.
-_Avoid_: Workflow stage, global meaning of a key string
+a genuinely new operation requires a new key. Its meaning is defined within
+the API operation or namespace that owns it, and changing the payload for the
+same key is a conflict rather than a valid retry.
+_Avoid_: Identifier for one network attempt, globally meaningful key string

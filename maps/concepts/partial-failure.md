@@ -21,9 +21,7 @@ A distributed operation can have some effects occur while another participant ca
 
 ## Incoming relationships
 
-- [Authoritative readback](../../concepts/authoritative-readback.md) depends on this concept.
 - [Idempotency](../../concepts/idempotency.md) depends on this concept.
-- [Retry-safe operation](../../concepts/retry-safe-operation.md) depends on this concept.
 
 ## Tracks
 
@@ -43,16 +41,9 @@ No linked learning records.
 
 ```mermaid
 flowchart LR
-  authoritative_readback["Authoritative readback"]
   idempotency["Idempotency"]
   partial_failure["Partial failure"]
-  retry_safe_operation["Retry-safe operation"]
-  authoritative_readback -->|enables| retry_safe_operation
-  authoritative_readback -->|prerequisite| partial_failure
-  authoritative_readback ---|related to| idempotency
   idempotency -->|prerequisite| partial_failure
-  retry_safe_operation -->|prerequisite| idempotency
-  retry_safe_operation -->|prerequisite| partial_failure
 ```
 
 Back to [Knowledge Map](../README.md).

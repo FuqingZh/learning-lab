@@ -10,15 +10,10 @@ Direct concepts are explicitly taught or reused by this track. Contextual concep
 
 | Concept | Kind | Mastery | Summary |
 | --- | --- | --- | --- |
-| [Authoritative readback](../../concepts/authoritative-readback.md) | mechanism | mastered | Recovering an uncertain operation by checking durable authoritative state through its stable identity. |
 | [Idempotency](../../concepts/idempotency.md) | foundation | mastered | Repeating one logical operation preserves its intended final effect. |
 | [Idempotency key](../../concepts/idempotency-key.md) | pattern | mastered | A stable identifier retained across attempts for one scoped logical operation. |
-| [Logical operation](../../concepts/logical-operation.md) | foundation | mastered | The user-intended unit of work, which can require more than one transport request or execution attempt. |
-| [Operation scope](../../concepts/operation-scope.md) | boundary | mastered | The operation type or namespace within which an idempotency key identifies one logical operation. |
 | [Partial failure](../../concepts/partial-failure.md) | foundation | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
-| [Response equality](../../concepts/response-equality.md) | boundary | mastered | The property that repeated attempts return identical response representations. |
-| [Retry-safe operation](../../concepts/retry-safe-operation.md) | pattern | mastered | An operation that can be attempted again after an uncertain response without duplicating its intended side effects. |
-| [Side effect](../../concepts/side-effect.md) | foundation | mastered | An externally observable state change caused by an operation. |
+| [Side effect](../../concepts/side-effect.md) | foundation | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
 
 ## One-hop prerequisite context
 
@@ -28,33 +23,13 @@ No concepts match this view.
 
 ```mermaid
 flowchart LR
-  authoritative_readback["Authoritative readback"]
   idempotency["Idempotency"]
   idempotency_key["Idempotency key"]
-  logical_operation["Logical operation"]
-  operation_scope["Operation scope"]
   partial_failure["Partial failure"]
-  response_equality["Response equality"]
-  retry_safe_operation["Retry-safe operation"]
   side_effect["Side effect"]
-  authoritative_readback -->|enables| retry_safe_operation
-  authoritative_readback -->|prerequisite| logical_operation
-  authoritative_readback -->|prerequisite| partial_failure
-  authoritative_readback ---|related to| idempotency
-  idempotency ---|contrasts with| response_equality
-  idempotency -->|prerequisite| logical_operation
   idempotency -->|prerequisite| partial_failure
   idempotency -->|prerequisite| side_effect
-  idempotency ---|related to| operation_scope
-  idempotency_key -->|enables| idempotency
-  idempotency_key -->|enables| retry_safe_operation
-  idempotency_key -->|prerequisite| logical_operation
-  idempotency_key -->|prerequisite| operation_scope
-  operation_scope -->|prerequisite| logical_operation
-  retry_safe_operation -->|prerequisite| idempotency
-  retry_safe_operation -->|prerequisite| partial_failure
-  retry_safe_operation -->|prerequisite| side_effect
-  side_effect ---|contrasts with| response_equality
+  idempotency_key -->|prerequisite| idempotency
 ```
 
 Back to [Knowledge Map](../README.md).

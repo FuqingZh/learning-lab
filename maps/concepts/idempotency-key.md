@@ -14,8 +14,8 @@ A stable identifier retained across attempts for one scoped logical operation.
 
 ## Direct relationships
 
-- Prerequisite: [Logical operation](../../concepts/logical-operation.md), [Operation scope](../../concepts/operation-scope.md)
-- Enables: [Idempotency](../../concepts/idempotency.md), [Retry-safe operation](../../concepts/retry-safe-operation.md)
+- Prerequisite: [Idempotency](../../concepts/idempotency.md)
+- Enables: None.
 - Contrasts with: None.
 - Related to: None.
 
@@ -42,17 +42,7 @@ No linked lessons.
 flowchart LR
   idempotency["Idempotency"]
   idempotency_key["Idempotency key"]
-  logical_operation["Logical operation"]
-  operation_scope["Operation scope"]
-  retry_safe_operation["Retry-safe operation"]
-  idempotency -->|prerequisite| logical_operation
-  idempotency ---|related to| operation_scope
-  idempotency_key -->|enables| idempotency
-  idempotency_key -->|enables| retry_safe_operation
-  idempotency_key -->|prerequisite| logical_operation
-  idempotency_key -->|prerequisite| operation_scope
-  operation_scope -->|prerequisite| logical_operation
-  retry_safe_operation -->|prerequisite| idempotency
+  idempotency_key -->|prerequisite| idempotency
 ```
 
 Back to [Knowledge Map](../README.md).

@@ -16,14 +16,9 @@ This is a generated navigation layer over the canonical concept files and learni
   - [Bio Plot Platform](case-labs/bio-plot-platform.md)
   - [SeqEvi](case-labs/seqevi.md)
 - Focal concepts:
-  - [Authoritative readback](concepts/authoritative-readback.md)
   - [Idempotency](concepts/idempotency.md)
   - [Idempotency key](concepts/idempotency-key.md)
-  - [Logical operation](concepts/logical-operation.md)
-  - [Operation scope](concepts/operation-scope.md)
   - [Partial failure](concepts/partial-failure.md)
-  - [Response equality](concepts/response-equality.md)
-  - [Retry-safe operation](concepts/retry-safe-operation.md)
   - [Side effect](concepts/side-effect.md)
 
 ## Legend

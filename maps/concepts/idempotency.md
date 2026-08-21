@@ -14,15 +14,14 @@ Repeating one logical operation preserves its intended final effect.
 
 ## Direct relationships
 
-- Prerequisite: [Logical operation](../../concepts/logical-operation.md), [Partial failure](../../concepts/partial-failure.md), [Side effect](../../concepts/side-effect.md)
+- Prerequisite: [Partial failure](../../concepts/partial-failure.md), [Side effect](../../concepts/side-effect.md)
 - Enables: None.
-- Contrasts with: [Response equality](../../concepts/response-equality.md)
-- Related to: [Authoritative readback](../../concepts/authoritative-readback.md), [Operation scope](../../concepts/operation-scope.md)
+- Contrasts with: None.
+- Related to: None.
 
 ## Incoming relationships
 
-- [Idempotency key](../../concepts/idempotency-key.md) enables this concept.
-- [Retry-safe operation](../../concepts/retry-safe-operation.md) depends on this concept.
+- [Idempotency key](../../concepts/idempotency-key.md) depends on this concept.
 
 ## Tracks
 
@@ -41,33 +40,13 @@ No linked lessons.
 
 ```mermaid
 flowchart LR
-  authoritative_readback["Authoritative readback"]
   idempotency["Idempotency"]
   idempotency_key["Idempotency key"]
-  logical_operation["Logical operation"]
-  operation_scope["Operation scope"]
   partial_failure["Partial failure"]
-  response_equality["Response equality"]
-  retry_safe_operation["Retry-safe operation"]
   side_effect["Side effect"]
-  authoritative_readback -->|enables| retry_safe_operation
-  authoritative_readback -->|prerequisite| logical_operation
-  authoritative_readback -->|prerequisite| partial_failure
-  authoritative_readback ---|related to| idempotency
-  idempotency ---|contrasts with| response_equality
-  idempotency -->|prerequisite| logical_operation
   idempotency -->|prerequisite| partial_failure
   idempotency -->|prerequisite| side_effect
-  idempotency ---|related to| operation_scope
-  idempotency_key -->|enables| idempotency
-  idempotency_key -->|enables| retry_safe_operation
-  idempotency_key -->|prerequisite| logical_operation
-  idempotency_key -->|prerequisite| operation_scope
-  operation_scope -->|prerequisite| logical_operation
-  retry_safe_operation -->|prerequisite| idempotency
-  retry_safe_operation -->|prerequisite| partial_failure
-  retry_safe_operation -->|prerequisite| side_effect
-  side_effect ---|contrasts with| response_equality
+  idempotency_key -->|prerequisite| idempotency
 ```
 
 Back to [Knowledge Map](../README.md).

@@ -29,12 +29,46 @@ def concept_document(identifier: str, **overrides: object) -> str:
         "related": [],
         "lessons": [],
         "records": [],
+        "terminology": {
+            "preferred_english_term": identifier.replace("-", " ").title(),
+            "checked_on": "2026-08-21",
+            "sources": [
+                {
+                    "url": "https://standards.example/term",
+                    "publisher": "Standards Example",
+                    "kind": "standard",
+                },
+                {
+                    "url": "https://docs.example/term",
+                    "publisher": "Documentation Example",
+                    "kind": "professional-documentation",
+                },
+            ],
+        },
     }
     fields.update(overrides)
     relationship_fields = {"prerequisites", "enables", "contrasts_with", "related"}
     lines = ["---"]
     for key, value in fields.items():
-        if isinstance(value, list):
+        if key == "terminology":
+            assert isinstance(value, dict)
+            lines.extend(
+                [
+                    "terminology:",
+                    f"  preferred_english_term: {value['preferred_english_term']}",
+                    f"  checked_on: \"{value['checked_on']}\"",
+                    "  sources:",
+                ]
+            )
+            for source in value["sources"]:
+                lines.extend(
+                    [
+                        f"    - url: {source['url']}",
+                        f"      publisher: {source['publisher']}",
+                        f"      kind: {source['kind']}",
+                    ]
+                )
+        elif isinstance(value, list):
             if value:
                 lines.append(f"{key}:")
                 for item in value:
@@ -103,7 +137,28 @@ class TestKnowledgeMapValidation(unittest.TestCase):
             graph = json.loads(first.stdout)
             alpha = next(node for node in graph["nodes"] if node["id"] == "alpha")
             self.assertEqual(alpha["mastery"], {"effective_record": record, "status": "mastered"})
-            self.assertEqual(alpha["extensions"], {"reviewer_notes": ["stable", "portable"]})
+            self.assertEqual(
+                alpha["extensions"],
+                {
+                    "reviewer_notes": ["stable", "portable"],
+                    "terminology": {
+                        "checked_on": "2026-08-21",
+                        "preferred_english_term": "Alpha",
+                        "sources": [
+                            {
+                                "kind": "standard",
+                                "publisher": "Standards Example",
+                                "url": "https://standards.example/term",
+                            },
+                            {
+                                "kind": "professional-documentation",
+                                "publisher": "Documentation Example",
+                                "url": "https://docs.example/term",
+                            },
+                        ],
+                    },
+                },
+            )
             self.assertEqual(
                 graph["edges"],
                 [{"source": "beta", "target": "alpha", "type": "prerequisites"}],
@@ -167,6 +222,74 @@ class TestKnowledgeMapValidation(unittest.TestCase):
             root = Path(temporary)
             self.write_concept(root, "alpha.md", "alpha", kind="unspecified")
             self.assert_rejected(root, "kind must be one of")
+
+    def test_rejects_missing_terminology(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            document = concept_document("alpha").replace("terminology:\n", "provenance:\n")
+            (root / "concepts" / "alpha.md").write_text(document, encoding="utf-8")
+            self.assert_rejected(root, "terminology must be a mapping")
+
+    def test_rejects_terminology_preferred_term_different_from_title(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_concept(
+                root,
+                "alpha.md",
+                "alpha",
+                terminology={
+                    "preferred_english_term": "Beta",
+                    "checked_on": "2026-08-21",
+                    "sources": [
+                        {
+                            "url": "https://standards.example/term",
+                            "publisher": "Standards Example",
+                            "kind": "standard",
+                        },
+                        {
+                            "url": "https://docs.example/term",
+                            "publisher": "Documentation Example",
+                            "kind": "professional-documentation",
+                        },
+                    ],
+                },
+            )
+            self.assert_rejected(root, "preferred_english_term must equal title")
+
+    def test_rejects_terminology_sources_without_independent_publishers(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_concept(
+                root,
+                "alpha.md",
+                "alpha",
+                terminology={
+                    "preferred_english_term": "Alpha",
+                    "checked_on": "2026-08-21",
+                    "sources": [
+                        {
+                            "url": "https://standards.example/term",
+                            "publisher": "Example Publisher",
+                            "kind": "standard",
+                        },
+                        {
+                            "url": "https://docs.example/term",
+                            "publisher": " example  publisher ",
+                            "kind": "professional-documentation",
+                        },
+                    ],
+                },
+            )
+            self.assert_rejected(root, "publishers must be unique after normalization")
+
+    def test_rejects_unquoted_terminology_date(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            document = concept_document("alpha").replace(
+                'checked_on: "2026-08-21"', "checked_on: 2026-08-21"
+            )
+            (root / "concepts" / "alpha.md").write_text(document, encoding="utf-8")
+            self.assert_rejected(root, "checked_on must be a quoted ISO date")
 
     def test_rejects_prerequisite_cycle(self) -> None:
         with self.create_root() as temporary:
@@ -289,8 +412,8 @@ class TestKnowledgeMapValidation(unittest.TestCase):
         with self.create_root() as temporary:
             root = Path(temporary)
             document = concept_document("alpha").replace(
-                "records: []\n---",
-                "records: []\nrecords: []\n---",
+                "records: []\nterminology:",
+                "records: []\nrecords: []\nterminology:",
             )
             (root / "concepts" / "alpha.md").write_text(document, encoding="utf-8")
             self.assert_rejected(root, "found duplicate key 'records'")
