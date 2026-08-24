@@ -5,12 +5,13 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlsplit, urlunsplit
 
 import yaml
 from yaml.constructor import ConstructorError
@@ -18,6 +19,7 @@ from yaml.resolver import BaseResolver
 
 
 SCHEMA_VERSION = 1
+SUPPORTED_SCHEMA_VERSIONS = frozenset({1, 2})
 STABLE_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DOSSIER_FIELDS = frozenset(
     {"schema_version", "id", "title", "summary", "concepts", "lessons", "tracks", "milestones"}
@@ -25,7 +27,9 @@ DOSSIER_FIELDS = frozenset(
 MILESTONE_FIELDS = frozenset(
     {"id", "year", "month", "day", "kind", "actors", "claim", "evidence_basis", "sources"}
 )
+MILESTONE_V2_FIELDS = MILESTONE_FIELDS | frozenset({"subjects", "boundaries"})
 SOURCE_FIELDS = frozenset({"url", "title", "publisher", "role", "kind"})
+SOURCE_V2_FIELDS = SOURCE_FIELDS | frozenset({"locator"})
 MILESTONE_KINDS = frozenset(
     {"terminology", "problem", "formalization", "adoption", "popularization", "revision", "critique"}
 )
@@ -76,7 +80,7 @@ UniqueKeySafeLoader.add_constructor(BaseResolver.DEFAULT_MAPPING_TAG, construct_
 
 def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("validate", "normalized-data"))
+    parser.add_argument("command", choices=("validate", "normalized-data", "normalized-evidence-data"))
     parser.add_argument("--root", type=Path, default=Path.cwd())
     return parser.parse_args(arguments)
 
@@ -137,6 +141,16 @@ def require_unique_strings(value: Any, *, field: str, path: Path, stable_ids: bo
     return sorted(values)
 
 
+def require_sorted_nonempty_strings(value: Any, *, field: str, path: Path, stable_ids: bool) -> list[str]:
+    values = require_unique_strings(value, field=field, path=path, stable_ids=stable_ids)
+    if not values:
+        raise KnowledgeHistoryError(f"{path}: {field} must not be empty")
+    raw_values = value
+    if raw_values != values:
+        raise KnowledgeHistoryError(f"{path}: {field} must be sorted")
+    return values
+
+
 def resolve_reference(root: Path, reference: str, *, source: Path, field: str, prefix: str) -> Path:
     candidate = Path(reference)
     if candidate.is_absolute():
@@ -193,30 +207,56 @@ def require_calendar_component(value: Any, *, field: str, path: Path, lower: int
     return value
 
 
-def parse_source(value: Any, *, path: Path, label: str) -> dict[str, str]:
-    source = require_exact_fields(value, fields=SOURCE_FIELDS, label=label, path=path)
+def canonicalize_source_url(url: str, *, path: Path, field: str) -> str:
+    parsed = urlsplit(url)
+    if parsed.scheme.lower() != "https" or not parsed.netloc or parsed.username or parsed.password:
+        raise KnowledgeHistoryError(f"{path}: {field} must be an HTTPS URL")
+    host = parsed.hostname
+    if not host:
+        raise KnowledgeHistoryError(f"{path}: {field} must be an HTTPS URL")
+    try:
+        port = parsed.port
+    except ValueError as error:
+        raise KnowledgeHistoryError(f"{path}: {field} has an invalid port") from error
+    normalized_host = host.lower()
+    if ":" in normalized_host:
+        normalized_host = f"[{normalized_host}]"
+    netloc = normalized_host if port in (None, 443) else f"{normalized_host}:{port}"
+    return urlunsplit(("https", netloc, parsed.path, parsed.query, ""))
+
+
+def source_id(canonical_url: str) -> str:
+    return "source-" + hashlib.sha256(canonical_url.encode("utf-8")).hexdigest()[:16]
+
+
+def parse_source(value: Any, *, path: Path, label: str, schema_version: int) -> dict[str, str]:
+    source = require_exact_fields(
+        value, fields=SOURCE_V2_FIELDS if schema_version == 2 else SOURCE_FIELDS, label=label, path=path
+    )
     url = require_string(source["url"], field=f"{label}.url", path=path)
-    parsed = urlparse(url)
-    if parsed.scheme != "https" or not parsed.netloc:
-        raise KnowledgeHistoryError(f"{path}: {label}.url must be an HTTPS URL")
+    canonical_url = canonicalize_source_url(url, path=path, field=f"{label}.url")
     role = require_string(source["role"], field=f"{label}.role", path=path)
     if role not in SOURCE_ROLES:
         raise KnowledgeHistoryError(f"{path}: {label}.role must be one of {', '.join(sorted(SOURCE_ROLES))}")
     kind = require_string(source["kind"], field=f"{label}.kind", path=path)
     if kind not in SOURCE_KINDS:
         raise KnowledgeHistoryError(f"{path}: {label}.kind must be one of {', '.join(sorted(SOURCE_KINDS))}")
-    return {
+    parsed = {
         "url": url,
+        "canonical_url": canonical_url,
         "title": require_string(source["title"], field=f"{label}.title", path=path),
         "publisher": require_string(source["publisher"], field=f"{label}.publisher", path=path),
         "role": role,
         "kind": kind,
     }
+    if schema_version == 2:
+        parsed["locator"] = require_string(source["locator"], field=f"{label}.locator", path=path)
+    return parsed
 
 
-def parse_milestone(value: Any, *, path: Path, index: int) -> dict[str, Any]:
+def parse_milestone(value: Any, *, path: Path, index: int, schema_version: int, concept_ids: set[str]) -> dict[str, Any]:
     label = f"milestones[{index}]"
-    milestone = require_exact_fields(value, fields=MILESTONE_FIELDS, label=label, path=path)
+    milestone = require_exact_fields(value, fields=MILESTONE_V2_FIELDS if schema_version == 2 else MILESTONE_FIELDS, label=label, path=path)
     identifier = require_stable_id(milestone["id"], field=f"{label}.id", path=path)
     year = require_calendar_component(milestone["year"], field=f"{label}.year", path=path, lower=1, upper=9999)
     if year is None:
@@ -242,8 +282,8 @@ def parse_milestone(value: Any, *, path: Path, index: int) -> dict[str, Any]:
     sources_value = milestone["sources"]
     if not isinstance(sources_value, list) or not sources_value:
         raise KnowledgeHistoryError(f"{path}: {label}.sources must be a non-empty list")
-    sources = [parse_source(source, path=path, label=f"{label}.sources[{source_index}]") for source_index, source in enumerate(sources_value)]
-    urls = [source["url"] for source in sources]
+    sources = [parse_source(source, path=path, label=f"{label}.sources[{source_index}]", schema_version=schema_version) for source_index, source in enumerate(sources_value)]
+    urls = [source["canonical_url"] for source in sources]
     if len(set(urls)) != len(urls):
         raise KnowledgeHistoryError(f"{path}: {label}.sources URLs must be unique")
     roles = {source["role"] for source in sources}
@@ -253,7 +293,7 @@ def parse_milestone(value: Any, *, path: Path, index: int) -> dict[str, Any]:
         raise KnowledgeHistoryError(f"{path}: {label}.evidence_basis scholarly-secondary requires a scholarly secondary source")
     if evidence_basis == "mixed" and roles != SOURCE_ROLES:
         raise KnowledgeHistoryError(f"{path}: {label}.evidence_basis mixed requires primary and scholarly secondary sources")
-    return {
+    parsed = {
         "id": identifier,
         "year": year,
         "month": month,
@@ -262,16 +302,25 @@ def parse_milestone(value: Any, *, path: Path, index: int) -> dict[str, Any]:
         "actors": actors,
         "claim": require_string(milestone["claim"], field=f"{label}.claim", path=path),
         "evidence_basis": evidence_basis,
-        "sources": sorted(sources, key=lambda source: (source["url"], source["title"], source["publisher"])),
+        "sources": sorted(sources, key=lambda source: (source["canonical_url"], source["url"], source["title"], source["publisher"])),
     }
+    if schema_version == 2:
+        subjects = require_sorted_nonempty_strings(milestone["subjects"], field=f"{label}.subjects", path=path, stable_ids=True)
+        for subject in subjects:
+            if subject not in concept_ids:
+                raise KnowledgeHistoryError(f"{path}: {label}.subjects has unknown concept: {subject}")
+        boundaries = require_sorted_nonempty_strings(milestone["boundaries"], field=f"{label}.boundaries", path=path, stable_ids=False)
+        parsed["subjects"] = subjects
+        parsed["boundaries"] = boundaries
+    return parsed
 
 
 def parse_dossier(root: Path, path: Path, *, concept_ids: set[str], track_ids: set[str]) -> dict[str, Any]:
     raw, body = split_frontmatter(path)
     dossier = require_exact_fields(raw, fields=DOSSIER_FIELDS, label="dossier", path=path)
     schema_version = dossier["schema_version"]
-    if isinstance(schema_version, bool) or not isinstance(schema_version, int) or schema_version != SCHEMA_VERSION:
-        raise KnowledgeHistoryError(f"{path}: schema_version must be {SCHEMA_VERSION}")
+    if isinstance(schema_version, bool) or not isinstance(schema_version, int) or schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+        raise KnowledgeHistoryError(f"{path}: schema_version must be one of {', '.join(map(str, sorted(SUPPORTED_SCHEMA_VERSIONS)))}")
     identifier = require_stable_id(dossier["id"], field="id", path=path)
     if path.name != f"{identifier}.md":
         raise KnowledgeHistoryError(f"{path}: filename must equal dossier id plus .md")
@@ -293,15 +342,13 @@ def parse_dossier(root: Path, path: Path, *, concept_ids: set[str], track_ids: s
     milestones_value = dossier["milestones"]
     if not isinstance(milestones_value, list) or not milestones_value:
         raise KnowledgeHistoryError(f"{path}: milestones must be a non-empty list")
-    milestones = [parse_milestone(item, path=path, index=index) for index, item in enumerate(milestones_value)]
+    milestones = [parse_milestone(item, path=path, index=index, schema_version=schema_version, concept_ids=concept_ids) for index, item in enumerate(milestones_value)]
     milestone_ids = [milestone["id"] for milestone in milestones]
     if len(set(milestone_ids)) != len(milestone_ids):
         raise KnowledgeHistoryError(f"{path}: milestone ids must be unique")
-    source_urls = [source["url"] for milestone in milestones for source in milestone["sources"]]
-    if len(set(source_urls)) != len(source_urls):
-        raise KnowledgeHistoryError(f"{path}: source URLs must be unique within a dossier")
     validate_headings(body, path=path)
     return {
+        "schema_version": schema_version,
         "id": identifier,
         "title": require_string(dossier["title"], field="title", path=path),
         "summary": require_string(dossier["summary"], field="summary", path=path),
@@ -338,17 +385,97 @@ def load_history(root: Path) -> dict[str, Any]:
     return {"schema_version": SCHEMA_VERSION, "dossiers": sorted(dossiers, key=lambda dossier: dossier["id"])}
 
 
+def normalized_history_data(history: dict[str, Any]) -> dict[str, Any]:
+    """Keep the timeline projection's v1 shape independent of authoring schema."""
+    dossiers = []
+    for dossier in history["dossiers"]:
+        dossiers.append({
+            key: value for key, value in dossier.items() if key not in {"schema_version"}
+        } | {
+            "milestones": [
+                {key: value for key, value in milestone.items() if key not in {"subjects", "boundaries"}} | {
+                    "sources": [
+                        {key: value for key, value in source.items() if key not in {"canonical_url", "locator"}}
+                        for source in milestone["sources"]
+                    ]
+                }
+                for milestone in dossier["milestones"]
+            ]
+        })
+    return {"schema_version": SCHEMA_VERSION, "dossiers": dossiers}
+
+
+def read_concept_metadata(root: Path) -> dict[str, dict[str, str]]:
+    metadata_by_id: dict[str, dict[str, str]] = {}
+    for path in sorted((root / "concepts").glob("*.md")):
+        metadata, _ = split_frontmatter(path)
+        identifier = require_stable_id(metadata.get("id"), field="concept id", path=path)
+        metadata_by_id[identifier] = {
+            "id": f"concept:{identifier}", "kind": "concept", "concept_id": identifier,
+            "path": path.relative_to(root).as_posix(),
+            "title": require_string(metadata.get("title"), field="concept title", path=path),
+        }
+    return metadata_by_id
+
+
+def normalized_evidence_data(root: Path, history: dict[str, Any]) -> dict[str, Any]:
+    """Project explicit v2 subjects and source occurrences into an evidence-only graph."""
+    nodes: dict[str, dict[str, Any]] = {}
+    edges: list[dict[str, Any]] = []
+    source_metadata: dict[str, tuple[str, str, str, str]] = {}
+    concepts = read_concept_metadata(root)
+    for dossier in history["dossiers"]:
+        if dossier["schema_version"] != 2:
+            continue
+        dossier_id = f"dossier:{dossier['id']}"
+        nodes[dossier_id] = {"id": dossier_id, "kind": "dossier", "dossier_id": dossier["id"], "path": dossier["path"], "title": dossier["title"], "summary": dossier["summary"]}
+        for milestone in dossier["milestones"]:
+            milestone_id = f"milestone:{dossier['id']}:{milestone['id']}"
+            nodes[milestone_id] = {
+                "id": milestone_id, "kind": "milestone", "dossier_id": dossier["id"],
+                "milestone_id": milestone["id"], "claim": milestone["claim"], "date": {
+                    "year": milestone["year"], "month": milestone["month"], "day": milestone["day"]
+                }, "actors": milestone["actors"], "milestone_kind": milestone["kind"], "boundaries": milestone["boundaries"],
+            }
+            edges.append({"kind": "contained_in", "from": milestone_id, "to": dossier_id})
+            for subject in milestone["subjects"]:
+                concept = concepts[subject]
+                nodes[concept["id"]] = concept
+                edges.append({"kind": "about", "from": milestone_id, "to": concept["id"]})
+            for source in milestone["sources"]:
+                identifier = source_id(source["canonical_url"])
+                metadata = (source["canonical_url"], source["title"], source["publisher"], source["kind"])
+                prior = source_metadata.get(identifier)
+                if prior is not None and prior != metadata:
+                    if prior[0] != metadata[0]:
+                        raise KnowledgeHistoryError(f"source ID collision for {identifier}: {prior[0]} and {metadata[0]}")
+                    raise KnowledgeHistoryError(f"conflicting source metadata for {identifier}")
+                source_metadata[identifier] = metadata
+                nodes[identifier] = {"id": identifier, "kind": "source", "canonical_url": source["canonical_url"], "title": source["title"], "publisher": source["publisher"], "source_kind": source["kind"]}
+                edges.append({"kind": "cites_as_evidence", "from": milestone_id, "to": identifier, "role": source["role"], "locator": source["locator"], "url": source["url"]})
+    return {
+        "schema_version": 1,
+        "nodes": [nodes[identifier] for identifier in sorted(nodes)],
+        "edges": sorted(edges, key=lambda edge: (edge["kind"], edge["from"], edge["to"], edge.get("role", ""), edge.get("locator", ""), edge.get("url", ""))),
+    }
+
+
 def main(arguments: list[str] | None = None) -> int:
     parsed = parse_arguments(sys.argv[1:] if arguments is None else arguments)
     try:
         history = load_history(parsed.root)
+        # Validate cross-occurrence source invariants for every command, not
+        # only when a caller asks to print the evidence projection.
+        evidence = normalized_evidence_data(parsed.root.resolve(), history)
     except KnowledgeHistoryError as error:
         print(f"knowledge history validation failed: {error}", file=sys.stderr)
         return 1
     if parsed.command == "validate":
         print(f"knowledge history: valid ({len(history['dossiers'])} dossiers)")
+    elif parsed.command == "normalized-data":
+        print(json.dumps(normalized_history_data(history), ensure_ascii=False, indent=2, sort_keys=True))
     else:
-        print(json.dumps(history, ensure_ascii=False, indent=2, sort_keys=True))
+        print(json.dumps(evidence, ensure_ascii=False, indent=2, sort_keys=True))
     return 0
 
 

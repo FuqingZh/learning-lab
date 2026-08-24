@@ -12,10 +12,11 @@ export function injectedData(): FrontendData {
     !data ||
     data.graph?.schema_version !== 1 ||
     data.learningState?.schema_version !== 1 ||
-    data.history?.schema_version !== 1
+    data.history?.schema_version !== 1 ||
+    data.evidenceGraph?.schema_version !== 1
   ) {
     throw new Error(
-      "Learning Lab frontend requires build-time GRAPH, LEARNING_STATE, and HISTORY schema version 1 data.",
+      "Learning Lab frontend requires build-time GRAPH, LEARNING_STATE, HISTORY, and EVIDENCE_GRAPH schema version 1 data.",
     );
   }
   return data;

@@ -44,6 +44,7 @@ select:focus-visible {
   outline-offset: 2px;
 }
 .learning-lab {
+  height: 100vh;
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto auto 1fr;
@@ -188,6 +189,54 @@ select:focus-visible {
 .concept.developing {
   border-color: var(--amber);
 }
+.evidence-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 180px;
+  min-height: 52px;
+  max-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  background: #f5f4f0e8;
+  padding: 7px 11px;
+  box-shadow: 0 5px 15px #1717171a;
+}
+.evidence-node-label {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+.evidence-node.milestone {
+  border-radius: 99px;
+}
+.evidence-node.source {
+  border-style: double;
+  border-color: var(--blue);
+}
+.evidence-node.dossier {
+  border-style: dashed;
+  border-color: var(--amber);
+}
+.evidence-node.selected {
+  background: var(--ink);
+  color: var(--paper);
+}
+.evidence-edge.about {
+  stroke: var(--green);
+}
+.evidence-edge.cites_as_evidence {
+  stroke: var(--blue);
+  stroke-width: 2.5;
+}
+.evidence-edge.contained_in {
+  stroke: var(--amber);
+  stroke-dasharray: 6 3;
+}
 .empty {
   position: absolute;
   top: 40%;
@@ -319,6 +368,7 @@ select:focus-visible {
 }
 @media (max-width: 700px) {
   .learning-lab {
+    height: auto;
     overflow: auto;
   }
   .topbar {
@@ -348,7 +398,7 @@ select:focus-visible {
   }
   .panel,
   .learning-view {
-    top: 170px;
+    top: var(--mobile-overlay-top, 170px);
   }
   .concept {
     max-width: 105px;

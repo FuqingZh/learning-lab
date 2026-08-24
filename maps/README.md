@@ -19,6 +19,9 @@ This is a generated navigation layer over the canonical concept files and learni
   - [Idempotency](concepts/idempotency.md)
   - [Idempotency key](concepts/idempotency-key.md)
   - [Partial failure](concepts/partial-failure.md)
+  - [Process](concepts/process.md)
+  - [Program](concepts/program.md)
+  - [Service](concepts/service.md)
   - [Side effect](concepts/side-effect.md)
 
 ## Legend

@@ -78,6 +78,7 @@ def render_html(
     graph: dict[str, Any],
     learning_state: dict[str, Any],
     history: dict[str, Any] | None = None,
+    evidence_graph: dict[str, Any] | None = None,
 ) -> str:
     """Render supplied normalized fixtures through the production frontend."""
     root = Path(__file__).resolve().parents[1]
@@ -88,6 +89,11 @@ def render_html(
             history
             if history is not None
             else {"schema_version": 1, "dossiers": []}
+        ),
+        "evidenceGraph": (
+            evidence_graph
+            if evidence_graph is not None
+            else {"schema_version": 1, "nodes": [], "edges": []}
         ),
     }
     with tempfile.TemporaryDirectory(prefix="learning-lab-site-render-") as directory:

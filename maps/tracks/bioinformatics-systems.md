@@ -11,6 +11,9 @@ Direct concepts are explicitly taught or reused by this track. Contextual concep
 | Concept | Kind | Mastery | Summary |
 | --- | --- | --- | --- |
 | [Partial failure](../../concepts/partial-failure.md) | foundation | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
+| [Process](../../concepts/process.md) | foundation | not started | An executing program together with the operating-system resources that support its execution. |
+| [Program](../../concepts/program.md) | foundation | not started | A prepared sequence of instructions that a computer can interpret and execute to accomplish a task. |
+| [Service](../../concepts/service.md) | foundation | not started | A capability made available to consumers through a prescribed interface and its stated constraints. |
 
 ## One-hop prerequisite context
 
@@ -21,6 +24,11 @@ No concepts match this view.
 ```mermaid
 flowchart LR
   partial_failure["Partial failure"]
+  process["Process"]
+  program["Program"]
+  service["Service"]
+  process -->|prerequisite| program
+  service ---|related to| process
 ```
 
 Back to [Knowledge Map](../README.md).

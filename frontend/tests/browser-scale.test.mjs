@@ -52,6 +52,66 @@ function syntheticGraph(size) {
   };
 }
 
+function syntheticEvidenceGraph() {
+  return {
+    schema_version: 1,
+    nodes: [
+      {
+        id: "concept:synthetic-0001",
+        kind: "concept",
+        title: "Synthetic concept",
+        path: "concepts/synthetic-0001.md",
+      },
+      {
+        id: "dossier:synthetic-history",
+        kind: "dossier",
+        title: "Synthetic dossier",
+        path: "histories/synthetic-history.md",
+        summary: "Synthetic evidence dossier.",
+      },
+      {
+        id: "milestone:synthetic-history:claim-1",
+        kind: "milestone",
+        dossier_id: "synthetic-history",
+        milestone_id: "claim-1",
+        milestone_kind: "formalization",
+        claim: "Synthetic bounded claim.",
+        date: { year: 2000, month: 1, day: null },
+        boundaries: ["Does not establish anything beyond this fixture."],
+        actors: ["Fixture author"],
+      },
+      {
+        id: "source-synthetic",
+        kind: "source",
+        title: "Synthetic source",
+        publisher: "Fixture publisher",
+        source_kind: "standard",
+        canonical_url: "https://example.test/source",
+      },
+    ],
+    edges: [
+      {
+        kind: "about",
+        from: "milestone:synthetic-history:claim-1",
+        to: "concept:synthetic-0001",
+      },
+      {
+        kind: "contained_in",
+        from: "milestone:synthetic-history:claim-1",
+        to: "dossier:synthetic-history",
+      },
+      {
+        kind: "cites_as_evidence",
+        from: "milestone:synthetic-history:claim-1",
+        to: "source-synthetic",
+        role: "primary",
+        locator: "Section synthetic",
+        url: "https://example.test/source#synthetic",
+      },
+    ],
+  };
+}
+
 async function freePort() {
   const { createServer } = await import("node:net");
   const server = createServer();
@@ -167,6 +227,57 @@ async function inspect(url) {
   }
 }
 
+async function inspectEvidence(url) {
+  const port = await freePort();
+  const child = spawn(
+    chrome,
+    [
+      "--headless=new",
+      "--no-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-crash-reporter",
+      `--user-data-dir=${join(temporary, `chrome-evidence-${port}`)}`,
+      `--remote-debugging-port=${port}`,
+      "about:blank",
+    ],
+    { stdio: ["ignore", "ignore", "pipe"] },
+  );
+  const launch = { error: null, stderr: "" };
+  child.once("error", (error) => {
+    launch.error = error;
+  });
+  try {
+    await waitForChrome(port, child, launch);
+    const client = await CDP({ port });
+    try {
+      const { Page, Runtime } = client;
+      await Promise.all([Page.enable(), Runtime.enable()]);
+      const loaded = new Promise((resolve_) => Page.loadEventFired(resolve_));
+      await Page.navigate({ url });
+      await loaded;
+      const result = await Runtime.evaluate({
+        expression: `({
+        nodes: document.querySelectorAll('.evidence-node').length,
+        fallback: document.querySelectorAll('#evidence-list [data-accessible-evidence]').length,
+        source: document.querySelector('[data-evidence-id="source-synthetic"]')?.textContent,
+        panel: document.querySelector('#panel')?.textContent
+      })`,
+        returnByValue: true,
+      });
+      if (result.exceptionDetails)
+        throw new Error(result.exceptionDetails.text);
+      return result.result.value;
+    } finally {
+      await client.close();
+    }
+  } finally {
+    child.kill("SIGTERM");
+  }
+}
+
 test.after(async () => {
   await rm(temporary, { recursive: true, force: true });
 });
@@ -181,10 +292,23 @@ test("1000-node production search stays bounded with a complete fallback", async
     "<",
     "\\u003c",
   );
-  const html = (await readFile(canonical, "utf8")).replace(
-    /const GRAPH = .*;\nconst LEARNING_STATE =/,
-    `const GRAPH = ${fixture};\nconst LEARNING_STATE =`,
+  const evidence = JSON.stringify(syntheticEvidenceGraph()).replaceAll(
+    "<",
+    "\\u003c",
   );
+  const html = (await readFile(canonical, "utf8"))
+    .replace(
+      /const GRAPH = .*;\nconst LEARNING_STATE =/,
+      `const GRAPH = ${fixture};\nconst LEARNING_STATE =`,
+    )
+    .replace(
+      /const EVIDENCE_GRAPH = .*;\nconst byId/,
+      `const EVIDENCE_GRAPH = ${evidence};\nconst byId`,
+    )
+    .replace(
+      /window\.__LEARNING_LAB_DATA__ = \{ graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY \};/,
+      `window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY, evidenceGraph: ${evidence} };`,
+    );
   const output = join(temporary, "synthetic-1000.html");
   await writeFile(output, html);
   const result = await inspect(pathToFileURL(output).href);
@@ -200,4 +324,16 @@ test("1000-node production search stays bounded with a complete fallback", async
   t.diagnostic(
     `1000-node page loaded in ${result.loadElapsed.toFixed(1)} ms; filter settled in ${result.elapsed.toFixed(1)} ms with ${result.results} visible results, ${result.nodes} graph nodes, and ${result.fallback} fallback entries`,
   );
+  const evidenceResult = await inspectEvidence(
+    `${pathToFileURL(output).href}#view=evidence&evidence=source-synthetic`,
+  );
+  assert.equal(evidenceResult.nodes, 4);
+  assert.equal(evidenceResult.fallback, 4);
+  assert.equal(evidenceResult.source, "Synthetic source");
+  assert.match(evidenceResult.panel, /Section synthetic/);
+  const recallResult = await inspectEvidence(
+    `${pathToFileURL(output).href}#view=evidence&evidence=source-synthetic&recall=1`,
+  );
+  assert.equal(recallResult.source, "来源 · source-synthetic");
+  assert.doesNotMatch(recallResult.panel, /Synthetic source|Section synthetic/);
 });

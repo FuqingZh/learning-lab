@@ -56,9 +56,9 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
             check=False, text=True, capture_output=True,
         )
 
-    def normalized(self, script: str) -> object:
+    def normalized(self, script: str, projection: str = "normalized-data") -> object:
         result = subprocess.run(
-            ["python3", str(REPOSITORY_ROOT / "scripts" / script), "normalized-data", "--root", str(REPOSITORY_ROOT)],
+            ["python3", str(REPOSITORY_ROOT / "scripts" / script), projection, "--root", str(REPOSITORY_ROOT)],
             check=False, text=True, capture_output=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -186,7 +186,11 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
 
         self.assertEqual(self.embedded(content, "GRAPH", "LEARNING_STATE"), self.normalized("build-knowledge-map.py"))
         self.assertEqual(self.embedded(content, "LEARNING_STATE", "HISTORY"), self.normalized("build-learning-state.py"))
-        self.assertEqual(self.embedded(content, "HISTORY", "byId"), self.normalized("build-knowledge-history.py"))
+        self.assertEqual(self.embedded(content, "HISTORY", "EVIDENCE_GRAPH"), self.normalized("build-knowledge-history.py"))
+        self.assertEqual(
+            self.embedded(content, "EVIDENCE_GRAPH", "byId"),
+            self.normalized("build-knowledge-history.py", "normalized-evidence-data"),
+        )
         self.assertNotRegex(content, r"(?i)<script[^>]+\bsrc=")
         self.assertNotRegex(content, r"(?i)<link[^>]+\bhref=")
         self.assertNotRegex(content, r"\bfetch\s*\(")
@@ -244,6 +248,57 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             dom = self.browser_dump(output, "#concept=idempotency")
         self.assertIn('data-learning-lab-frontend="typescript"', dom)
+
+    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
+    def test_ewd123_evidence_is_auditable_without_a_service_edge_or_recall_leak(self) -> None:
+        source_id = "source-e69e9cccb6f79c4f"
+        milestone_id = (
+            "milestone:program-process-and-service-history:"
+            "dijkstra-ewd123-1965"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "index.html"
+            result = self.render(output)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            source = self.rendered_region(
+                output,
+                f"#view=evidence&evidence={source_id}",
+                "#panel",
+            )
+            milestone = self.rendered_region(
+                output,
+                f"#view=evidence&evidence={milestone_id}",
+                "#panel",
+            )
+            recall = self.rendered_region(
+                output,
+                f"#view=evidence&evidence={source_id}&recall=1",
+                "#panel",
+            )
+
+        self.assertIn("Cooperating Sequential Processes", source)
+        self.assertIn("E. W. Dijkstra Archive", source)
+        self.assertIn(source_id, source)
+        self.assertIn("The technical term", source)
+        self.assertIn("Does not establish a service concept", source)
+        self.assertIn(
+            'href="https://www.cs.utexas.edu/~EWD/transcriptions/EWD01xx/EWD123.html"',
+            source,
+        )
+        self.assertIn('target="_blank"', source)
+        self.assertIn('rel="noopener noreferrer"', source)
+        self.assertIn("Program", milestone)
+        self.assertIn("Process", milestone)
+        self.assertNotIn(">Service<", milestone)
+        self.assertIn(f"来源 · {source_id}", recall)
+        for hidden in (
+            "Cooperating Sequential Processes",
+            "E. W. Dijkstra Archive",
+            "The technical term",
+            "Does not establish a service concept",
+            "https://www.cs.utexas.edu",
+        ):
+            self.assertNotIn(hidden, recall)
 
 
 def main() -> int:

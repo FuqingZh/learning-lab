@@ -10,6 +10,7 @@ Run the contract boundary from the repository root:
 ```bash
 python3 scripts/build-knowledge-history.py validate
 python3 scripts/build-knowledge-history.py normalized-data
+python3 scripts/build-knowledge-history.py normalized-evidence-data
 ```
 
 The frontmatter must contain exactly `schema_version`, `id`, `title`,
@@ -19,8 +20,14 @@ hyphenated stable-id syntax; a dossier filename is its ID plus `.md`.
 relative Markdown paths under `lessons/`, and `tracks` names existing track
 directories. A dossier must link at least one concept or lesson.
 
-Each milestone contains exactly `id`, `year`, `month`, `day`, `kind`, `actors`,
-`claim`, `evidence_basis`, and `sources`. `month` and `day` are nullable
+Schema v1 remains readable for the timeline projection. Schema v2 additionally
+requires each milestone to contain sorted, nonempty `subjects` (existing
+canonical concept IDs) and `boundaries` (bounded statements of what the cited
+evidence does not establish). Only schema v2 milestones emit evidence-graph
+nodes and edges; v1 dossiers are deliberately absent from that projection.
+
+Each v1 milestone contains exactly `id`, `year`, `month`, `day`, `kind`, `actors`,
+`claim`, `evidence_basis`, and `sources`; v2 adds `subjects` and `boundaries`. `month` and `day` are nullable
 integers; a day requires a month. Milestones sort by date precision and ID.
 Valid `kind` values are `terminology`, `problem`, `formalization`, `adoption`,
 `popularization`, `revision`, and `critique`.
@@ -31,8 +38,14 @@ Valid `kind` values are `terminology`, `problem`, `formalization`, `adoption`,
 - `scholarly-secondary` requires at least one `scholarly-secondary` source.
 - `mixed` requires both roles.
 
-Every source contains exactly `url`, `title`, `publisher`, `role`, and `kind`.
-URLs must be unique HTTPS URLs within a dossier. Roles are `primary` and
+Every v1 source contains exactly `url`, `title`, `publisher`, `role`, and `kind`;
+v2 adds a nonempty `locator`. URLs must be HTTPS. The evidence projection
+canonicalizes a URL by lowercasing scheme and host, removing default HTTPS port
+and fragment, while preserving path and query. It derives `source-<first16 sha256>`
+from that canonical URL. Occurrences of the same source must agree on title,
+publisher, and kind; conflicts or a truncated-hash collision fail closed.
+The original occurrence URL, role, and locator stay on its citation edge.
+Roles are `primary` and
 `scholarly-secondary`; kinds are `monograph`, `paper`, `standard`, `archive`,
 and `professional-documentation`.
 
