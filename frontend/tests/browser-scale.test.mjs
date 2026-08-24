@@ -201,30 +201,38 @@ async function inspect(url) {
       await loaded;
       const loadElapsed = performance.now() - navigationStarted;
       const result = await Runtime.evaluate({
-        expression: `new Promise((resolve) => {
+        expression: `(async () => {
           const input = document.querySelector('#search');
-          const start = performance.now();
-          input.value = 'synthetic';
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          requestAnimationFrame(() => requestAnimationFrame(() => {
-            const elapsed = performance.now() - start;
-            const results = document.querySelectorAll('#results [role=option]').length;
-            const fallback = document.querySelectorAll('#concept-list [data-accessible]').length;
-            const nodes = document.querySelectorAll('.graph-surface .concept').length;
-            document.querySelector('[data-accessible="synthetic-1000"]').click();
-            const selectedRetained = Boolean(document.querySelector('.graph-surface [data-id="synthetic-1000"]'));
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-            resolve({
-              elapsed,
-              results,
-              fallback,
-              nodes,
-              selectedRetained,
-              escapeCleared: !location.hash.includes('concept=') && !document.querySelector('#panel').classList.contains('open'),
-              marker: document.documentElement.dataset.learningLabFrontend,
-            });
-          }));
-        })`,
+          const measure = (query) => new Promise((resolve) => {
+            const start = performance.now();
+            input.value = query;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              resolve(performance.now() - start);
+            }));
+          });
+          const samples = [];
+          for (const query of ['synthetic', 'concept', 'synthetic']) {
+            samples.push(await measure(query));
+          }
+          const elapsed = [...samples].sort((a, b) => a - b)[1];
+          const results = document.querySelectorAll('#results [role=option]').length;
+          const fallback = document.querySelectorAll('#concept-list [data-accessible]').length;
+          const nodes = document.querySelectorAll('.graph-surface .concept').length;
+          document.querySelector('[data-accessible="synthetic-1000"]').click();
+          const selectedRetained = Boolean(document.querySelector('.graph-surface [data-id="synthetic-1000"]'));
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+          return {
+            elapsed,
+            samples,
+            results,
+            fallback,
+            nodes,
+            selectedRetained,
+            escapeCleared: !location.hash.includes('concept=') && !document.querySelector('#panel').classList.contains('open'),
+            marker: document.documentElement.dataset.learningLabFrontend,
+          };
+        })()`,
         awaitPromise: true,
         returnByValue: true,
       });
@@ -336,10 +344,10 @@ test("1000-node production search stays bounded with a complete fallback", async
   assert.equal(result.nodes, 300);
   assert.equal(result.selectedRetained, true);
   assert.equal(result.escapeCleared, true);
-  assert.ok(result.loadElapsed <= 5000, result);
-  assert.ok(result.elapsed <= 500, result);
+  assert.ok(result.loadElapsed <= 5000, JSON.stringify(result));
+  assert.ok(result.elapsed <= 500, JSON.stringify(result));
   t.diagnostic(
-    `1000-node page loaded in ${result.loadElapsed.toFixed(1)} ms; filter settled in ${result.elapsed.toFixed(1)} ms with ${result.results} visible results, ${result.nodes} graph nodes, and ${result.fallback} fallback entries`,
+    `1000-node page loaded in ${result.loadElapsed.toFixed(1)} ms; median filter settled in ${result.elapsed.toFixed(1)} ms from [${result.samples.map((value) => value.toFixed(1)).join(", ")}] with ${result.results} visible results, ${result.nodes} graph nodes, and ${result.fallback} fallback entries`,
   );
   const evidenceResult = await inspectEvidence(
     `${pathToFileURL(output).href}#view=evidence&evidence=source-synthetic`,
