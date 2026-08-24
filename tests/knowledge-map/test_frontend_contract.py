@@ -238,8 +238,11 @@ document.body.dataset.panel=String(document.querySelector('#panel').classList.co
 
     def test_320px_reduced_motion_keeps_controls_separate(self) -> None:
         probe = """
+const app=document.querySelector('#app');app.style.width='320px';
 const search=document.querySelector('.search').getBoundingClientRect(),card=document.querySelector('.learning-card').getBoundingClientRect();
-document.body.dataset.overlap=String(search.bottom>card.top);
+const overlap=search.left<card.right&&search.right>card.left&&search.top<card.bottom&&search.bottom>card.top;
+document.body.dataset.width=String(Math.round(app.getBoundingClientRect().width));
+document.body.dataset.overlap=String(overlap);
 document.body.dataset.reduced=String(matchMedia('(prefers-reduced-motion: reduce)').matches);
 document.body.dataset.transition=getComputedStyle(document.querySelector('#panel')).transitionDuration;
 """
@@ -247,6 +250,7 @@ document.body.dataset.transition=getComputedStyle(document.querySelector('#panel
             output = Path(directory) / "index.html"
             self.render(output)
             dom = self.browser_dump(output, "", probe, window_size="320,844", reduced_motion=True)
+        self.assertIn('data-width="320"', dom)
         self.assertIn('data-overlap="false"', dom)
         self.assertIn('data-reduced="true"', dom)
         self.assertIn('data-transition="0s"', dom)
