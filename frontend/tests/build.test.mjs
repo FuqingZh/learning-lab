@@ -38,7 +38,7 @@ test.after(async () => {
   await rm(temporary, { recursive: true, force: true });
 });
 
-test("candidate is deterministic and leaves the production site untouched", async () => {
+test("verification builds are deterministic and leave the production site untouched", async () => {
   const productionBefore = await readFile(resolve(root, "site/index.html"));
   const first = await build("first.html");
   const second = await build("second.html");
@@ -49,7 +49,7 @@ test("candidate is deterministic and leaves the production site untouched", asyn
   );
 });
 
-test("candidate embeds the exact three canonical projections", async () => {
+test("the frontend embeds the exact three canonical projections", async () => {
   const html = await build("canonical.html");
   assert.deepEqual(
     embedded(html, "GRAPH"),
@@ -65,7 +65,7 @@ test("candidate embeds the exact three canonical projections", async () => {
   );
 });
 
-test("candidate is one offline HTML artifact with no runtime dependency", async () => {
+test("the frontend is one offline HTML artifact with no runtime dependency", async () => {
   const html = await build("offline.html");
   assert.match(html, /^<!doctype html>/);
   assert.doesNotMatch(html, /<script[^>]+\bsrc=/i);

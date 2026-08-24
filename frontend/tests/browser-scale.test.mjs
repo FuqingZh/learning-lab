@@ -62,36 +62,53 @@ async function freePort() {
   return address.port;
 }
 
-async function waitForChrome(port) {
-  for (let attempt = 0; attempt < 60; attempt += 1) {
-    try {
-      await fetch(`http://127.0.0.1:${port}/json/version`);
-      return;
-    } catch {
-      await new Promise((resolve_) => setTimeout(resolve_, 100));
+async function waitForChrome(port, child, launch) {
+  for (let attempt = 0; attempt < 200; attempt += 1) {
+    if (launch.error) throw launch.error;
+    if (child.exitCode !== null) {
+      throw new Error(
+        `Chrome exited with ${child.exitCode} before CDP startup${launch.stderr ? `: ${launch.stderr}` : ""}`,
+      );
     }
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/json/version`);
+      if (response.ok) return;
+    } catch {}
+    await new Promise((resolve_) => setTimeout(resolve_, 100));
   }
-  throw new Error("Chrome CDP did not start");
+  throw new Error(
+    `Chrome CDP did not start within 20 seconds${launch.stderr ? `: ${launch.stderr}` : ""}`,
+  );
 }
 
 async function inspect(url) {
   const port = await freePort();
   const profile = join(temporary, `chrome-${port}`);
+  const launch = { error: null, stderr: "" };
   const child = spawn(
     chrome,
     [
-      "--headless",
+      "--headless=new",
       "--no-sandbox",
       "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--no-first-run",
+      "--no-default-browser-check",
       "--disable-crash-reporter",
       `--user-data-dir=${profile}`,
       `--remote-debugging-port=${port}`,
       "about:blank",
     ],
-    { stdio: "ignore" },
+    { stdio: ["ignore", "ignore", "pipe"] },
   );
+  child.once("error", (error) => {
+    launch.error = error;
+  });
+  child.stderr?.on("data", (chunk) => {
+    launch.stderr = `${launch.stderr}${chunk}`.slice(-4000).trim();
+  });
   try {
-    await waitForChrome(port);
+    await waitForChrome(port, child, launch);
     const client = await CDP({ port });
     try {
       const { Page, Runtime } = client;
@@ -154,7 +171,7 @@ test.after(async () => {
   await rm(temporary, { recursive: true, force: true });
 });
 
-test("1000-node search stays bounded while fallback remains complete", async (t) => {
+test("1000-node production search stays bounded with a complete fallback", async (t) => {
   const canonical = join(temporary, "canonical.html");
   execFileSync("node", ["frontend/build.mjs", "--output", canonical], {
     cwd: root,
