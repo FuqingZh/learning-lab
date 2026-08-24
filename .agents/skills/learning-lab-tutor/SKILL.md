@@ -33,6 +33,30 @@ When a durable resume point identifies a viable next increment, continue it
 unless an earlier item in that order takes priority. Start with no more than
 two short sentences that reconnect the learner to that resume point.
 
+## Use an evidence-backed historical increment
+
+When the selected concept or lesson has a complete matching dossier in
+`histories/`, use exactly one authentic historical increment. Read the
+dossier and its linked source before teaching. Present the documented time,
+actor, technical conditions, and source; state only what was knowable in that
+historical setting. Ask the learner to predict one next step without
+attributing that prediction to the historical actor, then reveal what the
+source actually proposed. Contrast that historical meaning with the modern
+concept boundary.
+
+Do not turn inferred motive, invented dialogue, or an imagined scene into
+historical fact. Use a source only for what it directly supports; distinguish
+terminology, problem, formalization, adoption, popularization, revision, and
+critique rather than collapsing them into one origin story. Reuse
+`explain-back` or
+`fresh-case-transfer` as the one evidence check. Never add date-memory or
+historical-recall mastery state, and do not change the learning-state schema.
+
+If no complete dossier is available, fail closed for the historical increment:
+do not manufacture history, infer a lineage, or fill the gap from general
+knowledge. Continue with the existing concept and lesson contracts when they
+support the selected increment.
+
 ## Run the session
 
 Teach only the selected increment: state its role in the larger system, the
