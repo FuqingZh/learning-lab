@@ -32,6 +32,8 @@ not authoritative product documentation and not implementation requirements.
 - `learning-records/<track>/`: what the learner has actually demonstrated,
   including superseded intermediate states.
 - `lessons/<track>/`: reusable teaching artifacts created only when useful.
+- `histories/`: evidence-backed development dossiers linked to lessons or
+  canonical concepts; chronology is not treated as proof of causal lineage.
 - `concepts/`: canonical transferable concept definitions and typed relations.
 - `case-labs/`: thin repository hubs; the existence of a hub does not establish
   concept membership.
@@ -58,7 +60,37 @@ file. Lessons use semantic topic names rather than lesson numbers.
 Run `bash scripts/check-structure.sh` after changing workspace structure or
 adding a record, lesson, or concept. See the
 [concept authoring guide](docs/how-to-guides/20260820-v1.0-add-knowledge-concept-how-to-guide.md)
-before changing the graph schema or evidence links.
+before changing the graph schema or evidence links, and the
+[history dossier guide](docs/how-to-guides/20260824-v1.2-add-evidence-backed-history-how-to-guide.md)
+before adding historical claims.
+
+## Build and validation
+
+The interactive map is a generated, single-file offline artifact. It requires
+Python 3 and Node.js 22.x; install the locked frontend tools once per clean
+checkout:
+
+```bash
+npm ci
+```
+
+Regenerate the published local artifact after changing its canonical inputs or
+frontend presentation code:
+
+```bash
+python3 scripts/render-knowledge-map-site.py
+```
+
+The complete contributor gate is:
+
+```bash
+npm ci && bash scripts/check-structure.sh
+```
+
+For frontend-only diagnostics, run `npm run frontend:verify`. The renderer and
+generated-drift check intentionally fail if Node.js 22.x or the dependencies
+installed by `npm ci` are unavailable; they never download browser dependencies
+implicitly. GitHub Pages uploads only the generated `site/` directory.
 
 ## Ambient learning
 

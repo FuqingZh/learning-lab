@@ -1,0 +1,962 @@
+{
+  "schema_version": 1,
+  "command": "SPIKE_RESULTS_DIR=results node tools/smoke.mjs",
+  "rows": [
+    {
+      "file": "native-current.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/native-current.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Idempotency key",
+          "count": 1
+        },
+        "after": {
+          "focus": "A",
+          "focus_text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+          "focus_role": null,
+          "title": "Partial failure",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 61.59999990463257,
+        "filterMs": 69.30000019073486,
+        "beforeTitle": "Idempotency",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "resultTitle": "Idempotency key",
+        "keyboardPath": {
+          "result_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "Idempotency key",
+            "role": "option"
+          },
+          "result_title": "Idempotency key",
+          "graph_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "Idempotency",
+            "role": null
+          },
+          "graph_title": "Idempotency",
+          "relationship_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "prerequisites: Partial failure",
+            "role": null
+          },
+          "relationship_ax_name": "prerequisites: Partial failure",
+          "relationship_title": "Partial failure",
+          "source_focus": {
+            "matched": true,
+            "tag": "A",
+            "text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+            "role": null
+          },
+          "source_activated": true,
+          "passed": true
+        }
+      },
+      "error": null
+    },
+    {
+      "file": "native-current.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/native-current.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Idempotency key",
+          "count": 1
+        },
+        "after": {
+          "focus": "A",
+          "focus_text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+          "focus_role": null,
+          "title": "Partial failure",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 61,
+        "filterMs": 68.7000002861023,
+        "beforeTitle": "Idempotency",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "resultTitle": "Idempotency key",
+        "keyboardPath": {
+          "result_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "Idempotency key",
+            "role": "option"
+          },
+          "result_title": "Idempotency key",
+          "graph_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "Idempotency",
+            "role": null
+          },
+          "graph_title": "Idempotency",
+          "relationship_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "prerequisites: Partial failure",
+            "role": null
+          },
+          "relationship_ax_name": "prerequisites: Partial failure",
+          "relationship_title": "Partial failure",
+          "source_focus": {
+            "matched": true,
+            "tag": "A",
+            "text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+            "role": null
+          },
+          "source_activated": true,
+          "passed": true
+        }
+      },
+      "error": null
+    },
+    {
+      "file": "native-synthetic-100.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/native-synthetic-100.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 11
+        },
+        "after": {
+          "focus": "BODY",
+          "focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+          "focus_role": null,
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 114.5,
+        "filterMs": 363.90000009536743,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "native-synthetic-100.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/native-synthetic-100.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 11
+        },
+        "after": {
+          "focus": "BODY",
+          "focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+          "focus_role": null,
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 111.09999990463257,
+        "filterMs": 367.2000002861023,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "native-synthetic-300.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/native-synthetic-300.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BODY",
+          "focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+          "focus_role": null,
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 189.09999990463257,
+        "filterMs": 661,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "native-synthetic-300.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/native-synthetic-300.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BODY",
+          "focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+          "focus_role": null,
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 192.59999990463257,
+        "filterMs": 670.5999999046326,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "native-synthetic-1000.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/native-synthetic-1000.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BODY",
+          "focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+          "focus_role": null,
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 518.8000001907349,
+        "filterMs": 1190.5999999046326,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "native-synthetic-1000.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/native-synthetic-1000.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BODY",
+          "focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+          "focus_role": null,
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 432.5,
+        "filterMs": 1263.4000000953674,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "flow-current.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/flow-current.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Idempotency key",
+          "count": 1
+        },
+        "after": {
+          "focus": "A",
+          "focus_text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+          "focus_role": null,
+          "title": "Idempotency",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 280.90000009536743,
+        "filterMs": 119.10000038146973,
+        "beforeTitle": "Idempotency",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "resultTitle": "Idempotency key",
+        "keyboardPath": {
+          "result_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "Idempotency key",
+            "role": "option"
+          },
+          "result_title": "Idempotency key",
+          "graph_focus": {
+            "matched": true,
+            "tag": "DIV",
+            "text": "Idempotency",
+            "role": "button"
+          },
+          "graph_title": "Idempotency key",
+          "relationship_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "prerequisites: Idempotency",
+            "role": null
+          },
+          "relationship_ax_name": "prerequisites: Idempotency",
+          "relationship_title": "Idempotency",
+          "source_focus": {
+            "matched": true,
+            "tag": "A",
+            "text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+            "role": null
+          },
+          "source_activated": true,
+          "passed": false
+        }
+      },
+      "error": null
+    },
+    {
+      "file": "flow-current.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/flow-current.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Idempotency key",
+          "count": 1
+        },
+        "after": {
+          "focus": "A",
+          "focus_text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+          "focus_role": null,
+          "title": "Idempotency",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 269,
+        "filterMs": 113,
+        "beforeTitle": "Idempotency",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "resultTitle": "Idempotency key",
+        "keyboardPath": {
+          "result_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "Idempotency key",
+            "role": "option"
+          },
+          "result_title": "Idempotency key",
+          "graph_focus": {
+            "matched": true,
+            "tag": "DIV",
+            "text": "Idempotency",
+            "role": "button"
+          },
+          "graph_title": "Idempotency key",
+          "relationship_focus": {
+            "matched": true,
+            "tag": "BUTTON",
+            "text": "prerequisites: Idempotency",
+            "role": null
+          },
+          "relationship_ax_name": "prerequisites: Idempotency",
+          "relationship_title": "Idempotency",
+          "source_focus": {
+            "matched": true,
+            "tag": "A",
+            "text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+            "role": null
+          },
+          "source_activated": true,
+          "passed": false
+        }
+      },
+      "error": null
+    },
+    {
+      "file": "flow-synthetic-100.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/flow-synthetic-100.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 11
+        },
+        "after": {
+          "focus": "BUTTON",
+          "focus_text": "Synthetic concept 2",
+          "focus_role": "option",
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 729.6999998092651,
+        "filterMs": 279.7000002861023,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "flow-synthetic-100.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/flow-synthetic-100.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 11
+        },
+        "after": {
+          "focus": "BUTTON",
+          "focus_text": "Synthetic concept 2",
+          "focus_role": "option",
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 640.2000002861023,
+        "filterMs": 242.90000009536743,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "flow-synthetic-300.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/flow-synthetic-300.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BUTTON",
+          "focus_text": "Synthetic concept 2",
+          "focus_role": "option",
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 1468.0999999046326,
+        "filterMs": 379.59999990463257,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "flow-synthetic-300.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/flow-synthetic-300.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BUTTON",
+          "focus_text": "Synthetic concept 2",
+          "focus_role": "option",
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 1396.9000000953674,
+        "filterMs": 375.69999980926514,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "flow-synthetic-1000.html",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/flow-synthetic-1000.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BUTTON",
+          "focus_text": "Synthetic concept 2",
+          "focus_role": "option",
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 3675.0999999046326,
+        "filterMs": 1160,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    },
+    {
+      "file": "flow-synthetic-1000.html",
+      "mode": "pages",
+      "url": "/learning-lab/site/flow-synthetic-1000.html",
+      "static_checks": {
+        "doctype": true,
+        "no_external_script": true,
+        "no_external_stylesheet": true,
+        "no_module_script": true,
+        "no_remote_runtime_asset": true,
+        "no_runtime_fetch": true,
+        "no_module_import": true
+      },
+      "self_contained": true,
+      "runtime_errors": [],
+      "console_errors": [],
+      "passed": true,
+      "result": {
+        "before": {
+          "ready": true,
+          "search": true,
+          "node": true,
+          "source": true,
+          "error": null
+        },
+        "afterSearch": {
+          "option": true,
+          "value": "Synthetic concept 2",
+          "count": 111
+        },
+        "after": {
+          "focus": "BUTTON",
+          "focus_text": "Synthetic concept 2",
+          "focus_role": "option",
+          "title": "Synthetic concept 2",
+          "ready": true,
+          "error": null
+        },
+        "readyMs": 4268.5,
+        "filterMs": 854.0999999046326,
+        "beforeTitle": "Synthetic concept 1",
+        "resultFocus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Synthetic concept 2",
+          "role": "option"
+        },
+        "resultTitle": "Synthetic concept 2",
+        "keyboardPath": null
+      },
+      "error": null
+    }
+  ]
+}

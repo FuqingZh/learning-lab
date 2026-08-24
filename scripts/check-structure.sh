@@ -21,6 +21,8 @@ is_known_track() {
 
 for path in \
   README.md \
+  package.json \
+  package-lock.json \
   AGENTS.md \
   MISSION.md \
   CURRICULUM.md \
@@ -31,7 +33,9 @@ for path in \
   docs/implementation-plans/20260820-v1.0-knowledge-map-implementation-plan.md \
   docs/implementation-plans/20260821-v1.1-ambient-learning-implementation-plan.md \
   docs/implementation-plans/20260824-v1.2-evidence-backed-knowledge-history-plan.md \
+  docs/implementation-plans/20260824-v1.3-typescript-explorer-and-evidence-graph-plan.md \
   docs/how-to-guides/20260824-v1.2-add-evidence-backed-history-how-to-guide.md \
+  frontend/README.md \
   .agents/skills/learning-lab-tutor/SKILL.md \
   histories/README.md \
   learning-state/README.md \
@@ -106,9 +110,11 @@ fi
 python3 scripts/build-knowledge-map.py validate
 python3 scripts/build-learning-state.py validate
 python3 scripts/build-knowledge-history.py validate
+npm run frontend:verify
 python3 tests/knowledge-map/test_validation.py
 python3 tests/knowledge-map/test_markdown_render.py
 python3 tests/knowledge-map/test_site_render.py
+python3 tests/knowledge-map/test_frontend_contract.py
 python3 tests/knowledge-history/test_validation.py
 python3 tests/learning-state/test_learning_state.py
 python3 tests/learning-skill/test_learning_lab_tutor.py

@@ -1,0 +1,779 @@
+{
+  "schema_version": 1,
+  "command": "SPIKE_RESULTS_DIR=results node tools/hard-gates.mjs",
+  "chrome": "/usr/bin/google-chrome",
+  "rows": [
+    {
+      "candidate": "native",
+      "fixture": "current",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/native-current.html",
+      "ready_ms": 59.5,
+      "filter_ms": 84.7000002861023,
+      "input_value": "Idempotency key",
+      "result_count": 1,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Idempotency key",
+        "role": "option"
+      },
+      "result_title": "Idempotency key",
+      "keyboard_path": {
+        "result_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "result_title": "Idempotency key",
+        "graph_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency",
+          "role": null
+        },
+        "graph_title": "Idempotency",
+        "relationship_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "prerequisites: Partial failure",
+          "role": null
+        },
+        "relationship_ax_name": "prerequisites: Partial failure",
+        "relationship_title": "Partial failure",
+        "source_focus": {
+          "matched": true,
+          "tag": "A",
+          "text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+          "role": null
+        },
+        "source_activated": true,
+        "passed": true
+      },
+      "keyboard_path_pass": true,
+      "ax_relationship": true,
+      "keyboard_focus": "A",
+      "keyboard_focus_text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+      "keyboard_focus_role": null,
+      "detail_before": "Idempotency",
+      "detail_after": "Partial failure",
+      "state_changed": true,
+      "ax_named_interactive_count": 7,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency key; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Partial failure; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Side effect; select concept"
+        },
+        {
+          "role": "link",
+          "name": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html"
+        },
+        {
+          "role": "link",
+          "name": "source: https://learn.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/handle-partial-failure"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "Idempotency; select concept",
+      "ax_source": true,
+      "ax_source_name": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 396.83833100000004,
+      "page_error": null,
+      "error": null
+    },
+    {
+      "candidate": "native",
+      "fixture": "current",
+      "mode": "pages",
+      "url": "/learning-lab/site/native-current.html",
+      "ready_ms": 58.5,
+      "filter_ms": 80.5,
+      "input_value": "Idempotency key",
+      "result_count": 1,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Idempotency key",
+        "role": "option"
+      },
+      "result_title": "Idempotency key",
+      "keyboard_path": {
+        "result_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "result_title": "Idempotency key",
+        "graph_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency",
+          "role": null
+        },
+        "graph_title": "Idempotency",
+        "relationship_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "prerequisites: Partial failure",
+          "role": null
+        },
+        "relationship_ax_name": "prerequisites: Partial failure",
+        "relationship_title": "Partial failure",
+        "source_focus": {
+          "matched": true,
+          "tag": "A",
+          "text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+          "role": null
+        },
+        "source_activated": true,
+        "passed": true
+      },
+      "keyboard_path_pass": true,
+      "ax_relationship": true,
+      "keyboard_focus": "A",
+      "keyboard_focus_text": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+      "keyboard_focus_role": null,
+      "detail_before": "Idempotency",
+      "detail_after": "Partial failure",
+      "state_changed": true,
+      "ax_named_interactive_count": 7,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency key; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Partial failure; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Side effect; select concept"
+        },
+        {
+          "role": "link",
+          "name": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html"
+        },
+        {
+          "role": "link",
+          "name": "source: https://learn.microsoft.com/en-us/dotnet/architecture/microservices/implement-resilient-applications/handle-partial-failure"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "Idempotency; select concept",
+      "ax_source": true,
+      "ax_source_name": "source: https://docs.aws.amazon.com/wellarchitected/latest/reliability-pillar/rel_mitigate_interaction_failure_graceful_degradation.html",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 396.8221020000001,
+      "page_error": null,
+      "error": null
+    },
+    {
+      "candidate": "native",
+      "fixture": "synthetic-1000",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/native-synthetic-1000.html",
+      "ready_ms": 525,
+      "filter_ms": 1446.3999996185303,
+      "input_value": "Synthetic concept 2",
+      "result_count": 111,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Synthetic concept 2",
+        "role": "option"
+      },
+      "result_title": "Synthetic concept 2",
+      "keyboard_path": null,
+      "keyboard_path_pass": null,
+      "ax_relationship": false,
+      "keyboard_focus": "BODY",
+      "keyboard_focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+      "keyboard_focus_role": null,
+      "detail_before": "Synthetic concept 1",
+      "detail_after": "Synthetic concept 2",
+      "state_changed": true,
+      "ax_named_interactive_count": 1004,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 1; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 2; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 3; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 4; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 5; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 6; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 7; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 8; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 9; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 10; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 11; select concept"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "Synthetic concept 1; select concept",
+      "ax_source": true,
+      "ax_source_name": "primary: Evidence for synthetic-0002",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 2716.6570390000006,
+      "page_error": null,
+      "error": null
+    },
+    {
+      "candidate": "native",
+      "fixture": "synthetic-1000",
+      "mode": "pages",
+      "url": "/learning-lab/site/native-synthetic-1000.html",
+      "ready_ms": 538.1999998092651,
+      "filter_ms": 1281.0999999046326,
+      "input_value": "Synthetic concept 2",
+      "result_count": 111,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Synthetic concept 2",
+        "role": "option"
+      },
+      "result_title": "Synthetic concept 2",
+      "keyboard_path": null,
+      "keyboard_path_pass": null,
+      "ax_relationship": false,
+      "keyboard_focus": "BODY",
+      "keyboard_focus_text": "Skip to graph applicationNative DOM/SVG spikeSynthetic concept 1Synthetic concept 2Synthetic concept 3Synthetic concept 4Synthetic concept 5Synthetic concept 6Synthetic concept 7Synthetic concept 8Syn",
+      "keyboard_focus_role": null,
+      "detail_before": "Synthetic concept 1",
+      "detail_after": "Synthetic concept 2",
+      "state_changed": true,
+      "ax_named_interactive_count": 1004,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 1; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 2; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 3; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 4; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 5; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 6; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 7; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 8; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 9; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 10; select concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 11; select concept"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "Synthetic concept 1; select concept",
+      "ax_source": true,
+      "ax_source_name": "primary: Evidence for synthetic-0002",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 2708.392116,
+      "page_error": null,
+      "error": null
+    },
+    {
+      "candidate": "flow",
+      "fixture": "current",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/flow-current.html",
+      "ready_ms": 281.2000002861023,
+      "filter_ms": 142.40000009536743,
+      "input_value": "Idempotency key",
+      "result_count": 1,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Idempotency key",
+        "role": "option"
+      },
+      "result_title": "Idempotency key",
+      "keyboard_path": {
+        "result_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "result_title": "Idempotency key",
+        "graph_focus": {
+          "matched": true,
+          "tag": "DIV",
+          "text": "Idempotency",
+          "role": "button"
+        },
+        "graph_title": "Idempotency key",
+        "relationship_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "prerequisites: Idempotency",
+          "role": null
+        },
+        "relationship_ax_name": "prerequisites: Idempotency",
+        "relationship_title": "Idempotency",
+        "source_focus": {
+          "matched": true,
+          "tag": "A",
+          "text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+          "role": null
+        },
+        "source_activated": true,
+        "passed": false
+      },
+      "keyboard_path_pass": false,
+      "ax_relationship": true,
+      "keyboard_focus": "A",
+      "keyboard_focus_text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+      "keyboard_focus_role": null,
+      "detail_before": "Idempotency",
+      "detail_after": "Idempotency",
+      "state_changed": true,
+      "ax_named_interactive_count": 13,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "prerequisites: Partial failure"
+        },
+        {
+          "role": "button",
+          "name": "prerequisites: Side effect"
+        },
+        {
+          "role": "link",
+          "name": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2"
+        },
+        {
+          "role": "link",
+          "name": "source: https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+        },
+        {
+          "role": "button",
+          "name": "Zoom In"
+        },
+        {
+          "role": "button",
+          "name": "Zoom Out"
+        },
+        {
+          "role": "button",
+          "name": "Fit View"
+        },
+        {
+          "role": "link",
+          "name": "React Flow attribution"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency key; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Partial failure; read-only concept"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "prerequisites: Partial failure",
+      "ax_source": true,
+      "ax_source_name": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 753.0315429999991,
+      "page_error": null,
+      "error": null
+    },
+    {
+      "candidate": "flow",
+      "fixture": "current",
+      "mode": "pages",
+      "url": "/learning-lab/site/flow-current.html",
+      "ready_ms": 279.40000009536743,
+      "filter_ms": 121.40000009536743,
+      "input_value": "Idempotency key",
+      "result_count": 1,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Idempotency key",
+        "role": "option"
+      },
+      "result_title": "Idempotency key",
+      "keyboard_path": {
+        "result_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "Idempotency key",
+          "role": "option"
+        },
+        "result_title": "Idempotency key",
+        "graph_focus": {
+          "matched": true,
+          "tag": "DIV",
+          "text": "Idempotency",
+          "role": "button"
+        },
+        "graph_title": "Idempotency key",
+        "relationship_focus": {
+          "matched": true,
+          "tag": "BUTTON",
+          "text": "prerequisites: Idempotency",
+          "role": null
+        },
+        "relationship_ax_name": "prerequisites: Idempotency",
+        "relationship_title": "Idempotency",
+        "source_focus": {
+          "matched": true,
+          "tag": "A",
+          "text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+          "role": null
+        },
+        "source_activated": true,
+        "passed": false
+      },
+      "keyboard_path_pass": false,
+      "ax_relationship": true,
+      "keyboard_focus": "A",
+      "keyboard_focus_text": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+      "keyboard_focus_role": null,
+      "detail_before": "Idempotency",
+      "detail_after": "Idempotency",
+      "state_changed": true,
+      "ax_named_interactive_count": 13,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "prerequisites: Partial failure"
+        },
+        {
+          "role": "button",
+          "name": "prerequisites: Side effect"
+        },
+        {
+          "role": "link",
+          "name": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2"
+        },
+        {
+          "role": "link",
+          "name": "source: https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/"
+        },
+        {
+          "role": "button",
+          "name": "Zoom In"
+        },
+        {
+          "role": "button",
+          "name": "Zoom Out"
+        },
+        {
+          "role": "button",
+          "name": "Fit View"
+        },
+        {
+          "role": "link",
+          "name": "React Flow attribution"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Idempotency key; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Partial failure; read-only concept"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "prerequisites: Partial failure",
+      "ax_source": true,
+      "ax_source_name": "source: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 715.0386959999996,
+      "page_error": null,
+      "error": null
+    },
+    {
+      "candidate": "flow",
+      "fixture": "synthetic-1000",
+      "mode": "file",
+      "url": "file://<repo>/frontend/spike/dist/flow-synthetic-1000.html",
+      "ready_ms": 3039.199999809265,
+      "filter_ms": 764.7999997138977,
+      "input_value": "Synthetic concept 2",
+      "result_count": 111,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Synthetic concept 2",
+        "role": "option"
+      },
+      "result_title": "Synthetic concept 2",
+      "keyboard_path": null,
+      "keyboard_path_pass": null,
+      "ax_relationship": false,
+      "keyboard_focus": "BUTTON",
+      "keyboard_focus_text": "Synthetic concept 2",
+      "keyboard_focus_role": "option",
+      "detail_before": "Synthetic concept 1",
+      "detail_after": "Synthetic concept 2",
+      "state_changed": true,
+      "ax_named_interactive_count": 1008,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "prerequisites: Synthetic concept 1"
+        },
+        {
+          "role": "button",
+          "name": "enables: Synthetic concept 3"
+        },
+        {
+          "role": "link",
+          "name": "primary: Evidence for synthetic-0002"
+        },
+        {
+          "role": "button",
+          "name": "Zoom In"
+        },
+        {
+          "role": "button",
+          "name": "Zoom Out"
+        },
+        {
+          "role": "button",
+          "name": "Fit View"
+        },
+        {
+          "role": "link",
+          "name": "React Flow attribution"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 1; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 2; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 3; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 4; read-only concept"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "prerequisites: Synthetic concept 1",
+      "ax_source": true,
+      "ax_source_name": "primary: Evidence for synthetic-0002",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 4550.765589000001,
+      "page_error": null,
+      "error": null
+    },
+    {
+      "candidate": "flow",
+      "fixture": "synthetic-1000",
+      "mode": "pages",
+      "url": "/learning-lab/site/flow-synthetic-1000.html",
+      "ready_ms": 3277,
+      "filter_ms": 715.3999996185303,
+      "input_value": "Synthetic concept 2",
+      "result_count": 111,
+      "result_focus": {
+        "matched": true,
+        "tag": "BUTTON",
+        "text": "Synthetic concept 2",
+        "role": "option"
+      },
+      "result_title": "Synthetic concept 2",
+      "keyboard_path": null,
+      "keyboard_path_pass": null,
+      "ax_relationship": false,
+      "keyboard_focus": "BUTTON",
+      "keyboard_focus_text": "Synthetic concept 2",
+      "keyboard_focus_role": "option",
+      "detail_before": "Synthetic concept 1",
+      "detail_after": "Synthetic concept 2",
+      "state_changed": true,
+      "ax_named_interactive_count": 1008,
+      "ax_named_interactive_sample": [
+        {
+          "role": "link",
+          "name": "Skip to graph application"
+        },
+        {
+          "role": "button",
+          "name": "prerequisites: Synthetic concept 1"
+        },
+        {
+          "role": "button",
+          "name": "enables: Synthetic concept 3"
+        },
+        {
+          "role": "link",
+          "name": "primary: Evidence for synthetic-0002"
+        },
+        {
+          "role": "button",
+          "name": "Zoom In"
+        },
+        {
+          "role": "button",
+          "name": "Zoom Out"
+        },
+        {
+          "role": "button",
+          "name": "Fit View"
+        },
+        {
+          "role": "link",
+          "name": "React Flow attribution"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 1; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 2; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 3; read-only concept"
+        },
+        {
+          "role": "button",
+          "name": "Synthetic concept 4; read-only concept"
+        }
+      ],
+      "ax_concept": true,
+      "ax_concept_name": "prerequisites: Synthetic concept 1",
+      "ax_source": true,
+      "ax_source_name": "primary: Evidence for synthetic-0002",
+      "console_errors": [],
+      "runtime_errors": [],
+      "elapsed_ms": 4702.485612,
+      "page_error": null,
+      "error": null
+    }
+  ]
+}

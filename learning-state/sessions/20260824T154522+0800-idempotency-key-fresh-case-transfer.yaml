@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260824T154522+0800-idempotency-key-fresh-case-transfer
+started_at: 2026-08-24T15:45:22+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: idempotency-key
+  next: idempotency-key
+  summary: Distinguish logical operation intent from payload equality, and apply the declared key scope.
+evidence:
+  - concept: idempotency-key
+    check: fresh-case-transfer
+    outcome: miss
+    confidence: medium
+    assisted: false

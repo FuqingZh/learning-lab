@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
-"""Static and deterministic contracts for the offline map projection."""
+"""Semantic contracts for the rendered offline knowledge-map site.
+
+This suite deliberately avoids browser implementation details. The frozen
+frontend-contract suite owns the complete route and interaction baseline;
+these checks protect renderer-entrypoint behavior and the history/terminology
+semantics which must survive a frontend replacement.
+"""
 
 from __future__ import annotations
 
-import json
 import importlib.util
+import json
 import os
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -24,372 +30,220 @@ RENDERER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(RENDERER)
 
 
-class TestKnowledgeMapSiteRender(unittest.TestCase):
-    def test_optional_terminology_projection_is_escaped_and_omitted_when_absent(self) -> None:
-        node = {
-            "id": "term", "title": "Term", "summary": "A term", "kind": "foundation",
-            "tracks": [], "case_labs": [], "lessons": [], "records": [], "path": "concepts/term.md",
-            "mastery": {"status": "not-started"},
-            "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []},
-            "extensions": {"terminology": {"preferred_english_term": "Term", "checked_on": "2026-08-21", "sources": [
-                {"url": "https://example.org/spec?a=1&b=2", "publisher": "Example <Org>", "kind": "standard"},
-            ]}},
-        }
-        graph = {"schema_version": 1, "nodes": [node], "edges": [], "tracks": [], "case_labs": []}
-        learning_state = {"schema_version": 1, "concepts": [], "resume": None}
-        rendered = RENDERER.render_html(graph, learning_state)
-        self.assertIn("术语来源", rendered)
-        self.assertIn("Example \\u003cOrg\\u003e", rendered)
-        self.assertIn('target="_blank" rel="noopener noreferrer"', rendered)
-        self.assertIn('safeHttps(url)', rendered)
+def concept(identifier: str, title: str, summary: str = "Modern definition") -> dict[str, object]:
+    return {
+        "id": identifier, "title": title, "summary": summary, "kind": "foundation",
+        "tracks": [], "case_labs": [], "lessons": [], "records": [],
+        "path": f"concepts/{identifier}.md", "mastery": {"status": "not-started"},
+        "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []},
+        "extensions": {},
+    }
 
-        node["extensions"] = {}
-        without_terminology = RENDERER.render_html(graph, learning_state)
-        self.assertNotIn('"terminology"', without_terminology)
+
+def graph(*nodes: dict[str, object]) -> dict[str, object]:
+    return {"schema_version": 1, "nodes": list(nodes), "edges": [], "tracks": [], "case_labs": []}
+
+
+LEARNING_STATE = {"schema_version": 1, "concepts": [], "resume": None}
+
+
+class TestKnowledgeMapSiteRender(unittest.TestCase):
+    maxDiff = None
+
     def render(self, output: Path) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             ["python3", str(SCRIPT), "--root", str(REPOSITORY_ROOT), "--output", str(output)],
-            check=False,
-            text=True,
-            capture_output=True,
+            check=False, text=True, capture_output=True,
         )
 
-    def test_render_is_deterministic_and_self_contained(self) -> None:
+    def normalized(self, script: str) -> object:
+        result = subprocess.run(
+            ["python3", str(REPOSITORY_ROOT / "scripts" / script), "normalized-data", "--root", str(REPOSITORY_ROOT)],
+            check=False, text=True, capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def browser_dump(self, source: Path, fragment: str, probe: str = "") -> str:
+        self.assertIsNotNone(CHROME, "Chrome or Chromium is required for renderer semantic checks")
+        target = source
+        if probe:
+            target = source.with_name(f"{source.stem}-instrumented.html")
+            target.write_text(
+                source.read_text(encoding="utf-8").replace(
+                    "</body>",
+                    f"<script>window.addEventListener('load',()=>{{{probe}}});</script></body>",
+                ),
+                encoding="utf-8",
+            )
         with tempfile.TemporaryDirectory() as directory:
-            first = Path(directory) / "first.html"
-            second = Path(directory) / "second.html"
-            first_result = self.render(first)
-            second_result = self.render(second)
+            temporary = Path(directory)
+            environment = os.environ.copy()
+            environment.update({"TMPDIR": str(temporary), "XDG_CONFIG_HOME": str(temporary / "config"), "XDG_CACHE_HOME": str(temporary / "cache")})
+            result = subprocess.run(
+                [str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'profile'}", "--dump-dom", target.as_uri() + fragment],
+                check=False, text=True, capture_output=True, timeout=25, env=environment,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    def rendered_region(self, source: Path, fragment: str, selector: str) -> str:
+        probe = (
+            f"const target=document.querySelector({json.dumps(selector)});"
+            "if(!target)throw new Error('missing rendered region');"
+            "document.body.replaceChildren(target.cloneNode(true));"
+        )
+        return self.browser_dump(source, fragment, probe)
+
+    @staticmethod
+    def embedded(content: str, name: str, following: str) -> object:
+        matched = re.search(rf"const {name}\s*=\s*(\{{.*?\}});\s*const {following}\s*=", content, flags=re.DOTALL)
+        if matched is None:
+            raise AssertionError(f"missing embedded {name} payload")
+        return json.loads(matched.group(1))
+
+    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
+    def test_terminology_is_optional_escaped_and_limited_to_safe_https_sources(self) -> None:
+        term = concept("term", "Term")
+        term["extensions"] = {"terminology": {"preferred_english_term": "Term <script>unsafe()</script>", "checked_on": "2026-08-21", "sources": [{"url": "https://example.org/spec?a=1&b=2", "publisher": "Example <Org>", "kind": "standard"}, {"url": "javascript:alert(1)", "publisher": "Unsafe", "kind": "blog"}]}}
+        without = concept("without-term", "Without terminology")
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "terminology.html"
+            output.write_text(RENDERER.render_html(graph(term, without), LEARNING_STATE), encoding="utf-8")
+            term_dom = self.rendered_region(output, "#concept=term", "#panel")
+            absent_dom = self.rendered_region(output, "#concept=without-term", "#panel")
+
+        self.assertIn("术语来源", term_dom)
+        self.assertIn("Term &lt;script&gt;unsafe()&lt;/script&gt;", term_dom)
+        self.assertIn("Example &lt;Org&gt;", term_dom)
+        self.assertIn('href="https://example.org/spec?a=1&amp;b=2"', term_dom)
+        self.assertIn('target="_blank"', term_dom)
+        self.assertIn('rel="noopener noreferrer"', term_dom)
+        self.assertNotIn("javascript:alert", term_dom)
+        self.assertNotIn("Unsafe", term_dom)
+        self.assertNotIn("术语来源", absent_dom)
+
+    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
+    def test_history_semantics_cover_reverse_membership_recall_and_deep_links(self) -> None:
+        primary = concept("idempotency", "Idempotency")
+        missing = concept("without-history", "Without history")
+        history = {"schema_version": 1, "dossiers": [
+            {"id": "idempotency-history", "title": "History of idempotency", "summary": "Evidence-backed lineage", "path": "histories/idempotency.md", "concepts": ["idempotency"], "lessons": [], "tracks": [], "milestones": [
+                {"id": "later", "year": 1997, "month": 11, "day": 1, "kind": "adoption", "claim": "Later claim", "actors": [], "sources": [{"url": "https://example.org/rfc", "title": "RFC", "role": "primary"}]},
+                {"id": "earlier", "year": 1870, "month": None, "day": None, "kind": "terminology", "claim": "Earlier claim", "actors": [], "sources": [{"url": "http://unsafe.example", "title": "Unsafe", "role": "primary"}]},
+            ]},
+            {"id": "lesson-only-history", "title": "Lesson-only history", "summary": "Lesson-only evidence", "path": "histories/lesson-only.md", "concepts": [], "lessons": ["lessons/e-value.md"], "tracks": [], "milestones": [{"id": "lesson", "year": 1990, "month": 3, "day": None, "kind": "formalization", "claim": "Lesson claim", "actors": [], "sources": []}]},
+        ]}
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "history.html"
+            output.write_text(RENDERER.render_html(graph(primary, missing), LEARNING_STATE, history), encoding="utf-8")
+            overview = self.rendered_region(output, "#concept=idempotency&view=history", "#history-overlay")
+            timeline = self.rendered_region(output, "#history=idempotency-history&view=history", "#history-overlay")
+            recall = self.rendered_region(output, "#history=idempotency-history&view=history&recall=1", "#history-overlay")
+            no_history = self.rendered_region(output, "#concept=without-history&view=history", "#history-overlay")
+            lesson_only = self.rendered_region(output, "#history=lesson-only-history&view=history", "#history-overlay")
+            invalid = self.browser_dump(
+                output,
+                "#history=missing&view=history",
+                "const target=document.querySelector('#history-overlay');"
+                "const route=document.createElement('output');"
+                "route.dataset.route=location.hash;"
+                "document.body.replaceChildren(target.cloneNode(true),route);",
+            )
+
+        self.assertIn("History of idempotency", overview)
+        self.assertNotIn("Lesson-only history", overview)
+        self.assertLess(timeline.index("1870"), timeline.index("1997"))
+        self.assertIn("Earlier claim", timeline)
+        self.assertIn("Later claim", timeline)
+        self.assertIn('href="https://example.org/rfc"', timeline)
+        self.assertIn('target="_blank"', timeline)
+        self.assertIn('rel="noopener noreferrer"', timeline)
+        self.assertNotIn("Unsafe", timeline)
+        self.assertNotIn("http://unsafe.example", timeline)
+        self.assertIn("这条记录解决、形式化或批评了什么？", recall)
+        self.assertNotIn("Earlier claim", recall)
+        self.assertNotIn("Later claim", recall)
+        self.assertNotIn("Modern definition", recall)
+        self.assertIn("尚无可核查的历史谱系", no_history)
+        self.assertIn("Lesson-only history", lesson_only)
+        self.assertIn("Lesson-only evidence", lesson_only)
+        self.assertIn("lessons/e-value.md", lesson_only)
+        self.assertIn("Lesson claim", lesson_only)
+        self.assertIn("打开证据档案", lesson_only)
+        self.assertIn("History of idempotency", invalid)
+        self.assertIn('data-route="#view=history"', invalid)
+
+    def test_wrapper_is_deterministic_self_contained_and_embeds_exact_canonical_data(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            first, second = temporary / "first.html", temporary / "second.html"
+            first_result, second_result = self.render(first), self.render(second)
             self.assertEqual(first_result.returncode, 0, first_result.stderr)
             self.assertEqual(second_result.returncode, 0, second_result.stderr)
             content = first.read_text(encoding="utf-8")
             self.assertEqual(content, second.read_text(encoding="utf-8"))
 
-        self.assertIn("const GRAPH =", content)
-        self.assertIn("const LEARNING_STATE =", content)
-        self.assertIn("const HISTORY =", content)
-        self.assertIn("normalized-data", SCRIPT.read_text(encoding="utf-8"))
-        self.assertIn('id="space"', content)
-        self.assertIn('id="nodes"', content)
-        self.assertIn('id="edges"', content)
-        self.assertIn('id="chapter-rail"', content)
-        self.assertIn('id="panel"', content)
-        self.assertIn('id="search"', content)
-        self.assertIn('id="today-open"', content)
-        self.assertIn('id="continue-open"', content)
-        self.assertIn('id="recall-toggle"', content)
-        self.assertIn("function localToday()", content)
-        self.assertIn("function dueConcepts()", content)
-        self.assertIn('state={yaw:', content)
-        self.assertIn('space.onpointermove', content)
-        self.assertIn('state.zoom=Math.max', content)
-        self.assertIn('location.hash.slice(1)', content)
-        self.assertIn('python3 -m http.server 8000 --bind 127.0.0.1', content)
-        self.assertIn('http://localhost:8000/site/', content)
+        self.assertEqual(self.embedded(content, "GRAPH", "LEARNING_STATE"), self.normalized("build-knowledge-map.py"))
+        self.assertEqual(self.embedded(content, "LEARNING_STATE", "HISTORY"), self.normalized("build-learning-state.py"))
+        self.assertEqual(self.embedded(content, "HISTORY", "byId"), self.normalized("build-knowledge-history.py"))
         self.assertNotRegex(content, r"(?i)<script[^>]+\bsrc=")
         self.assertNotRegex(content, r"(?i)<link[^>]+\bhref=")
         self.assertNotRegex(content, r"\bfetch\s*\(")
-        self.assertNotRegex(content, r"(?i)(?:src|href)=[\"']https?://")
+        self.assertNotRegex(content, r"\bimport\s*\(")
 
-    def test_rendered_data_has_canonical_paths_and_case_lab_projection(self) -> None:
+    def test_wrapper_reports_the_node_22_and_npm_ci_recovery_contract(self) -> None:
+        with mock.patch.object(RENDERER.shutil, "which", return_value=None):
+            with self.assertRaises(RuntimeError) as missing:
+                RENDERER.node_runtime()
+        self.assertEqual(str(missing.exception), RENDERER.RUNTIME_DIAGNOSTIC)
+
+        wrong_version = subprocess.CompletedProcess(
+            ["node", "--version"],
+            0,
+            stdout="v21.7.3\n",
+            stderr="",
+        )
+        with (
+            mock.patch.object(RENDERER.shutil, "which", return_value="/fake/node"),
+            mock.patch.object(RENDERER.subprocess, "run", return_value=wrong_version),
+            self.assertRaises(RuntimeError) as wrong,
+        ):
+            RENDERER.node_runtime()
+        self.assertEqual(str(wrong.exception), RENDERER.RUNTIME_DIAGNOSTIC)
+
+        missing_dependencies = subprocess.CompletedProcess(
+            ["node", "frontend/build.mjs"],
+            1,
+            stdout="",
+            stderr=(
+                "knowledge map frontend build failed: Learning Lab frontend "
+                "dependencies are missing. Run npm ci with Node.js 22.x."
+            ),
+        )
+        with (
+            mock.patch.object(RENDERER, "node_runtime", return_value="/fake/node"),
+            mock.patch.object(
+                RENDERER.subprocess,
+                "run",
+                return_value=missing_dependencies,
+            ),
+            self.assertRaises(RuntimeError) as dependencies,
+        ):
+            RENDERER.run_frontend_build(REPOSITORY_ROOT, Path("ignored.html"))
+        self.assertEqual(
+            str(dependencies.exception),
+            RENDERER.RUNTIME_DIAGNOSTIC,
+        )
+
+    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
+    def test_rendered_site_reports_the_typescript_runtime_marker(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "index.html"
             result = self.render(output)
             self.assertEqual(result.returncode, 0, result.stderr)
-            content = output.read_text(encoding="utf-8")
-
-        self.assertIn('"path":"concepts/idempotency.md"', content)
-        self.assertIn('"path":"case-labs/seqevi.md"', content)
-        self.assertIn('"direct_concepts"', content)
-        self.assertIn('function canonical(path)', content)
-        self.assertIn('没有匹配的知识点', content)
-        script_bodies = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", content, flags=re.DOTALL)
-        self.assertIsNone(re.search(r"file://|localhost", "\n".join(script_bodies)))
-
-        embedded_match = re.search(
-            r"const GRAPH = (\{.*?\});\nconst LEARNING_STATE =",
-            content,
-            flags=re.DOTALL,
-        )
-        self.assertIsNotNone(embedded_match)
-        embedded = json.loads(embedded_match.group(1))
-        normalized = subprocess.run(
-            [
-                "python3",
-                str(REPOSITORY_ROOT / "scripts" / "build-knowledge-map.py"),
-                "normalized-data",
-                "--root",
-                str(REPOSITORY_ROOT),
-            ],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-        self.assertEqual(embedded, json.loads(normalized.stdout))
-
-        learning_match = re.search(
-            r"const LEARNING_STATE = (\{.*?\});\nconst HISTORY =",
-            content,
-            flags=re.DOTALL,
-        )
-        self.assertIsNotNone(learning_match)
-        normalized_learning_state = subprocess.run(
-            [
-                "python3",
-                str(REPOSITORY_ROOT / "scripts" / "build-learning-state.py"),
-                "normalized-data",
-                "--root",
-                str(REPOSITORY_ROOT),
-            ],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-        self.assertEqual(json.loads(learning_match.group(1)), json.loads(normalized_learning_state.stdout))
-
-        history_match = re.search(
-            r"const HISTORY = (\{.*?\});\nconst byId=",
-            content,
-            flags=re.DOTALL,
-        )
-        self.assertIsNotNone(history_match)
-        normalized_history = subprocess.run(
-            [
-                "python3",
-                str(REPOSITORY_ROOT / "scripts" / "build-knowledge-history.py"),
-                "normalized-data",
-                "--root",
-                str(REPOSITORY_ROOT),
-            ],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-        self.assertEqual(json.loads(history_match.group(1)), json.loads(normalized_history.stdout))
-
-    def test_history_projection_preserves_membership_date_precision_and_safe_sources(self) -> None:
-        graph = {"schema_version": 1, "nodes": [{
-            "id": "idempotency", "title": "Idempotency", "summary": "Modern definition", "kind": "foundation",
-            "tracks": [], "case_labs": [], "lessons": [], "records": [], "path": "concepts/idempotency.md",
-            "mastery": {"status": "not-started"},
-            "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []}, "extensions": {},
-        }], "edges": [], "tracks": [], "case_labs": []}
-        history = {"schema_version": 1, "dossiers": [{
-            "id": "idempotency-history", "title": "History", "summary": "", "path": "histories/idempotency.md",
-            "concepts": ["idempotency"], "lessons": [], "tracks": [], "milestones": [
-                {"id": "http", "year": 1997, "month": 11, "day": None, "kind": "adoption", "actors": ["IETF"], "claim": "HTTP claim", "sources": [{"url": "https://example.org/rfc", "title": "RFC", "publisher": "IETF", "role": "primary", "kind": "standard"}]},
-                {"id": "algebra", "year": 1870, "month": None, "day": None, "kind": "terminology", "actors": ["Peirce"], "claim": "Algebra claim", "sources": [{"url": "javascript:alert(1)", "title": "Unsafe", "publisher": "", "role": "scholarly-secondary", "kind": "monograph"}]},
-            ],
-        }]}
-        rendered = RENDERER.render_html(graph, {"schema_version": 1, "concepts": [], "resume": None}, history)
-        self.assertIn('id="history-mode"', rendered)
-        self.assertIn("historyDossiers(id)", rendered)
-        self.assertIn("dateLabel(m)", rendered)
-        self.assertIn("a.year-b.year||(a.month||0)-(b.month||0)||(a.day||0)-(b.day||0)", rendered)
-        self.assertIn('href="${esc(safeHttps(s.url))}"', rendered)
-        self.assertIn("尚无可核查的历史谱系", rendered)
-        self.assertIn("不展示现代定义或概念关系", rendered)
-        self.assertIn("function updateGraphHash()", rendered)
-        self.assertIn("打开证据档案", rendered)
-
-    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
-    def test_browser_history_timeline_recall_and_no_history_states(self) -> None:
-        nodes = []
-        for identifier, title in (("idempotency", "Idempotency"), ("without-history", "Without history")):
-            nodes.append({"id": identifier, "title": title, "summary": "Modern definition", "kind": "foundation", "tracks": [], "case_labs": [], "lessons": [], "records": [], "path": f"concepts/{identifier}.md", "mastery": {"status": "not-started"}, "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []}, "extensions": {}})
-        graph = {"schema_version": 1, "nodes": nodes, "edges": [], "tracks": [], "case_labs": []}
-        history = {"schema_version": 1, "dossiers": [
-            {"id": "idempotency-history", "title": "History", "summary": "", "path": "histories/idempotency.md", "concepts": ["idempotency"], "lessons": [], "tracks": [], "milestones": [{"id": "early", "year": 1870, "month": None, "day": None, "kind": "terminology", "actors": ["Peirce"], "claim": "Historical claim", "sources": [{"url": "https://example.org/source", "title": "Primary source", "publisher": "", "role": "primary", "kind": "monograph"}]}]},
-            {"id": "e-value-history", "title": "History of E-value", "summary": "Lesson-only evidence", "path": "histories/e-value.md", "concepts": [], "lessons": ["lessons/e-value.md"], "tracks": [], "milestones": [{"id": "karlin", "year": 1990, "month": 3, "day": None, "kind": "formalization", "actors": ["Karlin"], "claim": "E-value claim", "sources": [{"url": "https://example.org/evalue", "title": "E-value source", "publisher": "", "role": "primary", "kind": "paper"}]}]},
-        ]}
-        with tempfile.TemporaryDirectory() as directory:
-            temporary = Path(directory)
-            output = temporary / "history.html"
-            rendered = RENDERER.render_html(graph, {"schema_version": 1, "concepts": [], "resume": None}, history)
-            output.write_text(rendered, encoding="utf-8")
-            interaction_output = temporary / "interaction.html"
-            interaction_output.write_text(
-                rendered.replace(
-                    "</body>",
-                    '<script>window.addEventListener("load",()=>{document.querySelector("#graph-mode").click();document.body.dataset.graphHash=location.hash;document.body.dataset.panelOpen=String(document.querySelector("#panel").classList.contains("open")&&!document.querySelector("#panel").hidden);document.body.dataset.introHidden=String(document.querySelector("#intro").hidden||document.querySelector("#intro").classList.contains("hidden"));document.querySelector("#history-mode").click();document.body.dataset.historyHash=location.hash})</script></body>',
-                ),
-                encoding="utf-8",
-            )
-            narrow_output = temporary / "narrow.html"
-            narrow_output.write_text(
-                rendered.replace(
-                    "</body>",
-                    '<script>window.addEventListener("load",()=>{const search=document.querySelector(".search").getBoundingClientRect(),card=document.querySelector(".learning-card").getBoundingClientRect();document.body.dataset.headerOverlap=String(search.bottom>card.top)})</script></body>',
-                ),
-                encoding="utf-8",
-            )
-            environment = os.environ.copy()
-            environment.update({"TMPDIR": str(temporary), "XDG_CONFIG_HOME": str(temporary / "config"), "XDG_CACHE_HOME": str(temporary / "cache")})
-            browser = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'user'}", "--dump-dom", output.as_uri() + "#concept=idempotency&history=idempotency-history&view=history&recall=1"], check=False, text=True, capture_output=True, timeout=25, env=environment)
-            self.assertEqual(browser.returncode, 0, browser.stderr)
-            self.assertIn('id="history-overlay"', browser.stdout)
-            self.assertIn("1870", browser.stdout)
-            self.assertIn('class="source-role">primary</span> · Primary source ↗', browser.stdout)
-            self.assertIn("这条记录解决、形式化或批评了什么？", browser.stdout)
-            history_dom = browser.stdout.split('id="history-overlay"', 1)[1].split("</main>", 1)[0]
-            self.assertNotIn("Modern definition", history_dom)
-            self.assertIn('href="https://example.org/source"', browser.stdout)
-            no_history = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'no-history-user'}", "--dump-dom", output.as_uri() + "#concept=without-history&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
-            self.assertEqual(no_history.returncode, 0, no_history.stderr)
-            self.assertIn("尚无可核查的历史谱系", no_history.stdout)
-            lesson_only = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'lesson-only-user'}", "--dump-dom", output.as_uri() + "#history=e-value-history&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
-            self.assertEqual(lesson_only.returncode, 0, lesson_only.stderr)
-            self.assertIn("History of E-value", lesson_only.stdout)
-            self.assertIn("Lesson-only evidence", lesson_only.stdout)
-            self.assertIn("lessons/e-value.md", lesson_only.stdout)
-            self.assertIn("E-value claim", lesson_only.stdout)
-            self.assertIn("打开证据档案", lesson_only.stdout)
-            overview = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'overview-user'}", "--dump-dom", output.as_uri() + "#view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
-            self.assertEqual(overview.returncode, 0, overview.stderr)
-            self.assertIn('data-history-id="e-value-history"', overview.stdout)
-            self.assertIn('data-history-id="idempotency-history"', overview.stdout)
-            invalid = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'invalid-history-user'}", "--dump-dom", output.as_uri() + "#history=missing&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
-            self.assertEqual(invalid.returncode, 0, invalid.stderr)
-            self.assertIn('data-history-id="e-value-history"', invalid.stdout)
-            self.assertNotIn("#history=missing", invalid.stdout)
-            interaction = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'interaction-user'}", "--dump-dom", interaction_output.as_uri() + "#concept=idempotency&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
-            self.assertEqual(interaction.returncode, 0, interaction.stderr)
-            self.assertIn('data-graph-hash="#concept=idempotency"', interaction.stdout)
-            self.assertIn('data-panel-open="true"', interaction.stdout)
-            self.assertIn('data-intro-hidden="true"', interaction.stdout)
-            self.assertIn('data-history-hash="#view=history&amp;concept=idempotency"', interaction.stdout)
-            narrow = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", "--window-size=320,844", f"--user-data-dir={temporary / 'narrow-user'}", "--dump-dom", narrow_output.as_uri() + "#view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
-            self.assertEqual(narrow.returncode, 0, narrow.stderr)
-            self.assertIn('data-header-overlap="false"', narrow.stdout)
-
-    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
-    def test_installed_browser_executes_graph_and_accessible_node_list(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            temporary = Path(directory)
-            output = temporary / "site" / "index.html"
-            result = self.render(output)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            profile = temporary / "profile"
-            runtime = temporary / "runtime"
-            cache = temporary / "cache"
-            profile.mkdir()
-            runtime.mkdir()
-            cache.mkdir()
-            environment = os.environ.copy()
-            environment.update(
-                {
-                    "TMPDIR": str(runtime),
-                    "XDG_CONFIG_HOME": str(profile / "config"),
-                    "XDG_CACHE_HOME": str(cache),
-                }
-            )
-            browser = subprocess.run(
-                [
-                    str(CHROME),
-                    "--headless=new",
-                    "--disable-gpu",
-                    "--no-sandbox",
-                    "--disable-breakpad",
-                    "--disable-crash-reporter",
-                    f"--user-data-dir={profile / 'user'}",
-                    f"--disk-cache-dir={cache}",
-                    "--dump-dom",
-                    output.as_uri() + "#concept=idempotency&learning=today&recall=1",
-                ],
-                check=False,
-                text=True,
-                capture_output=True,
-                timeout=25,
-                env=environment,
-            )
-            self.assertEqual(browser.returncode, 0, browser.stderr)
-            normalized_graph = subprocess.run(
-                [
-                    "python3",
-                    str(REPOSITORY_ROOT / "scripts" / "build-knowledge-map.py"),
-                    "normalized-data",
-                    "--root",
-                    str(REPOSITORY_ROOT),
-                ],
-                check=True,
-                text=True,
-                capture_output=True,
-            )
-            expected_node_count = len(json.loads(normalized_graph.stdout)["nodes"])
-            self.assertEqual(browser.stdout.count('class="concept '), expected_node_count)
-            accessible = re.search(
-                r'<div class="sr-only" id="concept-list">(.*?)</div>',
-                browser.stdout,
-                flags=re.DOTALL,
-            )
-            self.assertIsNotNone(accessible)
-            self.assertEqual(
-                accessible.group(1).count('data-accessible="'), expected_node_count
-            )
-            self.assertEqual(browser.stdout.count('class="edge '), 0)
-            self.assertIn("Partial failure — not started", browser.stdout)
-            self.assertIn('class="panel open"', browser.stdout)
-            self.assertIn("打开源知识卡", browser.stdout)
-            self.assertIn("能力与复习", browser.stdout)
-            self.assertIn("三分钟，继续一小步。", browser.stdout)
-            self.assertIn('class="learning-view open"', browser.stdout)
-            self.assertIn("现在适合回忆的概念", browser.stdout)
-            self.assertIn("答案已隐藏。", browser.stdout)
-            self.assertNotIn('data-target="logical-operation"', browser.stdout)
-
-            today = subprocess.run(
-                [
-                    str(CHROME),
-                    "--headless=new",
-                    "--disable-gpu",
-                    "--no-sandbox",
-                    "--disable-breakpad",
-                    "--disable-crash-reporter",
-                    f"--user-data-dir={profile / 'today-user'}",
-                    "--dump-dom",
-                    output.as_uri() + "#learning=continue",
-                ],
-                check=False,
-                text=True,
-                capture_output=True,
-                timeout=25,
-                env=environment,
-            )
-            self.assertEqual(today.returncode, 0, today.stderr)
-            self.assertIn('class="learning-view open"', today.stdout)
-            self.assertIn("Continue", today.stdout)
-            self.assertIn("Partial failure", today.stdout)
-
-            term_node = {
-                "id": "term", "title": "Term", "summary": "A term", "kind": "foundation",
-                "tracks": [], "case_labs": [], "lessons": [], "records": [], "path": "concepts/term.md",
-                "mastery": {"status": "not-started"},
-                "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []},
-                "extensions": {"terminology": {"preferred_english_term": "Term", "checked_on": "2026-08-21", "sources": [
-                    {"url": "https://example.org/spec", "publisher": "Example Org", "kind": "standard"},
-                ]}},
-            }
-            term_output = temporary / "terminology.html"
-            term_output.write_text(
-                RENDERER.render_html(
-                    {"schema_version": 1, "nodes": [term_node], "edges": [], "tracks": [], "case_labs": []},
-                    {"schema_version": 1, "concepts": [], "resume": None},
-                ),
-                encoding="utf-8",
-            )
-            terminology = subprocess.run(
-                [
-                    str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox",
-                    "--disable-breakpad", "--disable-crash-reporter",
-                    f"--user-data-dir={profile / 'terminology-user'}", "--dump-dom",
-                    term_output.as_uri() + "#concept=term",
-                ],
-                check=False, text=True, capture_output=True, timeout=25, env=environment,
-            )
-            self.assertEqual(terminology.returncode, 0, terminology.stderr)
-            self.assertIn("术语来源", terminology.stdout)
-            self.assertIn("Example Org · standard", terminology.stdout)
-            self.assertIn('href="https://example.org/spec"', terminology.stdout)
+            dom = self.browser_dump(output, "#concept=idempotency")
+        self.assertIn('data-learning-lab-frontend="typescript"', dom)
 
 
 def main() -> int:

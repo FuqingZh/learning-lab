@@ -67,8 +67,15 @@ def main() -> int:
                 cwd=temporary_root,
             )
             run(
-                [sys.executable, "scripts/render-knowledge-map-site.py"],
-                cwd=temporary_root,
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "render-knowledge-map-site.py"),
+                    "--root",
+                    str(temporary_root),
+                    "--output",
+                    str(temporary_root / "site" / "index.html"),
+                ],
+                cwd=ROOT,
             )
 
             errors = compare_directory(temporary_root / "maps", ROOT / "maps", label="maps")

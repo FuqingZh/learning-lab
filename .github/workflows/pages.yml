@@ -1,6 +1,7 @@
 name: Deploy knowledge space to GitHub Pages
 
 on:
+  pull_request:
   push:
     branches:
       - main
@@ -8,11 +9,9 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: github-pages
+  group: github-pages-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -27,16 +26,29 @@ jobs:
           python-version: "3.13"
           cache: pip
           cache-dependency-path: requirements-dev.txt
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
       - name: Install validation dependency
         run: python -m pip install -r requirements-dev.txt
+      - name: Install frontend dependencies
+        run: npm ci
       - name: Validate repository and generated projections
         run: bash scripts/check-structure.sh
       - name: Upload self-contained site only
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: site
 
   deploy:
+    if: github.event_name != 'pull_request'
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
