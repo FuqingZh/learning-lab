@@ -319,6 +319,7 @@ document.body.dataset.transition=getComputedStyle(document.querySelector('#panel
 
         evidence_probe = """
 const app=document.querySelector('#app');app.style.width='320px';
+window.dispatchEvent(new Event('resize'));
 const filters=document.querySelector('.filters').getBoundingClientRect();
 const panel=document.querySelector('#panel').getBoundingClientRect();
 const overlap=filters.left<panel.right&&filters.right>panel.left&&filters.top<panel.bottom&&filters.bottom>panel.top;
@@ -333,7 +334,7 @@ document.body.dataset.overlap=String(overlap);
                 output,
                 "#view=evidence&evidence=source-e69e9cccb6f79c4f",
                 evidence_probe,
-                window_size="320,844",
+                window_size="500,844",
             )
         self.assertIn('data-overlap="false"', evidence_dom)
 

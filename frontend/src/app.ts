@@ -172,6 +172,13 @@ export function mountKnowledgeExplorer(
     evidenceMode,
   );
   root.append(controls);
+  const syncOverlayTop = () => {
+    root.style.setProperty(
+      "--mobile-overlay-top",
+      `${Math.ceil(controls.getBoundingClientRect().bottom + 8)}px`,
+    );
+  };
+  window.addEventListener("resize", syncOverlayTop);
   const results = element("div", "results");
   results.id = "results";
   results.setAttribute("role", "listbox");
@@ -819,10 +826,7 @@ export function mountKnowledgeExplorer(
     mastery.hidden = evidenceView;
     evidenceKind.hidden = !evidenceView;
     evidenceEdge.hidden = !evidenceView;
-    root.style.setProperty(
-      "--mobile-overlay-top",
-      `${Math.ceil(controls.getBoundingClientRect().bottom + 8)}px`,
-    );
+    syncOverlayTop();
     search.placeholder = evidenceView ? "搜索证据 /" : "搜索概念 /";
     search.setAttribute("aria-label", evidenceView ? "搜索证据" : "搜索概念");
     if (evidenceView) renderEvidenceResults();
