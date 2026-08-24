@@ -1,103 +1,105 @@
 #!/usr/bin/env python3
-"""Render a self-contained spatial explorer from normalized graph JSON."""
+"""Build the self-contained knowledge explorer with the TypeScript frontend."""
 
 from __future__ import annotations
+
 import argparse
 import json
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
 
-def normalized_graph(root: Path) -> dict[str, Any]:
+RUNTIME_DIAGNOSTIC = (
+    "Learning Lab site generation requires Node.js 22.x and frontend dependencies "
+    "installed with `npm ci`."
+)
+
+
+def node_runtime() -> str:
+    """Return a Node 22 executable or fail with the supported recovery command."""
+    node = shutil.which("node")
+    if node is None:
+        raise RuntimeError(RUNTIME_DIAGNOSTIC)
+    try:
+        result = subprocess.run(
+            [node, "--version"],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+    except OSError as error:
+        raise RuntimeError(RUNTIME_DIAGNOSTIC) from error
+    version = result.stdout.strip()
+    if result.returncode or not version.startswith("v22."):
+        raise RuntimeError(RUNTIME_DIAGNOSTIC)
+    return node
+
+
+def run_frontend_build(
+    root: Path,
+    output: Path,
+    *,
+    data_file: Path | None = None,
+) -> None:
+    """Invoke the sole production browser implementation."""
+    toolchain_root = Path(__file__).resolve().parents[1]
+    build = toolchain_root / "frontend" / "build.mjs"
+    if not build.is_file():
+        raise RuntimeError(f"frontend build entrypoint is missing: {build}")
+    command = [
+        node_runtime(),
+        str(build),
+        "--root",
+        str(root),
+        "--output",
+        str(output),
+    ]
+    if data_file is not None:
+        command.extend(["--data-file", str(data_file)])
     result = subprocess.run(
-        [sys.executable, str(root / "scripts/build-knowledge-map.py"), "normalized-data", "--root", str(root)],
-        text=True, capture_output=True, check=False,
+        command,
+        cwd=toolchain_root,
+        text=True,
+        capture_output=True,
+        check=False,
     )
     if result.returncode:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "invalid graph")
-    try:
-        graph = json.loads(result.stdout)
-    except json.JSONDecodeError as error:
-        raise RuntimeError(f"normalized-data emitted invalid JSON: {error}") from error
-    if graph.get("schema_version") != 1:
-        raise RuntimeError("unsupported normalized graph schema version")
-    return graph
+        detail = result.stderr.strip() or result.stdout.strip()
+        if "dependencies are missing" in detail:
+            raise RuntimeError(RUNTIME_DIAGNOSTIC)
+        raise RuntimeError(detail or "TypeScript frontend build failed")
 
 
-def normalized_learning_state(root: Path) -> dict[str, Any]:
-    """Load the separately-derived, clock-independent learner projection."""
-    command = [sys.executable, str(root / "scripts/build-learning-state.py"), "normalized-data", "--root", str(root)]
-    result = subprocess.run(command, text=True, capture_output=True, check=False)
-    if result.returncode:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "invalid learning state")
-    try:
-        learning_state = json.loads(result.stdout)
-    except json.JSONDecodeError as error:
-        raise RuntimeError(f"learning-state normalized-data emitted invalid JSON: {error}") from error
-    if learning_state.get("schema_version") != 1:
-        raise RuntimeError("unsupported learning-state schema version")
-    return learning_state
-
-
-def normalized_history(root: Path) -> dict[str, Any]:
-    """Load the separate, evidence-backed historical projection."""
-    result = subprocess.run(
-        [sys.executable, str(root / "scripts/build-knowledge-history.py"), "normalized-data", "--root", str(root)],
-        text=True, capture_output=True, check=False,
-    )
-    if result.returncode:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or "invalid history")
-    try:
-        history = json.loads(result.stdout)
-    except json.JSONDecodeError as error:
-        raise RuntimeError(f"history normalized-data emitted invalid JSON: {error}") from error
-    if history.get("schema_version") != 1:
-        raise RuntimeError("unsupported normalized history schema version")
-    return history
-
-
-def safe_json(value: dict[str, Any]) -> str:
-    value = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return value.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
-
-
-def render_html(graph: dict[str, Any], learning_state: dict[str, Any], history: dict[str, Any] | None = None) -> str:
-    history = history or {"schema_version": 1, "dossiers": []}
-    return r'''<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="robots" content="noindex,nofollow"><title>Learning Lab · Knowledge Space</title>
-<style>
-:root{--paper:#e9e8e4;--ink:#171717;--soft:#77756f;--hair:#c6c4bd;--card:#f5f4f0e8;--blue:#315df4;--green:#198c63;--pink:#bd3f72;--violet:#7652b8;--amber:#c17818;--shadow:0 24px 70px #24231e20}*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}body{background:var(--paper);color:var(--ink);font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}button,input{font:inherit;color:inherit}button{cursor:pointer}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.shell{height:100%;position:relative;isolation:isolate}.noise{position:absolute;inset:0;pointer-events:none;opacity:.18;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E")}
-header{position:absolute;z-index:20;top:0;left:0;right:0;display:flex;align-items:center;gap:18px;padding:18px 22px;background:linear-gradient(var(--paper),#e9e8e4dc 72%,#e9e8e400)}.brand{display:flex;align-items:center;gap:11px;min-width:max-content}.mark{width:21px;height:21px;border:1.5px solid;border-radius:50%;position:relative}.mark:before,.mark:after{content:"";position:absolute;background:var(--ink)}.mark:before{width:13px;height:1px;top:9px;left:3px}.mark:after{width:1px;height:13px;top:3px;left:9px}.brand strong{font-size:12px;letter-spacing:.14em;text-transform:uppercase}.brand small{display:block;color:var(--soft);font-size:9px;letter-spacing:.09em}.search{margin-left:auto;width:min(330px,34vw);position:relative}.search input{width:100%;height:38px;border:1px solid var(--hair);border-radius:99px;background:#f4f3efc9;padding:0 48px 0 17px;outline:none}.search input:focus{border-color:var(--ink);box-shadow:0 0 0 3px #fff8}.key{position:absolute;right:12px;top:10px;color:var(--soft);font-size:10px;border:1px solid var(--hair);padding:1px 5px;border-radius:4px}.icon-button{border:1px solid var(--hair);width:38px;height:38px;border-radius:50%;background:#f4f3efb8;display:grid;place-items:center}.icon-button:hover,.icon-button:focus-visible{background:#fff;outline:2px solid var(--ink);outline-offset:2px}
-#space{position:absolute;inset:0;overflow:hidden;perspective:900px;touch-action:none;cursor:grab}#space.dragging{cursor:grabbing}.stars{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 35% 42%,#fff9 0 1px,transparent 2px),radial-gradient(circle at 68% 31%,#7773 0 1px,transparent 2px),radial-gradient(circle at 76% 71%,#fff 0 1px,transparent 2px);background-size:127px 113px,173px 149px,211px 181px}#edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.edge{stroke-width:1.2;opacity:.42}.edge.prerequisites{stroke:var(--blue)}.edge.enables{stroke:var(--green)}.edge.contrasts_with{stroke:var(--pink);stroke-dasharray:5 5}.edge.related{stroke:var(--violet);stroke-dasharray:2 5}.edge.dim{opacity:.07}.edge.active{opacity:.92;stroke-width:2.5}#nodes{position:absolute;inset:0;pointer-events:none}.concept{pointer-events:auto;position:absolute;left:0;top:0;border:0;background:transparent;padding:0;transform:translate(-50%,-50%);text-align:center;outline:none;will-change:transform,opacity}.concept:before{content:"";display:block;margin:0 auto 7px;width:7px;height:7px;border-radius:50%;background:var(--soft);box-shadow:0 0 0 5px #e9e8e488}.concept.mastered:before{background:var(--green)}.concept.developing:before{background:var(--amber)}.concept span{display:block;background:#e9e8e4c7;padding:2px 5px;font-size:11px;white-space:nowrap}.concept:hover,.concept:focus-visible,.concept.selected{z-index:9}.concept:hover span,.concept:focus-visible span,.concept.selected span{background:var(--ink);color:var(--paper)}.concept:focus-visible{outline:2px solid var(--ink);outline-offset:8px}.concept.selected:before{background:var(--ink);box-shadow:0 0 0 7px #fff,0 0 0 8px var(--ink)}
-.intro{position:absolute;z-index:5;left:clamp(22px,4vw,62px);bottom:clamp(32px,7vh,82px);width:min(480px,46vw);pointer-events:none;transition:.3s}.intro.hidden{opacity:0;transform:translateY(14px)}.eyebrow{text-transform:uppercase;letter-spacing:.27em;font-size:9px;color:var(--soft)}.intro h1{font-family:Arial,sans-serif;font-size:clamp(40px,6vw,88px);line-height:.83;letter-spacing:-.07em;margin:13px 0 18px;text-transform:uppercase}.intro p{max-width:420px;color:#55534e;font-size:12px}.hint{margin-top:17px;display:flex;gap:20px;text-transform:uppercase;letter-spacing:.11em;font-size:8px;color:var(--soft)}.chapter-rail{position:absolute;z-index:15;right:23px;top:50%;transform:translateY(-50%);display:grid;gap:7px}.chapter-rail button{border:0;background:transparent;width:28px;height:28px;border-radius:50%;font-size:9px;color:var(--soft);position:relative}.chapter-rail button:hover,.chapter-rail button:focus-visible,.chapter-rail button.active{background:var(--ink);color:var(--paper);outline:none}.chapter-label{position:absolute;right:38px;white-space:nowrap;text-transform:uppercase;letter-spacing:.13em;opacity:0;transform:translateX(8px);pointer-events:none;transition:.15s}.chapter-rail button:hover .chapter-label,.chapter-rail button:focus-visible .chapter-label{opacity:1;transform:none}.legend{position:absolute;z-index:12;right:22px;bottom:19px;display:flex;gap:13px;color:var(--soft);font-size:8px;text-transform:uppercase;letter-spacing:.08em}.legend i{display:inline-block;width:14px;height:1px;vertical-align:middle;margin-right:4px}.pre{background:var(--blue)}.ena{background:var(--green)}.con{background:var(--pink)}.rel{background:var(--violet)}
-.panel{position:absolute;z-index:30;top:12px;right:12px;bottom:12px;width:min(440px,calc(100vw - 24px));background:var(--card);backdrop-filter:blur(22px);border:1px solid #fff9;border-radius:5px;box-shadow:var(--shadow);padding:22px 25px 24px;overflow:auto;transform:translateX(calc(100% + 30px));transition:transform .32s cubic-bezier(.22,.8,.23,1)}.panel.open{transform:none}.panel-close{float:right;border:0;background:transparent;font-size:22px}.panel .index{color:var(--soft);font-size:9px;letter-spacing:.18em}.panel h2{font-family:Arial,sans-serif;font-size:42px;line-height:.96;letter-spacing:-.045em;margin:48px 0 14px}.tags{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 24px}.tag{border:1px solid var(--hair);border-radius:99px;padding:3px 8px;font-size:8px;text-transform:uppercase;letter-spacing:.09em}.tag.mastered{border-color:var(--green);color:var(--green)}.tag.developing{border-color:var(--amber);color:var(--amber)}.definition{font-family:Georgia,serif;font-size:19px;line-height:1.55;margin:0 0 27px}.section{border-top:1px solid var(--hair);padding-top:15px;margin-top:18px}.section h3{font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--soft);margin:0 0 10px}.relation{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #d9d7d0;background:transparent;padding:9px 0}.relation:hover,.relation:focus-visible{padding-left:7px;outline:none}.relation small{float:right;color:var(--soft)}.evidence{display:block;color:inherit;text-decoration:none;padding:6px 0;overflow-wrap:anywhere}.evidence:hover{text-decoration:underline}.canonical{display:inline-block;margin-top:23px;color:inherit;text-decoration:none;border-bottom:1px solid;padding-bottom:3px}.results{position:absolute;z-index:25;top:66px;right:72px;width:min(390px,calc(100vw - 44px));max-height:55vh;overflow:auto;background:#f6f5f1f2;border:1px solid var(--hair);box-shadow:var(--shadow);padding:8px;display:none}.results.open{display:block}.result{display:block;width:100%;border:0;background:transparent;text-align:left;padding:10px}.result:hover,.result:focus-visible{background:var(--ink);color:var(--paper);outline:none}.result strong,.result small{display:block}.result small{color:var(--soft)}.empty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--soft);display:none}.empty.show{display:block}.about{position:absolute;inset:0;z-index:50;display:none;place-items:center;background:#171717eb;color:#eee;padding:30px}.about.open{display:grid}.about article{max-width:620px}.about h2{font:52px/.92 Arial,sans-serif;letter-spacing:-.05em;margin:0 0 25px}.about p{color:#bbb}.about button{position:absolute;right:25px;top:20px;border:1px solid #777;color:#fff;background:transparent;border-radius:50%;width:42px;height:42px}
-.learning-card{position:absolute;z-index:21;left:22px;top:76px;width:min(390px,calc(100vw - 44px));background:var(--card);border:1px solid #fff9;border-radius:5px;box-shadow:0 12px 40px #24231e18;padding:14px 16px}.learning-card h2{font:22px/1 Arial,sans-serif;margin:6px 0}.learning-card p{margin:7px 0;color:#55534e;font-size:12px}.learning-card button{border:1px solid var(--hair);background:#f6f5f1;border-radius:99px;padding:5px 9px;font-size:10px}.learning-card button:hover{background:var(--ink);color:var(--paper)}.learning-view{position:absolute;z-index:31;left:22px;top:206px;width:min(390px,calc(100vw - 44px));max-height:calc(100vh - 235px);overflow:auto;background:var(--card);border:1px solid #fff9;border-radius:5px;box-shadow:var(--shadow);padding:16px;display:none}.learning-view.open{display:block}.learning-view h2{font:24px/1 Arial,sans-serif;margin:5px 0 12px}.learning-item{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--hair);background:transparent;padding:10px 0}.learning-item small{display:block;color:var(--soft)}.recall-note{font-size:11px;color:var(--soft)}.view-switch{display:flex;overflow:hidden;border:1px solid var(--hair);border-radius:99px}.view-switch button{border:0;background:transparent;padding:7px 10px;font-size:10px}.view-switch button.active{background:var(--ink);color:var(--paper)}.timeline{position:absolute;z-index:10;left:clamp(22px,4vw,62px);bottom:clamp(32px,7vh,82px);width:min(610px,calc(100vw - 90px));max-height:62vh;overflow:auto;background:var(--card);border:1px solid #fff9;border-radius:5px;box-shadow:var(--shadow);padding:20px 22px}.timeline h1{font:34px/.95 Arial,sans-serif;letter-spacing:-.045em;margin:8px 0 14px}.timeline-item{position:relative;border-top:1px solid var(--hair);padding:13px 0 12px 85px}.timeline-date{position:absolute;left:0;top:13px;color:var(--soft);font-size:11px}.timeline-item p{margin:5px 0}.timeline-item small{color:var(--soft)}.source-role{font-size:9px;letter-spacing:.08em;text-transform:uppercase}.history-empty{color:var(--soft);font-family:Georgia,serif;font-size:17px}
-@media(max-width:700px){header{padding:10px 13px;gap:7px;flex-wrap:wrap}.brand{order:1}.brand small,.key,.legend{display:none}.view-switch{order:2;margin-left:auto;flex:none}.icon-button{order:3}.search{order:4;margin-left:0;width:100%;flex:1 0 100%}.intro{width:75vw}.intro h1{font-size:44px}.learning-card{left:14px;top:112px;width:calc(100vw - 28px)}.chapter-rail{right:4px}.panel{top:8px;right:8px;bottom:8px;width:calc(100vw - 16px)}.panel h2{font-size:36px}.concept span{font-size:9px}.timeline{left:14px;top:258px;bottom:18px;width:calc(100vw - 62px);max-height:none;padding:16px}.timeline h1{font-size:32px}.timeline-item{padding:38px 0 12px}.timeline-date{top:13px}.timeline .relation small{float:none;display:block;margin-top:3px}}@media(max-width:350px){.brand strong{display:none}}@media(prefers-reduced-motion:reduce){.panel,.intro{transition:none}}
-</style><script>window.addEventListener("DOMContentLoaded",()=>{function updateGraphHash(){window.history.replaceState(null,"",state.selected?"#concept="+encodeURIComponent(state.selected):location.pathname+location.search)}function appendDossierLink(){const dossier=(HISTORY.dossiers||[]).find(d=>d.id===state.historyId),article=historyOverlay.querySelector(".timeline");if(!dossier||!article)return;const link=document.createElement("a");link.className="canonical";link.href=canonical(dossier.path);link.textContent="打开证据档案 ↗";article.append(link)}const historyAwareShowHistory=showHistory;showHistory=()=>{historyAwareShowHistory();intro.hidden=true;appendDossierLink()};const historyAwareSelectNode=selectNode;selectNode=(id,push)=>{historyAwareSelectNode(id,push);if(push&&state.mode==="history")updateHistoryHash()};document.querySelector("#graph-mode").onclick=()=>{state.historyId=null;intro.hidden=false;intro.classList.toggle("hidden",!!state.selected);switchMode("graph");renderPanel();updateGraphHash()};document.querySelector("#history-mode").onclick=()=>{switchMode("history");updateHistoryHash()};if(state.historyId&&!(HISTORY.dossiers||[]).some(d=>d.id===state.historyId)){state.historyId=null;if(state.mode==="history")updateHistoryHash()}if(state.mode==="history")showHistory()});</script></head><body><a class="sr-only" href="#concept-list">跳到可访问词条列表</a><div class="shell"><div class="noise"></div>
-<header><div class="brand"><span class="mark" aria-hidden="true"></span><div><strong>Learning Lab</strong><small>Knowledge space · normalized graph v1</small></div></div><div class="view-switch" role="group" aria-label="知识视图"><button id="graph-mode" class="active" aria-pressed="true">关系图</button><button id="history-mode" aria-pressed="false">历史谱系</button></div><label class="search"><span class="sr-only">搜索知识点</span><input id="search" type="search" placeholder="搜索知识点…" autocomplete="off"><span class="key">/</span></label><button class="icon-button" id="reset" aria-label="重置视角">◎</button><button class="icon-button" id="about-open" aria-label="打开使用说明">?</button></header>
-<main id="space" aria-label="可旋转和缩放的知识关系空间"><div class="stars"></div><svg id="edges" aria-hidden="true"></svg><div id="nodes"></div><div class="intro" id="intro"><div class="eyebrow">Learning paths, visibly connected</div><h1>Knowledge<br>Space</h1><p>把学习记录沉淀为可探索的概念空间。拖动旋转，滚轮缩放，点击任一知识点进入它的上下游脉络。</p><div class="hint"><span>拖动 · 旋转</span><span>滚轮 · 缩放</span><span>点击 · 深入</span></div></div><nav class="chapter-rail" id="chapter-rail" aria-label="按学习库切换视图"></nav><div class="legend"><span><i class="pre"></i>前置</span><span><i class="ena"></i>促进</span><span><i class="con"></i>对比</span><span><i class="rel"></i>相关</span></div><p class="empty" id="empty">没有匹配的知识点</p></main>
-<section class="learning-card" aria-labelledby="entry-title"><div class="eyebrow">A calm next step</div><h2 id="entry-title">三分钟，继续一小步。</h2><p id="entry-copy">从当前的知识图开始；可以随时停下。</p><button id="today-open">Today</button><button id="continue-open">Continue</button><button id="recall-toggle" aria-pressed="false">Recall</button></section><section class="learning-view" id="learning-view" aria-live="polite"></section><div class="results" id="results" role="listbox" aria-label="搜索结果"></div><aside class="panel" id="panel" aria-live="polite" aria-label="知识点详情"></aside><section class="about" id="about" role="dialog" aria-modal="true" aria-labelledby="about-title"><button id="about-close" aria-label="关闭">×</button><article><div class="eyebrow">About this map</div><h2 id="about-title">一个仓库，多个视角，同一张知识图。</h2><p>搜索定位概念，右侧圆点按关联库聚焦，点击节点查看前置、促进、对比和相关关系。界面完全自包含，可直接双击打开。</p><p>如果浏览器限制本地 Markdown 链接，在仓库根目录运行 <code>python3 -m http.server 8000 --bind 127.0.0.1</code>，再访问 <code>http://localhost:8000/site/</code>。</p></article></section><div class="sr-only" id="concept-list"></div></div>
-<script>"use strict";
-const GRAPH = __GRAPH_DATA__;
-const LEARNING_STATE = __LEARNING_STATE__;
-const HISTORY = __HISTORY_DATA__;
-const byId=new Map(GRAPH.nodes.map(n=>[n.id,n])),learningById=new Map((LEARNING_STATE.concepts||[]).map(n=>[n.id,n])),state={yaw:-.35,pitch:.12,zoom:1,selected:null,track:"all",query:"",recall:false,mode:"graph",drag:null};
-const space=document.querySelector("#space"),nodesLayer=document.querySelector("#nodes"),edgesSvg=document.querySelector("#edges"),panel=document.querySelector("#panel"),intro=document.querySelector("#intro"),search=document.querySelector("#search"),results=document.querySelector("#results"),empty=document.querySelector("#empty"),rail=document.querySelector("#chapter-rail"),learningView=document.querySelector("#learning-view");
-function pretty(s){return String(s||"").replaceAll("-"," ").replaceAll("_"," ")}function canonical(path){const encoded=path.split("/").map(encodeURIComponent).join("/");return location.protocol==="file:"?"../"+encoded:"https://github.com/FuqingZh/learning-lab/blob/main/"+encoded}function esc(v){const s=document.createElement("span");s.textContent=v;return s.innerHTML}function seed(id){let h=2166136261;for(const c of id){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return()=>((h=Math.imul(h^h>>>15,1|h))>>>0)/4294967296}
-const points=new Map(GRAPH.nodes.map((n,i)=>{const r=seed(n.id),t=2*Math.PI*i/GRAPH.nodes.length+r()*.7,p=Math.acos(1-2*(i+.55)/GRAPH.nodes.length),d=235+r()*95;return[n.id,{x:d*Math.sin(p)*Math.cos(t),y:d*Math.cos(p),z:d*Math.sin(p)*Math.sin(t)}]}));
-function project(p){const cy=Math.cos(state.yaw),sy=Math.sin(state.yaw),cp=Math.cos(state.pitch),sp=Math.sin(state.pitch),x=p.x*cy-p.z*sy,z=p.x*sy+p.z*cy,y=p.y*cp-z*sp,rz=p.y*sp+z*cp,k=Math.max(.48,760/(760+rz))*state.zoom;return{x:space.clientWidth/2+x*k,y:space.clientHeight/2+y*k,k,z:rz}}function visible(){const q=state.query.trim().toLowerCase();return GRAPH.nodes.filter(n=>(state.track==="all"||n.tracks.includes(state.track))&&(!q||[n.id,n.title,n.summary,n.kind,...n.tracks].join(" ").toLowerCase().includes(q)))}function adjacent(id){return !state.selected||id===state.selected||GRAPH.edges.some(e=>(e.source===state.selected&&e.target===id)||(e.target===state.selected&&e.source===id))}function localToday(){const d=new Date(),p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`}function dueConcepts(){const today=localToday();return (LEARNING_STATE.concepts||[]).filter(c=>c.next_review&&c.next_review<=today).sort((a,b)=>a.next_review.localeCompare(b.next_review)||a.id.localeCompare(b.id))}
-function historyDossiers(id){return (HISTORY.dossiers||[]).filter(d=>(d.concepts||[]).includes(id)).sort((a,b)=>a.id.localeCompare(b.id))}function dateLabel(m){return `${m.year}${m.month?`-${String(m.month).padStart(2,"0")}`:""}${m.day?`-${String(m.day).padStart(2,"0")}`:""}`}function historyMilestones(id){return historyDossiers(id).flatMap(d=>(d.milestones||[]).map(m=>({...m,dossier:d}))).sort((a,b)=>a.year-b.year||(a.month||0)-(b.month||0)||(a.day||0)-(b.day||0)||a.id.localeCompare(b.id))}function historyTimeline(id){const n=byId.get(id),milestones=historyMilestones(id);if(!n)return"";if(!milestones.length)return `<article class="timeline"><div class="eyebrow">Historical lineage</div><h1>${esc(n.title)}</h1><p class="history-empty">尚无可核查的历史谱系。这里不会补写推测性故事。</p></article>`;return `<article class="timeline"><div class="eyebrow">Historical lineage · ${esc(n.title)}</div><h1>${state.recall?"先从证据问题开始":esc(n.title)}</h1>${state.recall?`<p class="recall-note">Recall 模式：不展示现代定义或概念关系。请先判断这些文献记录了什么问题与变化。</p>`:""}${milestones.map(m=>`<section class="timeline-item"><div class="timeline-date">${esc(dateLabel(m))}</div><strong>${esc(pretty(m.kind))}</strong>${m.actors?.length?`<small> · ${esc(m.actors.join("、"))}</small>`:""}${state.recall?`<p>这条记录解决、形式化或批评了什么？</p>`:`<p>${esc(m.claim)}</p>`}${(m.sources||[]).map(s=>`<a class="evidence" href="${esc(safeHttps(s.url))}" target="_blank" rel="noopener noreferrer"><span class="source-role">${esc(pretty(s.role))}</span> · ${esc(s.title)} ↗</a>`).join("")}</section>`).join("")}</article>`}
-function renderSpace(){const list=visible(),ids=new Set(list.map(n=>n.id)),pos=new Map(list.map(n=>[n.id,project(points.get(n.id))]));empty.classList.toggle("show",!list.length);nodesLayer.replaceChildren();edgesSvg.replaceChildren();for(const e of GRAPH.edges){if(state.recall||!ids.has(e.source)||!ids.has(e.target))continue;const a=pos.get(e.source),b=pos.get(e.target),line=document.createElementNS("http://www.w3.org/2000/svg","line");for(const [k,v] of Object.entries({x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:"edge "+e.type+(state.selected&&e.source!==state.selected&&e.target!==state.selected?" dim":"")+(state.selected&&(e.source===state.selected||e.target===state.selected)?" active":"")}))line.setAttribute(k,v);edgesSvg.append(line)}for(const n of list.sort((a,b)=>pos.get(a.id).z-pos.get(b.id).z)){const p=pos.get(n.id),b=document.createElement("button");b.type="button";b.className="concept "+n.mastery.status+(state.selected===n.id?" selected":"");b.dataset.id=n.id;b.setAttribute("aria-label",n.title+"，"+pretty(n.mastery.status));b.style.transform=`translate(${p.x}px,${p.y}px) translate(-50%,-50%) scale(${Math.max(.67,Math.min(1.34,p.k))})`;b.style.opacity=adjacent(n.id)?String(Math.max(.42,Math.min(1,(p.z+420)/650))):".16";b.innerHTML="<span>"+esc(n.title)+"</span>";b.onclick=e=>{e.stopPropagation();selectNode(n.id,true)};nodesLayer.append(b)}}
-function relIds(n,t){const own=n.relationships[t]||[];return t!=="related"&&t!=="contrasts_with"?own:[...new Set([...own,...GRAPH.edges.filter(e=>e.type===t&&e.target===n.id).map(e=>e.source)])].sort()}function relSection(n,t,title){const ids=relIds(n,t);return ids.length?`<div class="section"><h3>${title}</h3>${ids.map(id=>`<button class="relation" data-target="${esc(id)}">${esc(byId.get(id)?.title||id)}<small>${pretty(t)}</small></button>`).join("")}</div>`:""}
-function safeHttps(url){try{const value=new URL(url);return value.protocol==="https:"?value.href:"#"}catch{return"#"}}function terminologySection(n){const term=n.extensions?.terminology;if(!term)return"";const sources=(term.sources||[]).map(s=>`<a class="evidence" href="${esc(safeHttps(s.url))}" target="_blank" rel="noopener noreferrer">${esc(s.publisher)} · ${esc(s.kind)} ↗</a>`).join("");return `<div class="section"><h3>术语来源</h3><p>${esc(term.preferred_english_term)}<br><small>核查：${esc(term.checked_on)}</small></p>${sources}</div>`}function renderPanel(){const n=byId.get(state.selected);if(!n){panel.classList.remove("open");panel.replaceChildren();return}const index=GRAPH.nodes.findIndex(x=>x.id===n.id)+1,evidence=[...n.lessons,...n.records],learning=learningById.get(n.id),capability=learning?`<div class="section"><h3>能力与复习</h3><p>能力：${esc(learning.capability_state)}<br>下次复习：${esc(learning.next_review||"尚未安排")}<br>最近结果：${esc(learning.latest_outcome||"尚无证据")}</p></div>`:`<div class="section"><h3>能力与复习</h3><p>尚无明确学习证据；从一次三分钟尝试开始。</p></div>`,answer=state.recall?`<p class="recall-note">Recall 模式：先自行回忆，再揭示定义和关联。</p><p class="definition" aria-live="polite">答案已隐藏。</p>`:`<p class="definition">${esc(n.summary)}</p>${relSection(n,"prerequisites","前置概念")}${relSection(n,"enables","促进理解")}${relSection(n,"contrasts_with","对比概念")}${relSection(n,"related","相关概念")}`;panel.innerHTML=`<button class="panel-close" aria-label="关闭详情">×</button><div class="index">CONCEPT ${String(index).padStart(2,"0")} / ${String(GRAPH.nodes.length).padStart(2,"0")}</div><h2>${esc(n.title)}</h2><div class="tags"><span class="tag ${n.mastery.status}">${pretty(n.mastery.status)}</span><span class="tag">${pretty(n.kind)}</span>${n.tracks.map(t=>`<span class="tag">${pretty(t)}</span>`).join("")}</div>${answer}${capability}${terminologySection(n)}${evidence.length?`<div class="section"><h3>学习证据</h3>${evidence.map(p=>`<a class="evidence" href="${canonical(p)}">${esc(p)}</a>`).join("")}</div>`:""}<a class="canonical" href="${canonical(n.path)}">打开源知识卡 ↗</a>`;panel.classList.add("open");panel.querySelector(".panel-close").onclick=()=>selectNode(null,true);for(const b of panel.querySelectorAll("[data-target]"))b.onclick=()=>selectNode(b.dataset.target,true)}
-function selectNode(id,push){state.selected=id;intro.classList.toggle("hidden",!!id);renderPanel();renderSpace();if(push)window.history.replaceState(null,"",id?"#concept="+encodeURIComponent(id):location.pathname+location.search)}function renderRail(){const items=[{id:"all",title:"全部知识空间"},...GRAPH.tracks.map(id=>({id,title:pretty(id)}))];rail.replaceChildren();items.forEach((x,i)=>{const b=document.createElement("button");b.type="button";b.className=state.track===x.id?"active":"";b.setAttribute("aria-label",x.title);b.innerHTML=`${String(i+1).padStart(2,"0")}<span class="chapter-label">${esc(x.title)}</span>`;b.onclick=()=>{state.track=x.id;state.selected=null;renderRail();renderPanel();renderSpace()};rail.append(b)})}
-function renderLearning(kind){const due=dueConcepts(),resume=LEARNING_STATE.resume;learningView.classList.add("open");if(kind==="today"){learningView.innerHTML=due.length?`<div class="eyebrow">Today · ${esc(localToday())}</div><h2>现在适合回忆的概念</h2>${due.map(c=>`<button class="learning-item" data-learning="${esc(c.id)}"><strong>${esc(byId.get(c.id)?.title||c.id)}</strong><small>下次复习：${esc(c.next_review)} · ${esc(c.capability_state)}</small></button>`).join("")}`:`<div class="eyebrow">Today</div><h2>今天没有到期复习。</h2><p>可以从 Continue 开始一段安静的三分钟学习。</p>`}else{learningView.innerHTML=resume?`<div class="eyebrow">Continue</div><h2>${esc(byId.get(resume.next)?.title||resume.next)}</h2><p>${esc(resume.summary||"从上次停下的地方继续。")}</p><button class="learning-item" data-learning="${esc(resume.next)}">打开下一概念</button>`:`<div class="eyebrow">Continue</div><h2>从一张概念卡开始。</h2><p>还没有可恢复的会话。选择一个概念，给自己三分钟。</p>`}for(const b of learningView.querySelectorAll("[data-learning]"))b.onclick=()=>{selectNode(b.dataset.learning,true);learningView.classList.remove("open")}}
-function renderResults(){state.query=search.value.trim().toLowerCase();const list=visible();results.classList.toggle("open",!!state.query);results.replaceChildren();for(const n of list){const b=document.createElement("button");b.className="result";b.type="button";b.setAttribute("role","option");b.innerHTML=`<strong>${esc(n.title)}</strong><small>${esc(n.summary)}</small>`;b.onclick=()=>{search.value="";state.query="";results.classList.remove("open");selectNode(n.id,true)};results.append(b)}renderSpace()}
-space.onpointerdown=e=>{if(e.target.closest(".concept"))return;state.drag={x:e.clientX,y:e.clientY,yaw:state.yaw,pitch:state.pitch};space.setPointerCapture(e.pointerId);space.classList.add("dragging")};space.onpointermove=e=>{if(!state.drag)return;state.yaw=state.drag.yaw+(e.clientX-state.drag.x)*.006;state.pitch=Math.max(-1.1,Math.min(1.1,state.drag.pitch+(e.clientY-state.drag.y)*.005));renderSpace()};space.onpointerup=()=>{state.drag=null;space.classList.remove("dragging")};space.addEventListener("wheel",e=>{e.preventDefault();state.zoom=Math.max(.58,Math.min(1.9,state.zoom*Math.exp(-e.deltaY*.001)));renderSpace()},{passive:false});space.onclick=e=>{if(e.target===space||e.target.classList.contains("stars"))selectNode(null,true)};search.oninput=renderResults;document.onkeydown=e=>{if(e.key==="/"&&document.activeElement!==search){e.preventDefault();search.focus()}if(e.key==="Escape"){selectNode(null,true);learningView.classList.remove("open")}};document.querySelector("#reset").onclick=()=>{state.yaw=-.35;state.pitch=.12;state.zoom=1;state.track="all";state.query="";search.value="";results.classList.remove("open");learningView.classList.remove("open");selectNode(null,true);renderRail()};document.querySelector("#today-open").onclick=()=>renderLearning("today");document.querySelector("#continue-open").onclick=()=>renderLearning("continue");document.querySelector("#recall-toggle").onclick=e=>{state.recall=!state.recall;e.currentTarget.setAttribute("aria-pressed",String(state.recall));e.currentTarget.textContent=state.recall?"Reveal":"Recall";renderPanel();renderSpace()};document.querySelector("#about-open").onclick=()=>document.querySelector("#about").classList.add("open");document.querySelector("#about-close").onclick=()=>document.querySelector("#about").classList.remove("open");window.onresize=renderSpace;
-const hashParams=new URLSearchParams(location.hash.slice(1)),hashId=hashParams.get("concept"),learningHash=hashParams.get("learning");state.recall=hashParams.get("recall")==="1";document.querySelector("#recall-toggle").setAttribute("aria-pressed",String(state.recall));document.querySelector("#recall-toggle").textContent=state.recall?"Reveal":"Recall";renderRail();renderSpace();document.querySelector("#concept-list").innerHTML=GRAPH.nodes.map(n=>`<button type="button" data-accessible="${esc(n.id)}">${esc(n.title)} — ${pretty(n.mastery.status)}</button>`).join("");for(const b of document.querySelectorAll("[data-accessible]"))b.onclick=()=>selectNode(b.dataset.accessible,true);if(hashId&&byId.has(hashId))selectNode(hashId,false);if(learningHash==="today"||learningHash==="continue")renderLearning(learningHash);
-</script><script>const historyOverlay=document.createElement("div");historyOverlay.id="history-overlay";space.append(historyOverlay);state.historyId=null;function visibleDossiers(){const q=state.query.toLowerCase();return(HISTORY.dossiers||[]).filter(d=>(state.track==="all"||d.tracks.includes(state.track))&&(!q||[d.id,d.title,d.summary,...d.tracks,...d.lessons].join(" ").toLowerCase().includes(q))).sort((a,b)=>a.id.localeCompare(b.id))}function dossierMilestones(d){return(d.milestones||[]).slice().sort((a,b)=>a.year-b.year||(a.month||0)-(b.month||0)||(a.day||0)-(b.day||0)||a.id.localeCompare(b.id))}function dossierTimeline(d){if(!d)return"";const lessons=(d.lessons||[]).map(p=>`<a class="evidence" href="${canonical(p)}">${esc(p)} ↗</a>`).join("");return `<article class="timeline"><button class="relation" data-history-back="true">← 全部历史</button><div class="eyebrow">Historical lineage</div><h1>${state.recall?"先从证据问题开始":esc(d.title)}</h1><p>${esc(d.summary||"")}</p>${lessons?`<div class="section"><h3>关联课程</h3>${lessons}</div>`:""}${state.recall?`<p class="recall-note">Recall 模式：不展示现代定义或概念关系。请先判断这些文献记录了什么问题与变化。</p>`:""}${dossierMilestones(d).map(m=>`<section class="timeline-item"><div class="timeline-date">${esc(dateLabel(m))}</div><strong>${esc(pretty(m.kind))}</strong>${m.actors?.length?`<small> · ${esc(m.actors.join("、"))}</small>`:""}${state.recall?`<p>这条记录解决、形式化或批评了什么？</p>`:`<p>${esc(m.claim)}</p>`}${(m.sources||[]).map(s=>`<a class="evidence" href="${esc(safeHttps(s.url))}" target="_blank" rel="noopener noreferrer"><span class="source-role">${esc(pretty(s.role))}</span> · ${esc(s.title)} ↗</a>`).join("")}</section>`).join("")}</article>`}function dossierOverview(dossiers,heading="历史谱系"){if(!dossiers.length)return `<article class="timeline"><div class="eyebrow">Historical lineage</div><h1>${esc(heading)}</h1><p class="history-empty">当前筛选没有可核查的历史 dossier。</p></article>`;return `<article class="timeline"><div class="eyebrow">Historical lineage</div><h1>${esc(heading)}</h1><p>选择一份证据 dossier 浏览其时间线。</p>${dossiers.map(d=>`<button class="relation" data-history-id="${esc(d.id)}"><strong>${esc(d.title)}</strong><small>${esc(d.summary)}</small></button>`).join("")}</article>`}function historyView(){if(state.historyId){const d=(HISTORY.dossiers||[]).find(x=>x.id===state.historyId);return dossierTimeline(d)}if(state.selected)return dossierOverview(historyDossiers(state.selected),byId.get(state.selected)?.title||state.selected);return dossierOverview(visibleDossiers())}function updateHistoryHash(){const params=new URLSearchParams();params.set("view","history");if(state.historyId)params.set("history",state.historyId);if(state.selected)params.set("concept",state.selected);if(state.recall)params.set("recall","1");window.history.replaceState(null,"","#"+params.toString())}function bindHistoryActions(){for(const b of historyOverlay.querySelectorAll("[data-history-id]"))b.onclick=()=>{state.historyId=b.dataset.historyId;updateHistoryHash();showHistory()};for(const b of historyOverlay.querySelectorAll("[data-history-back]"))b.onclick=()=>{state.historyId=null;updateHistoryHash();showHistory()}}function showHistory(){nodesLayer.style.display="none";edgesSvg.style.display="none";panel.classList.remove("open");panel.hidden=true;historyOverlay.innerHTML=historyView();historyOverlay.hidden=false;intro.classList.add("hidden");bindHistoryActions()}function showGraph(){historyOverlay.hidden=true;panel.hidden=false;nodesLayer.style.display="";edgesSvg.style.display="";renderSpace()}function switchMode(mode){state.mode=mode;const historical=mode==="history";document.querySelector("#graph-mode").classList.toggle("active",!historical);document.querySelector("#history-mode").classList.toggle("active",historical);document.querySelector("#graph-mode").setAttribute("aria-pressed",String(!historical));document.querySelector("#history-mode").setAttribute("aria-pressed",String(historical));if(historical)showHistory();else showGraph()}const graphSelectNode=selectNode;selectNode=(id,push)=>{state.historyId=null;graphSelectNode(id,push);if(state.mode==="history")showHistory()};document.querySelector("#graph-mode").onclick=()=>switchMode("graph");document.querySelector("#history-mode").onclick=()=>switchMode("history");document.querySelector("#recall-toggle").addEventListener("click",()=>{if(state.mode==="history")showHistory()});rail.addEventListener("click",()=>{if(state.mode==="history")showHistory()});search.addEventListener("input",()=>{if(state.mode==="history")showHistory()});const historyHash=new URLSearchParams(location.hash.slice(1));if(historyHash.get("history"))state.historyId=historyHash.get("history");if(historyHash.get("view")==="history")switchMode("history");</script></body></html>'''.replace("__GRAPH_DATA__", safe_json(graph)).replace("__LEARNING_STATE__", safe_json(learning_state)).replace("__HISTORY_DATA__", safe_json(history))
+def render_html(
+    graph: dict[str, Any],
+    learning_state: dict[str, Any],
+    history: dict[str, Any] | None = None,
+) -> str:
+    """Render supplied normalized fixtures through the production frontend."""
+    root = Path(__file__).resolve().parents[1]
+    payload = {
+        "graph": graph,
+        "learningState": learning_state,
+        "history": (
+            history
+            if history is not None
+            else {"schema_version": 1, "dossiers": []}
+        ),
+    }
+    with tempfile.TemporaryDirectory(prefix="learning-lab-site-render-") as directory:
+        temporary = Path(directory)
+        data_file = temporary / "frontend-data.json"
+        output = temporary / "index.html"
+        data_file.write_text(
+            json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+            encoding="utf-8",
+        )
+        run_frontend_build(root, output, data_file=data_file)
+        return output.read_text(encoding="utf-8")
 
 
 def main(arguments: list[str] | None = None) -> int:
@@ -108,11 +110,7 @@ def main(arguments: list[str] | None = None) -> int:
     root = parsed.root.resolve()
     output = (parsed.output or root / "site/index.html").resolve()
     try:
-        graph = normalized_graph(root)
-        learning_state = normalized_learning_state(root)
-        history = normalized_history(root)
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(render_html(graph, learning_state, history), encoding="utf-8")
+        run_frontend_build(root, output)
     except (OSError, RuntimeError) as error:
         print(f"knowledge map site render failed: {error}", file=sys.stderr)
         return 1

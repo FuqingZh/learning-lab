@@ -7,10 +7,12 @@
   },
   "scripts": {
     "frontend:check": "tsc --project frontend/tsconfig.json --noEmit",
-    "frontend:build:candidate": "node frontend/build.mjs --output .build/knowledge-map/index.html",
+    "frontend:build": "node frontend/build.mjs --output .build/knowledge-map/index.html",
     "frontend:format:check": "prettier --check frontend/src frontend/*.mjs frontend/tests package.json",
     "frontend:test": "node --test frontend/tests/*.test.mjs",
-    "frontend:verify": "npm run frontend:format:check && npm run frontend:check && npm run frontend:test && npm run frontend:build:candidate"
+    "frontend:verify": "npm run frontend:format:check && npm run frontend:check && npm run frontend:test && npm run frontend:build",
+    "build:site": "python3 scripts/render-knowledge-map-site.py",
+    "test": "npm run frontend:test"
   },
   "devDependencies": {
     "chrome-remote-interface": "0.33.3",

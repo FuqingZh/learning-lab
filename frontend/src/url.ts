@@ -23,9 +23,7 @@ export function writeUrl(state: UrlState): void {
   if (state.learning) p.set("learning", state.learning);
   if (state.recall) p.set("recall", "1");
   if (state.view === "history") p.set("view", "history");
-  history.replaceState(
-    null,
-    "",
-    p.size ? `#${p}` : `${location.pathname}${location.search}`,
-  );
+  const url = new URL(location.href);
+  url.hash = p.toString();
+  history.replaceState(null, "", url);
 }

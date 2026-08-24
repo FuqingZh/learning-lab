@@ -13,10 +13,11 @@ npm ci
 npm run frontend:verify
 ```
 
-The candidate artifact is written to ignored
-`.build/knowledge-map/index.html`. During Slice 3 this command does not modify
-the checked-in `site/index.html`; the Python renderer remains the published
-path until the atomic parity switch.
+The frontend verification build is written to ignored
+`.build/knowledge-map/index.html`. Run `npm run build:site` to regenerate the
+checked-in production artifact through the supported Python adapter. The
+adapter checks Node 22 and installed dependencies, while this directory owns
+the sole production browser implementation.
 
 The UI uses native DOM/SVG rather than a graph framework. Search renders at
 most 24 result controls and the graph projects at most 300 matching nodes. The

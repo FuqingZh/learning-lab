@@ -64,6 +64,34 @@ before changing the graph schema or evidence links, and the
 [history dossier guide](docs/how-to-guides/20260824-v1.2-add-evidence-backed-history-how-to-guide.md)
 before adding historical claims.
 
+## Build and validation
+
+The interactive map is a generated, single-file offline artifact. It requires
+Python 3 and Node.js 22.x; install the locked frontend tools once per clean
+checkout:
+
+```bash
+npm ci
+```
+
+Regenerate the published local artifact after changing its canonical inputs or
+frontend presentation code:
+
+```bash
+python3 scripts/render-knowledge-map-site.py
+```
+
+The complete contributor gate is:
+
+```bash
+npm ci && bash scripts/check-structure.sh
+```
+
+For frontend-only diagnostics, run `npm run frontend:verify`. The renderer and
+generated-drift check intentionally fail if Node.js 22.x or the dependencies
+installed by `npm ci` are unavailable; they never download browser dependencies
+implicitly. GitHub Pages uploads only the generated `site/` directory.
+
 ## Ambient learning
 
 Ask a compatible agent to use `$learning-lab-tutor`, or simply say that you

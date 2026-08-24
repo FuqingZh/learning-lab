@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Frozen browser and embedding contracts for the generated knowledge explorer.
+"""Browser and embedding contracts for the generated knowledge explorer.
 
-This suite intentionally exercises the current Python renderer as a black-box
-baseline.  A future TypeScript frontend must satisfy these contracts without
-reinterpreting the canonical Python data models.
+The suite exercises the supported Python entrypoint as a black box while the
+TypeScript frontend remains the sole browser implementation. The canonical
+Python data models must not be reinterpreted by either layer.
 """
 
 from __future__ import annotations

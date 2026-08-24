@@ -1,17 +1,22 @@
 import { execFileSync } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const frontend = dirname(fileURLToPath(import.meta.url));
 const root = resolve(frontend, "..");
 
+function optionValue(arguments_, name) {
+  const index = arguments_.indexOf(name);
+  return index === -1 ? null : (arguments_[index + 1] ?? null);
+}
+
 function requiredOutput(arguments_) {
-  const index = arguments_.indexOf("--output");
-  if (index === -1 || !arguments_[index + 1]) {
+  const value = optionValue(arguments_, "--output");
+  if (!value) {
     throw new Error("frontend build requires --output <html-path>");
   }
-  return resolve(root, arguments_[index + 1]);
+  return resolve(root, value);
 }
 
 function requireNode22() {
@@ -23,14 +28,23 @@ function requireNode22() {
   }
 }
 
-function normalizedData(script) {
+function normalizedData(script, dataRoot) {
   const command = process.env.PYTHON ?? "python3";
   let output;
   try {
     output = execFileSync(
       command,
-      [resolve(root, "scripts", script), "normalized-data", "--root", root],
-      { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+      [
+        resolve(dataRoot, "scripts", script),
+        "normalized-data",
+        "--root",
+        dataRoot,
+      ],
+      {
+        cwd: dataRoot,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      },
     );
   } catch (error) {
     const detail = error?.stderr?.toString().trim() || error?.message;
@@ -46,6 +60,43 @@ function normalizedData(script) {
     throw new Error(`${script} requires normalized schema version 1`);
   }
   return data;
+}
+
+function requireSchemaVersion(value, label) {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    Array.isArray(value) ||
+    value.schema_version !== 1
+  ) {
+    throw new Error(`${label} requires normalized schema version 1`);
+  }
+  return value;
+}
+
+async function frontendData(arguments_, dataRoot) {
+  const dataFile = optionValue(arguments_, "--data-file");
+  if (!dataFile) {
+    return {
+      graph: normalizedData("build-knowledge-map.py", dataRoot),
+      learningState: normalizedData("build-learning-state.py", dataRoot),
+      history: normalizedData("build-knowledge-history.py", dataRoot),
+    };
+  }
+  let value;
+  try {
+    value = JSON.parse(await readFile(resolve(root, dataFile), "utf8"));
+  } catch (error) {
+    throw new Error(`frontend data file is not valid JSON: ${error}`);
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("frontend data file must contain a JSON object");
+  }
+  return {
+    graph: requireSchemaVersion(value.graph, "GRAPH"),
+    learningState: requireSchemaVersion(value.learningState, "LEARNING_STATE"),
+    history: requireSchemaVersion(value.history, "HISTORY"),
+  };
 }
 
 function safeJson(value) {
@@ -84,7 +135,9 @@ window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, hi
 
 async function main() {
   requireNode22();
-  const output = requiredOutput(process.argv.slice(2));
+  const arguments_ = process.argv.slice(2);
+  const output = requiredOutput(arguments_);
+  const dataRoot = resolve(root, optionValue(arguments_, "--root") ?? root);
   let build;
   try {
     ({ build } = await import("esbuild"));
@@ -93,9 +146,10 @@ async function main() {
       "Learning Lab frontend dependencies are missing. Run npm ci with Node.js 22.x.",
     );
   }
-  const graph = normalizedData("build-knowledge-map.py");
-  const learningState = normalizedData("build-learning-state.py");
-  const history = normalizedData("build-knowledge-history.py");
+  const { graph, learningState, history } = await frontendData(
+    arguments_,
+    dataRoot,
+  );
   const result = await build({
     entryPoints: [resolve(frontend, "src/entry.ts")],
     bundle: true,
@@ -135,7 +189,7 @@ async function main() {
     }),
     "utf8",
   );
-  console.log(`knowledge map frontend candidate: ${relative(root, output)}`);
+  console.log(`knowledge map frontend: ${relative(root, output)}`);
 }
 
 try {
