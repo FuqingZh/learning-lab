@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "commands": [
+    "SPIKE_RESULTS_DIR=results node tools/hard-gates.mjs",
+    "SPIKE_RESULTS_DIR=results node tools/smoke.mjs",
+    "SPIKE_RESULTS_DIR=results node tools/measure.mjs"
+  ],
+  "host": {
+    "platform": "linux",
+    "release": "4.18.0-348.7.1.el8_5.x86_64",
+    "architecture": "x64",
+    "cpu": "Intel(R) Xeon(R) CPU E7-8890 v4 @ 2.20GHz",
+    "cpu_count": 192,
+    "memory_bytes": 540617060352,
+    "node": "v22.22.2",
+    "npm": "10.9.7",
+    "chrome": "Google Chrome 101.0.4951.54"
+  },
+  "hashes": {
+    "native": [
+      "5131c86c24d9fd869d34e4e9c041e4f32b65c9a403cb3fbc35e418d9fdda1615",
+      "5131c86c24d9fd869d34e4e9c041e4f32b65c9a403cb3fbc35e418d9fdda1615",
+      "5131c86c24d9fd869d34e4e9c041e4f32b65c9a403cb3fbc35e418d9fdda1615"
+    ],
+    "flow": [
+      "63badacb462b421aebce1f26ce57676790eca30d40a45acce6a13cb9d6f64494",
+      "63badacb462b421aebce1f26ce57676790eca30d40a45acce6a13cb9d6f64494",
+      "63badacb462b421aebce1f26ce57676790eca30d40a45acce6a13cb9d6f64494"
+    ]
+  },
+  "deterministic": true,
+  "timings_seconds": {
+    "native": [
+      0.196603269,
+      0.184877259,
+      0.188012572,
+      0.122426944,
+      0.224291131
+    ],
+    "flow": [
+      0.3677075,
+      0.369641581,
+      0.347859405,
+      0.346485882,
+      0.379238689
+    ]
+  },
+  "median_build_seconds": {
+    "native": 0.188012572,
+    "flow": 0.3677075
+  },
+  "gzip_bytes": {
+    "native": 3929,
+    "flow": 142031
+  },
+  "formatted_source_lines": {
+    "native": 176,
+    "flow": 147
+  },
+  "prettier_check": true,
+  "direct_production_dependencies": 4,
+  "hard_gate_failures": [
+    {
+      "fixture": "current",
+      "mode": "file",
+      "ready_ms": 281.2000002861023,
+      "filter_ms": 142.40000009536743,
+      "ax_concept": true,
+      "ax_source": true,
+      "keyboard_path_pass": false,
+      "ax_relationship": true,
+      "state_changed": true,
+      "console_errors": [],
+      "runtime_errors": [],
+      "page_error": null,
+      "error": null
+    },
+    {
+      "fixture": "current",
+      "mode": "pages",
+      "ready_ms": 279.40000009536743,
+      "filter_ms": 121.40000009536743,
+      "ax_concept": true,
+      "ax_source": true,
+      "keyboard_path_pass": false,
+      "ax_relationship": true,
+      "state_changed": true,
+      "console_errors": [],
+      "runtime_errors": [],
+      "page_error": null,
+      "error": null
+    },
+    {
+      "fixture": "synthetic-1000",
+      "mode": "file",
+      "ready_ms": 3039.199999809265,
+      "filter_ms": 764.7999997138977,
+      "ax_concept": true,
+      "ax_source": true,
+      "keyboard_path_pass": null,
+      "ax_relationship": false,
+      "state_changed": true,
+      "console_errors": [],
+      "runtime_errors": [],
+      "page_error": null,
+      "error": null
+    },
+    {
+      "fixture": "synthetic-1000",
+      "mode": "pages",
+      "ready_ms": 3277,
+      "filter_ms": 715.3999996185303,
+      "ax_concept": true,
+      "ax_source": true,
+      "keyboard_path_pass": null,
+      "ax_relationship": false,
+      "state_changed": true,
+      "console_errors": [],
+      "runtime_errors": [],
+      "page_error": null,
+      "error": null
+    }
+  ],
+  "cost_checks": {
+    "source_lines_at_most_70_percent": false,
+    "gzip_at_most_twice_native_and_750_kib": false,
+    "median_build_at_most_three_times_native_and_15_seconds": true,
+    "direct_production_dependencies_at_most_six": true
+  },
+  "selected_candidate": "native-dom-svg-typescript",
+  "files": [
+    "flow-current.html",
+    "flow-synthetic-100.html",
+    "flow-synthetic-1000.html",
+    "flow-synthetic-300.html",
+    "native-current.html",
+    "native-synthetic-100.html",
+    "native-synthetic-1000.html",
+    "native-synthetic-300.html"
+  ],
+  "smoke_passed": true,
+  "smoke_failures": []
+}
