@@ -1,0 +1,21 @@
+{
+  "name": "learning-lab",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "frontend:check": "tsc --project frontend/tsconfig.json --noEmit",
+    "frontend:build:candidate": "node frontend/build.mjs --output .build/knowledge-map/index.html",
+    "frontend:format:check": "prettier --check frontend/src frontend/*.mjs frontend/tests package.json",
+    "frontend:test": "node --test frontend/tests/*.test.mjs",
+    "frontend:verify": "npm run frontend:format:check && npm run frontend:check && npm run frontend:test && npm run frontend:build:candidate"
+  },
+  "devDependencies": {
+    "chrome-remote-interface": "0.33.3",
+    "esbuild": "0.28.1",
+    "prettier": "3.8.3",
+    "typescript": "5.9.3"
+  }
+}

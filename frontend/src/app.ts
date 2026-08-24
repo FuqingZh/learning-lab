@@ -1,0 +1,632 @@
+import type {
+  Concept,
+  Dossier,
+  EdgeType,
+  FrontendData,
+  LearningConcept,
+} from "./contracts.js";
+import { edgeTypes } from "./contracts.js";
+import { button, element, pretty, repositoryLink, sourceLink } from "./dom.js";
+import { renderGraph } from "./graph/view.js";
+import { readUrl, writeUrl, type UrlState } from "./url.js";
+
+const SEARCH_RESULT_LIMIT = 24;
+const GRAPH_NODE_LIMIT = 300;
+type Scope = "global" | "track" | "case" | "focal";
+interface State extends UrlState {
+  scope: Scope;
+  scopeValue: string;
+  query: string;
+  edgeType: EdgeType | "all";
+  mastery: string;
+}
+
+export function mountKnowledgeExplorer(
+  root: HTMLElement,
+  data: FrontendData,
+): void {
+  const byId = new Map(data.graph.nodes.map((node) => [node.id, node]));
+  const learningById = new Map(
+    data.learningState.concepts.map((item) => [item.id, item]),
+  );
+  const historyIds = new Set(data.history.dossiers.map((item) => item.id));
+  const route = readUrl();
+  const concept =
+    route.concept && byId.has(route.concept) ? route.concept : null;
+  const history =
+    route.history && historyIds.has(route.history) ? route.history : null;
+  const routeWasSanitized =
+    concept !== route.concept || history !== route.history;
+  const state: State = {
+    ...route,
+    concept,
+    history,
+    scope: "global",
+    scopeValue: "",
+    query: "",
+    edgeType: "all",
+    mastery: "all",
+  };
+  root.replaceChildren();
+  root.className = "learning-lab";
+  const header = element("header", "topbar"),
+    brand = element("strong", "brand");
+  brand.textContent = "LEARNING LAB · KNOWLEDGE SPACE";
+  const search = element("input", "search");
+  search.id = "search";
+  search.type = "search";
+  search.placeholder = "搜索概念 /";
+  search.setAttribute("aria-label", "搜索概念");
+  const today = button("Today", "control"),
+    resume = button("Continue", "control"),
+    recall = button(state.recall ? "Reveal" : "Recall", "control");
+  recall.id = "recall-toggle";
+  recall.setAttribute("aria-pressed", String(state.recall));
+  const learningCard = element("div", "learning-card");
+  learningCard.append(today, resume, recall);
+  header.append(brand, search, learningCard);
+  root.append(header);
+  const controls = element("nav", "filters");
+  controls.setAttribute("aria-label", "知识空间筛选");
+  const scope = element("select");
+  scope.setAttribute("aria-label", "范围");
+  for (const [value, label] of [
+    ["global", "全部知识空间"],
+    ["focal", "焦点概念"],
+    ["track", "按学习轨道"],
+    ["case", "按案例实验"],
+  ] as const) {
+    const option = element("option");
+    option.value = value;
+    option.textContent = label;
+    scope.append(option);
+  }
+  const scopeValue = element("select");
+  scopeValue.setAttribute("aria-label", "范围值");
+  const edge = element("select");
+  edge.setAttribute("aria-label", "关系类型");
+  for (const value of ["all", ...edgeTypes]) {
+    const option = element("option");
+    option.value = value;
+    option.textContent = value === "all" ? "所有关系" : pretty(value);
+    edge.append(option);
+  }
+  const mastery = element("select");
+  mastery.setAttribute("aria-label", "掌握状态");
+  for (const value of ["all", "mastered", "developing", "not-started"]) {
+    const option = element("option");
+    option.value = value;
+    option.textContent = value === "all" ? "所有掌握状态" : pretty(value);
+    mastery.append(option);
+  }
+  const graphMode = button("概念图", "mode active"),
+    historyMode = button("历史谱系", "mode");
+  graphMode.id = "graph-mode";
+  historyMode.id = "history-mode";
+  graphMode.setAttribute("aria-pressed", "true");
+  historyMode.setAttribute("aria-pressed", "false");
+  controls.append(scope, scopeValue, edge, mastery, graphMode, historyMode);
+  root.append(controls);
+  const results = element("div", "results");
+  results.id = "results";
+  results.setAttribute("role", "listbox");
+  root.append(results);
+  const space = element("main", "space");
+  space.id = "space";
+  space.setAttribute("aria-label", "概念关系图");
+  const graphSurface = element("div", "graph-surface");
+  const historyOverlay = element("div", "history-overlay");
+  historyOverlay.id = "history-overlay";
+  historyOverlay.hidden = true;
+  space.append(graphSurface, historyOverlay);
+  root.append(space);
+  const panel = element("aside", "panel");
+  panel.id = "panel";
+  panel.hidden = true;
+  root.append(panel);
+  const learning = element("aside", "learning-view");
+  learning.id = "learning-view";
+  learning.hidden = true;
+  root.append(learning);
+  const fallback = element("div", "sr-only");
+  fallback.id = "concept-list";
+  root.append(fallback);
+
+  const candidates = (): Concept[] =>
+    data.graph.nodes.filter((node) => {
+      if (state.mastery !== "all" && node.mastery.status !== state.mastery)
+        return false;
+      if (
+        state.scope === "focal" &&
+        state.concept &&
+        node.id !== state.concept &&
+        !data.graph.edges.some(
+          (item) =>
+            (item.source === state.concept && item.target === node.id) ||
+            (item.target === state.concept && item.source === node.id),
+        )
+      )
+        return false;
+      if (
+        state.scope === "track" &&
+        state.scopeValue &&
+        !node.tracks.includes(state.scopeValue)
+      )
+        return false;
+      if (
+        state.scope === "case" &&
+        state.scopeValue &&
+        !node.case_labs.includes(state.scopeValue)
+      )
+        return false;
+      const haystack =
+        `${node.id} ${node.title} ${node.summary} ${node.kind} ${node.tracks.join(" ")}`.toLowerCase();
+      return !state.query || haystack.includes(state.query);
+    });
+  const visibleEdges = () =>
+    data.graph.edges.filter(
+      (item) => state.edgeType === "all" || item.type === state.edgeType,
+    );
+  const currentLearning = () =>
+    data.learningState.concepts
+      .filter((item) => item.next_review && item.next_review <= localToday())
+      .sort(
+        (a, b) =>
+          a.next_review!.localeCompare(b.next_review!) ||
+          a.id.localeCompare(b.id),
+      );
+  const syncHash = () => writeUrl(state);
+  const selectConcept = (id: string, replace = true) => {
+    state.concept = id;
+    state.history = null;
+    state.learning = null;
+    if (replace) syncHash();
+    render();
+  };
+  const populateScopeValues = () => {
+    scopeValue.replaceChildren();
+    const values =
+      state.scope === "track"
+        ? data.graph.tracks.map((id) => [id, pretty(id)] as const)
+        : state.scope === "case"
+          ? data.graph.case_labs.map((item) => [item.id, item.title] as const)
+          : [];
+    if (!values.length) {
+      const option = element("option");
+      option.value = "";
+      option.textContent =
+        state.scope === "focal" ? "选择一个概念后显示相邻项" : "无额外筛选";
+      scopeValue.append(option);
+      scopeValue.disabled = true;
+      state.scopeValue = "";
+      return;
+    }
+    scopeValue.disabled = false;
+    if (!values.some(([value]) => value === state.scopeValue))
+      state.scopeValue = values[0]![0];
+    for (const [value, label] of values) {
+      const option = element("option");
+      option.value = value;
+      option.textContent = label;
+      scopeValue.append(option);
+    }
+    scopeValue.value = state.scopeValue;
+  };
+  const renderFallback = () => {
+    fallback.replaceChildren(
+      ...data.graph.nodes.map((node) => {
+        const item = button(`${node.title} — ${pretty(node.mastery.status)}`);
+        item.dataset.accessible = node.id;
+        item.onclick = () => selectConcept(node.id);
+        return item;
+      }),
+    );
+  };
+  const renderResults = () => {
+    results.replaceChildren();
+    if (!state.query) {
+      results.hidden = true;
+      return;
+    }
+    results.hidden = false;
+    const matched = candidates();
+    const shown = matched.slice(0, SEARCH_RESULT_LIMIT);
+    for (const node of shown) {
+      const item = button("", "result");
+      item.setAttribute("role", "option");
+      const title = element("strong");
+      title.textContent = node.title;
+      const summary = element("small");
+      summary.textContent = node.summary;
+      item.append(title, summary);
+      item.onclick = () => {
+        search.value = "";
+        state.query = "";
+        selectConcept(node.id);
+      };
+      results.append(item);
+    }
+    if (!shown.length) {
+      const empty = element("p", "result-empty");
+      empty.textContent = "没有匹配概念。";
+      results.append(empty);
+    } else if (matched.length > shown.length) {
+      const note = element("p", "result-note");
+      note.textContent = `仅显示前 ${SEARCH_RESULT_LIMIT} 个结果；全部 ${matched.length} 个概念保留在结构化列表中。`;
+      results.append(note);
+    }
+  };
+  const relationIds = (node: Concept, type: EdgeType) => {
+    const own = node.relationships[type] ?? [];
+    if (type === "prerequisites" || type === "enables") return own;
+    return [
+      ...new Set([
+        ...own,
+        ...data.graph.edges
+          .filter((item) => item.type === type && item.target === node.id)
+          .map((item) => item.source),
+      ]),
+    ].sort();
+  };
+  const renderPanel = () => {
+    panel.replaceChildren();
+    const node = state.concept ? byId.get(state.concept) : undefined;
+    panel.hidden = !node || state.view === "history";
+    panel.classList.toggle("open", !panel.hidden);
+    if (!node || state.view === "history") return;
+    const close = button("×", "panel-close");
+    close.setAttribute("aria-label", "关闭详情");
+    close.onclick = () => {
+      state.concept = null;
+      syncHash();
+      render();
+    };
+    const title = element("h1");
+    title.textContent = node.title;
+    panel.append(close, title);
+    const tags = element("p", "tags");
+    tags.textContent = `${pretty(node.mastery.status)} · ${pretty(node.kind)} · ${node.tracks.map(pretty).join(" / ")}`;
+    panel.append(tags);
+    const definition = element("p", "definition");
+    definition.textContent = state.recall
+      ? "答案已隐藏。先自行回忆，再揭示定义和关联。"
+      : node.summary;
+    panel.append(definition);
+    if (!state.recall)
+      for (const type of edgeTypes) {
+        const ids = relationIds(node, type);
+        if (!ids.length) continue;
+        const section = element("section", "section"),
+          heading = element("h2");
+        heading.textContent = pretty(type);
+        section.append(heading);
+        for (const id of ids) {
+          const target = byId.get(id);
+          const relation = button(target?.title ?? id, "relation");
+          relation.dataset.target = id;
+          relation.onclick = () => selectConcept(id);
+          section.append(relation);
+        }
+        panel.append(section);
+      }
+    const learningItem = learningById.get(node.id);
+    const progress = element("section", "section"),
+      progressHeading = element("h2");
+    progressHeading.textContent = "能力与复习";
+    const progressText = element("p");
+    progressText.textContent = learningItem
+      ? `能力：${learningItem.capability_state}\n下次复习：${learningItem.next_review ?? "尚未安排"}\n最近结果：${learningItem.latest_outcome ?? "尚无证据"}`
+      : "尚无明确学习证据；从一次三分钟尝试开始。";
+    progress.append(progressHeading, progressText);
+    panel.append(progress);
+    const terminology = node.extensions?.terminology;
+    if (terminology) {
+      const section = element("section", "section"),
+        heading = element("h2");
+      heading.textContent = "术语来源";
+      const term = element("p");
+      term.textContent = `${terminology.preferred_english_term}\n核查：${terminology.checked_on}`;
+      section.append(heading, term);
+      for (const source of terminology.sources) {
+        const link = sourceLink(source);
+        if (link) section.append(link);
+      }
+      panel.append(section);
+    }
+    const paths = [...node.lessons, ...node.records];
+    if (paths.length) {
+      const section = element("section", "section"),
+        heading = element("h2");
+      heading.textContent = "学习证据";
+      section.append(heading);
+      for (const path of paths) {
+        const link = element("a", "evidence");
+        link.href = repositoryLink(path);
+        link.textContent = path;
+        section.append(link);
+      }
+      panel.append(section);
+    }
+    const canonical = element("a", "canonical");
+    canonical.href = repositoryLink(node.path);
+    canonical.textContent = "打开源知识卡 ↗";
+    panel.append(canonical);
+  };
+  const visibleDossiers = () =>
+    data.history.dossiers.filter((dossier) => {
+      if (state.concept && !dossier.concepts.includes(state.concept))
+        return false;
+      if (
+        state.scope === "track" &&
+        state.scopeValue &&
+        !dossier.tracks.includes(state.scopeValue)
+      )
+        return false;
+      if (state.scope === "case" && state.scopeValue) {
+        const belongsToCase = dossier.concepts.some((id) =>
+          byId.get(id)?.case_labs.includes(state.scopeValue),
+        );
+        if (!belongsToCase) return false;
+      }
+      const haystack =
+        `${dossier.id} ${dossier.title} ${dossier.summary} ${dossier.tracks.join(" ")} ${dossier.lessons.join(" ")}`.toLowerCase();
+      return !state.query || haystack.includes(state.query);
+    });
+  const renderHistory = () => {
+    historyOverlay.replaceChildren();
+    historyOverlay.hidden = false;
+    const article = element("article", "timeline");
+    const selected = state.history
+      ? data.history.dossiers.find((item) => item.id === state.history)
+      : undefined;
+    if (!selected) {
+      const heading = element("h1");
+      heading.textContent = state.concept
+        ? `${byId.get(state.concept)?.title ?? state.concept} 的历史谱系`
+        : "历史谱系";
+      article.append(heading);
+      const dossiers = visibleDossiers();
+      if (!dossiers.length) {
+        const empty = element("p");
+        empty.textContent = "尚无可核查的历史谱系。这里不会补写推测性故事。";
+        article.append(empty);
+      }
+      for (const dossier of dossiers) {
+        const item = button(dossier.title, "relation");
+        item.dataset.historyId = dossier.id;
+        const detail = element("small");
+        detail.textContent = dossier.summary;
+        item.append(detail);
+        item.onclick = () => {
+          state.history = dossier.id;
+          syncHash();
+          render();
+        };
+        article.append(item);
+      }
+    } else {
+      const back = button("← 全部历史", "relation");
+      back.onclick = () => {
+        state.history = null;
+        syncHash();
+        render();
+      };
+      const heading = element("h1");
+      heading.textContent = state.recall ? "先从证据问题开始" : selected.title;
+      article.append(back, heading);
+      const summary = element("p");
+      summary.textContent = selected.summary;
+      article.append(summary);
+      if (selected.lessons.length) {
+        const lessons = element("section", "section"),
+          lessonHeading = element("h2");
+        lessonHeading.textContent = "关联课程";
+        lessons.append(lessonHeading);
+        for (const path of selected.lessons) {
+          const lesson = element("a", "evidence");
+          lesson.href = repositoryLink(path);
+          lesson.textContent = path;
+          lessons.append(lesson);
+        }
+        article.append(lessons);
+      }
+      for (const milestone of [...selected.milestones].sort(
+        compareMilestones,
+      )) {
+        const section = element("section", "timeline-item"),
+          date = element("div", "timeline-date");
+        date.textContent = dateLabel(milestone);
+        const kind = element("strong");
+        kind.textContent = pretty(milestone.kind);
+        const actors = element("small", "actors");
+        actors.textContent = (milestone.actors ?? []).join("、");
+        const claim = element("p");
+        claim.textContent = state.recall
+          ? "这条记录解决、形式化或批评了什么？"
+          : milestone.claim;
+        section.append(date, kind);
+        if (actors.textContent) section.append(actors);
+        section.append(claim);
+        for (const source of milestone.sources ?? []) {
+          const link = sourceLink(source);
+          if (link) section.append(link);
+        }
+        article.append(section);
+      }
+      const link = element("a", "canonical");
+      link.href = repositoryLink(selected.path);
+      link.textContent = "打开证据档案 ↗";
+      article.append(link);
+    }
+    historyOverlay.append(article);
+  };
+  const renderLearning = (kind: "today" | "continue") => {
+    state.learning = kind;
+    syncHash();
+    learning.hidden = false;
+    learning.classList.add("open");
+    learning.replaceChildren();
+    const heading = element("h1");
+    heading.textContent = kind === "today" ? "现在适合回忆的概念" : "Continue";
+    learning.append(heading);
+    const entries: LearningConcept[] =
+      kind === "today"
+        ? currentLearning()
+        : data.learningState.resume?.next
+          ? [
+              learningById.get(data.learningState.resume.next) ?? {
+                id: data.learningState.resume.next,
+                capability_state: "",
+                next_review: null,
+                latest_outcome: null,
+              },
+            ]
+          : [];
+    if (!entries.length) {
+      const empty = element("p");
+      empty.textContent =
+        kind === "today"
+          ? "今天没有到期复习。可以从 Continue 开始。"
+          : "还没有可恢复的会话。选择一个概念，给自己三分钟。";
+      learning.append(empty);
+    }
+    for (const item of entries) {
+      const node = byId.get(item.id),
+        choice = button(node?.title ?? item.id, "learning-item");
+      const meta = element("small");
+      meta.textContent =
+        kind === "continue"
+          ? (data.learningState.resume?.summary ?? "从上次停下的地方继续。")
+          : `下次复习：${item.next_review} · ${item.capability_state}`;
+      choice.append(meta);
+      choice.onclick = () => {
+        learning.hidden = true;
+        selectConcept(item.id);
+      };
+      learning.append(choice);
+    }
+  };
+  const render = () => {
+    populateScopeValues();
+    scope.value = state.scope;
+    edge.value = state.edgeType;
+    mastery.value = state.mastery;
+    graphMode.classList.toggle("active", state.view === "graph");
+    historyMode.classList.toggle("active", state.view === "history");
+    graphMode.setAttribute("aria-pressed", String(state.view === "graph"));
+    historyMode.setAttribute("aria-pressed", String(state.view === "history"));
+    renderResults();
+    renderPanel();
+    if (state.view === "history") renderHistory();
+    else {
+      historyOverlay.hidden = true;
+      const matched = candidates();
+      const graphNodes = matched.slice(0, GRAPH_NODE_LIMIT);
+      if (
+        state.concept &&
+        !graphNodes.some((node) => node.id === state.concept)
+      ) {
+        const selected = byId.get(state.concept);
+        if (selected) graphNodes.splice(-1, 1, selected);
+      }
+      renderGraph(graphSurface, {
+        nodes: graphNodes,
+        edges: visibleEdges(),
+        selected: state.concept,
+        recall: state.recall,
+        onSelect: selectConcept,
+      });
+      if (matched.length > graphNodes.length) {
+        const note = element("p", "graph-limit");
+        note.textContent = `关系图显示前 ${GRAPH_NODE_LIMIT} 个匹配概念；全部 ${matched.length} 个概念保留在结构化列表中。请继续筛选以缩小视图。`;
+        graphSurface.append(note);
+      }
+    }
+  };
+  let pendingSearchRender: number | null = null;
+  search.oninput = () => {
+    state.query = search.value.trim().toLowerCase();
+    renderResults();
+    if (pendingSearchRender !== null) cancelAnimationFrame(pendingSearchRender);
+    pendingSearchRender = requestAnimationFrame(() => {
+      pendingSearchRender = null;
+      render();
+    });
+  };
+  scope.onchange = () => {
+    state.scope = scope.value as Scope;
+    render();
+  };
+  scopeValue.onchange = () => {
+    state.scopeValue = scopeValue.value;
+    render();
+  };
+  edge.onchange = () => {
+    state.edgeType = edge.value as EdgeType | "all";
+    render();
+  };
+  mastery.onchange = () => {
+    state.mastery = mastery.value;
+    render();
+  };
+  graphMode.onclick = () => {
+    state.view = "graph";
+    state.history = null;
+    syncHash();
+    render();
+  };
+  historyMode.onclick = () => {
+    state.view = "history";
+    syncHash();
+    render();
+  };
+  today.onclick = () => renderLearning("today");
+  resume.onclick = () => renderLearning("continue");
+  recall.onclick = () => {
+    state.recall = !state.recall;
+    recall.textContent = state.recall ? "Reveal" : "Recall";
+    recall.setAttribute("aria-pressed", String(state.recall));
+    syncHash();
+    render();
+  };
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "/" && document.activeElement !== search) {
+      event.preventDefault();
+      search.focus();
+    }
+    if (event.key === "Escape") {
+      state.concept = null;
+      state.learning = null;
+      learning.hidden = true;
+      learning.classList.remove("open");
+      syncHash();
+      render();
+    }
+  });
+  renderFallback();
+  if (routeWasSanitized) syncHash();
+  if (state.learning) renderLearning(state.learning);
+  render();
+}
+function localToday(): string {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+function dateLabel(item: {
+  year: number;
+  month?: number | null;
+  day?: number | null;
+}): string {
+  return `${item.year}${item.month ? `-${String(item.month).padStart(2, "0")}` : ""}${item.day ? `-${String(item.day).padStart(2, "0")}` : ""}`;
+}
+function compareMilestones(
+  a: { year: number; month?: number | null; day?: number | null; id: string },
+  b: typeof a,
+): number {
+  return (
+    a.year - b.year ||
+    (a.month ?? 0) - (b.month ?? 0) ||
+    (a.day ?? 0) - (b.day ?? 0) ||
+    a.id.localeCompare(b.id)
+  );
+}

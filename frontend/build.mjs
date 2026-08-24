@@ -1,0 +1,148 @@
+import { execFileSync } from "node:child_process";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const frontend = dirname(fileURLToPath(import.meta.url));
+const root = resolve(frontend, "..");
+
+function requiredOutput(arguments_) {
+  const index = arguments_.indexOf("--output");
+  if (index === -1 || !arguments_[index + 1]) {
+    throw new Error("frontend build requires --output <html-path>");
+  }
+  return resolve(root, arguments_[index + 1]);
+}
+
+function requireNode22() {
+  const major = Number(process.versions.node.split(".")[0]);
+  if (major !== 22) {
+    throw new Error(
+      `Learning Lab frontend requires Node.js 22.x; found ${process.version}. Install Node.js 22 and run npm ci.`,
+    );
+  }
+}
+
+function normalizedData(script) {
+  const command = process.env.PYTHON ?? "python3";
+  let output;
+  try {
+    output = execFileSync(
+      command,
+      [resolve(root, "scripts", script), "normalized-data", "--root", root],
+      { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+    );
+  } catch (error) {
+    const detail = error?.stderr?.toString().trim() || error?.message;
+    throw new Error(`${script} normalized-data failed: ${detail}`);
+  }
+  let data;
+  try {
+    data = JSON.parse(output);
+  } catch (error) {
+    throw new Error(`${script} normalized-data emitted invalid JSON: ${error}`);
+  }
+  if (data?.schema_version !== 1) {
+    throw new Error(`${script} requires normalized schema version 1`);
+  }
+  return data;
+}
+
+function safeJson(value) {
+  return JSON.stringify(value)
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+}
+
+function htmlShell({ graph, learningState, history, script, style }) {
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="robots" content="noindex,nofollow">
+<title>Learning Lab · Knowledge Space</title>
+<style>${style}</style>
+</head>
+<body>
+<a class="sr-only" href="#concept-list">跳到可访问词条列表</a>
+<div id="app"></div>
+<script id="learning-lab-data">const GRAPH = ${safeJson(graph)};
+const LEARNING_STATE = ${safeJson(learningState)};
+const HISTORY = ${safeJson(history)};
+const byId = new Map(GRAPH.nodes.map((node) => [node.id, node]));
+window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY };</script>
+<script>${script.replaceAll("</script", "<\\/script")}</script>
+</body>
+</html>
+`;
+}
+
+async function main() {
+  requireNode22();
+  const output = requiredOutput(process.argv.slice(2));
+  let build;
+  try {
+    ({ build } = await import("esbuild"));
+  } catch {
+    throw new Error(
+      "Learning Lab frontend dependencies are missing. Run npm ci with Node.js 22.x.",
+    );
+  }
+  const graph = normalizedData("build-knowledge-map.py");
+  const learningState = normalizedData("build-learning-state.py");
+  const history = normalizedData("build-knowledge-history.py");
+  const result = await build({
+    entryPoints: [resolve(frontend, "src/entry.ts")],
+    bundle: true,
+    write: false,
+    outdir: resolve(frontend, ".inline"),
+    format: "iife",
+    platform: "browser",
+    target: ["chrome101"],
+    minify: true,
+    legalComments: "none",
+    metafile: true,
+  });
+  const externalImports = Object.values(result.metafile.outputs).flatMap(
+    (artifact) => artifact.imports.filter((item) => item.external),
+  );
+  if (externalImports.length) {
+    throw new Error(
+      `frontend build left external runtime imports: ${externalImports
+        .map((item) => item.path)
+        .join(", ")}`,
+    );
+  }
+  const script = result.outputFiles.find((file) => file.path.endsWith(".js"));
+  const style = result.outputFiles.find((file) => file.path.endsWith(".css"));
+  if (!script || !style) {
+    throw new Error("frontend build did not produce inline JavaScript and CSS");
+  }
+  await mkdir(dirname(output), { recursive: true });
+  await writeFile(
+    output,
+    htmlShell({
+      graph,
+      learningState,
+      history,
+      script: script.text,
+      style: style.text,
+    }),
+    "utf8",
+  );
+  console.log(`knowledge map frontend candidate: ${relative(root, output)}`);
+}
+
+try {
+  await main();
+} catch (error) {
+  console.error(
+    `knowledge map frontend build failed: ${error instanceof Error ? error.message : String(error)}`,
+  );
+  process.exitCode = 1;
+}
