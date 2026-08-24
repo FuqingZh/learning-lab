@@ -13,9 +13,14 @@ Use a track, case-lab, or focal page for a more complete local view.
 flowchart LR
   idempotency["Idempotency"]
   partial_failure["Partial failure"]
+  process["Process"]
+  program["Program"]
+  service["Service"]
   side_effect["Side effect"]
   idempotency -->|prerequisite| partial_failure
   idempotency -->|prerequisite| side_effect
+  process -->|prerequisite| program
+  service ---|related to| process
 ```
 
 ## Concepts
@@ -24,6 +29,9 @@ flowchart LR
 | --- | --- | --- | --- |
 | [Idempotency](../concepts/idempotency.md) | foundation | mastered | Repeating one logical operation preserves its intended final effect. |
 | [Partial failure](../concepts/partial-failure.md) | foundation | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
+| [Process](../concepts/process.md) | foundation | not started | An executing program together with the operating-system resources that support its execution. |
+| [Program](../concepts/program.md) | foundation | not started | A prepared sequence of instructions that a computer can interpret and execute to accomplish a task. |
+| [Service](../concepts/service.md) | foundation | not started | A capability made available to consumers through a prescribed interface and its stated constraints. |
 | [Side effect](../concepts/side-effect.md) | foundation | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
 
 Back to [Knowledge Map](README.md).

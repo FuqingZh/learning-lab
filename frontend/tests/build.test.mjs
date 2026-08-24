@@ -22,9 +22,9 @@ function build(name) {
   return readFile(output, "utf8");
 }
 
-function normalized(script) {
+function normalized(script, projection = "normalized-data") {
   return JSON.parse(
-    run("python3", [`scripts/${script}`, "normalized-data", "--root", root]),
+    run("python3", [`scripts/${script}`, projection, "--root", root]),
   );
 }
 
@@ -49,7 +49,7 @@ test("verification builds are deterministic and leave the production site untouc
   );
 });
 
-test("the frontend embeds the exact three canonical projections", async () => {
+test("the frontend embeds the exact four canonical projections", async () => {
   const html = await build("canonical.html");
   assert.deepEqual(
     embedded(html, "GRAPH"),
@@ -62,6 +62,10 @@ test("the frontend embeds the exact three canonical projections", async () => {
   assert.deepEqual(
     embedded(html, "HISTORY"),
     normalized("build-knowledge-history.py"),
+  );
+  assert.deepEqual(
+    embedded(html, "EVIDENCE_GRAPH"),
+    normalized("build-knowledge-history.py", "normalized-evidence-data"),
   );
 });
 

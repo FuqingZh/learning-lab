@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import subprocess
 import tempfile
 import unittest
@@ -12,6 +13,10 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPOSITORY_ROOT / "scripts" / "build-knowledge-history.py"
+SPEC = importlib.util.spec_from_file_location("knowledge_history", SCRIPT)
+assert SPEC and SPEC.loader
+KNOWLEDGE_HISTORY = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(KNOWLEDGE_HISTORY)
 
 
 def dossier_document(identifier: str = "alpha-history", **overrides: object) -> str:
@@ -66,8 +71,8 @@ class TestKnowledgeHistoryValidation(unittest.TestCase):
         (root / "tracks" / "track-a").mkdir(parents=True)
         (root / "lessons" / "track-a").mkdir(parents=True)
         (root / "histories").mkdir()
-        (root / "concepts" / "alpha.md").write_text("---\nid: alpha\n---\n", encoding="utf-8")
-        (root / "concepts" / "beta.md").write_text("---\nid: beta\n---\n", encoding="utf-8")
+        (root / "concepts" / "alpha.md").write_text("---\nid: alpha\ntitle: Alpha\n---\n", encoding="utf-8")
+        (root / "concepts" / "beta.md").write_text("---\nid: beta\ntitle: Beta\n---\n", encoding="utf-8")
         (root / "lessons" / "track-a" / "lesson.md").write_text("# lesson\n", encoding="utf-8")
         return temporary
 
@@ -160,7 +165,7 @@ class TestKnowledgeHistoryValidation(unittest.TestCase):
                     path.read_text(encoding="utf-8").replace('"schema_version": 1', f'"schema_version": {invalid_version}'),
                     encoding="utf-8",
                 )
-                self.assert_rejected(root, "schema_version must be 1")
+                self.assert_rejected(root, "schema_version must be one of 1, 2")
 
     def test_rejects_identity_membership_and_reference_violations(self) -> None:
         with self.create_root() as temporary:
@@ -254,6 +259,120 @@ class TestKnowledgeHistoryValidation(unittest.TestCase):
             path = self.write_dossier(root)
             path.write_text(path.read_text(encoding="utf-8").replace("## Modern boundary", "## Present boundary"), encoding="utf-8")
             self.assert_rejected(root, "missing required Markdown headings: Modern boundary")
+
+    def test_v2_fails_closed_for_subjects_boundaries_and_locators(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            milestone = json.loads(dossier_document().split("---\n", 2)[1])["milestones"][0]
+            milestone.update({"subjects": ["missing"], "boundaries": ["Bounded claim."], "sources": [{**milestone["sources"][0], "locator": "Page 1."}]})
+            self.write_dossier(root, schema_version=2, milestones=[milestone])
+            self.assert_rejected(root, "subjects has unknown concept: missing")
+
+        for field, value, expected in (
+            ("subjects", [], "subjects must not be empty"),
+            ("subjects", ["alpha", "alpha"], "subjects must not contain duplicates"),
+            ("boundaries", [], "boundaries must not be empty"),
+            ("boundaries", ["Same.", "Same."], "boundaries must not contain duplicates"),
+        ):
+            with self.subTest(field=field, value=value), self.create_root() as temporary:
+                root = Path(temporary)
+                milestone = json.loads(dossier_document().split("---\n", 2)[1])["milestones"][0]
+                milestone.update({"subjects": ["alpha"], "boundaries": ["Bounded claim."], "sources": [{**milestone["sources"][0], "locator": "Page 1."}]})
+                milestone[field] = value
+                self.write_dossier(root, schema_version=2, milestones=[milestone])
+                self.assert_rejected(root, expected)
+
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            milestone = json.loads(dossier_document().split("---\n", 2)[1])["milestones"][0]
+            milestone.update({"subjects": ["alpha"], "boundaries": ["Bounded claim."]})
+            self.write_dossier(root, schema_version=2, milestones=[milestone])
+            self.assert_rejected(root, "sources[0] missing required fields: locator")
+
+    def test_evidence_projection_aggregates_canonical_sources_deterministically(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            first = json.loads(dossier_document().split("---\n", 2)[1])["milestones"][0]
+            first.update({"subjects": ["alpha"], "boundaries": ["First boundary."], "sources": [{**first["sources"][0], "url": "HTTPS://Primary.Example:443/alpha#top", "locator": "Page 1."}]})
+            second = dict(first)
+            second.update({"id": "alpha-2001", "year": 2001, "claim": "A second claim.", "boundaries": ["Second boundary."], "sources": [{**first["sources"][0], "url": "https://primary.example/alpha", "locator": "Page 2."}]})
+            self.write_dossier(root, schema_version=2, milestones=[second, first])
+            first_output = self.run_cli(root, "normalized-evidence-data")
+            second_output = self.run_cli(root, "normalized-evidence-data")
+            self.assertEqual(first_output.returncode, 0, first_output.stderr)
+            self.assertEqual(first_output.stdout, second_output.stdout)
+            graph = json.loads(first_output.stdout)
+            sources = [node for node in graph["nodes"] if node["kind"] == "source"]
+            self.assertEqual(len(sources), 1)
+            self.assertEqual(sources[0]["canonical_url"], "https://primary.example/alpha")
+            citations = [edge for edge in graph["edges"] if edge["kind"] == "cites_as_evidence"]
+            self.assertEqual([edge["locator"] for edge in citations], ["Page 1.", "Page 2."])
+            self.assertEqual(
+                KNOWLEDGE_HISTORY.canonicalize_source_url(
+                    "https://[2001:DB8::1]:443/evidence?q=1#page-2",
+                    path=root / "histories/alpha-history.md",
+                    field="url",
+                ),
+                "https://[2001:db8::1]/evidence?q=1",
+            )
+
+    def test_v2_authoring_fields_do_not_change_normalized_history_v1_shape(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            milestone = json.loads(dossier_document().split("---\n", 2)[1])["milestones"][0]
+            milestone.update(
+                {
+                    "subjects": ["alpha"],
+                    "boundaries": ["Does not establish a broader claim."],
+                    "sources": [
+                        {
+                            **milestone["sources"][0],
+                            "locator": "Section 1, paragraph 2.",
+                        }
+                    ],
+                }
+            )
+            self.write_dossier(root, schema_version=2, milestones=[milestone])
+            result = self.run_cli(root, "normalized-data")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            normalized = json.loads(result.stdout)
+            normalized_milestone = normalized["dossiers"][0]["milestones"][0]
+            self.assertNotIn("subjects", normalized_milestone)
+            self.assertNotIn("boundaries", normalized_milestone)
+            self.assertNotIn("locator", normalized_milestone["sources"][0])
+            self.assertNotIn("canonical_url", normalized_milestone["sources"][0])
+
+    def test_v1_dossier_emits_no_evidence_nodes_or_edges(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_dossier(root)
+            result = self.run_cli(root, "normalized-evidence-data")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout), {"schema_version": 1, "nodes": [], "edges": []})
+
+    def test_evidence_projection_rejects_source_metadata_conflict_and_hash_collision(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            milestone = json.loads(dossier_document().split("---\n", 2)[1])["milestones"][0]
+            milestone.update({"subjects": ["alpha"], "boundaries": ["Boundary."], "sources": [{**milestone["sources"][0], "locator": "Page 1."}]})
+            other = dict(milestone)
+            other.update({"id": "alpha-2001", "year": 2001, "sources": [{**milestone["sources"][0], "title": "Conflicting title", "locator": "Page 2."}]})
+            self.write_dossier(root, schema_version=2, milestones=[milestone, other])
+            self.assert_rejected(root, "conflicting source metadata")
+            history = KNOWLEDGE_HISTORY.load_history(root)
+            with self.assertRaisesRegex(ValueError, "conflicting source metadata"):
+                KNOWLEDGE_HISTORY.normalized_evidence_data(root, history)
+
+            other["sources"] = [{**milestone["sources"][0], "url": "https://other.example/alpha", "locator": "Page 2."}]
+            self.write_dossier(root, schema_version=2, milestones=[milestone, other])
+            history = KNOWLEDGE_HISTORY.load_history(root)
+            original = KNOWLEDGE_HISTORY.source_id
+            KNOWLEDGE_HISTORY.source_id = lambda _: "source-collision"
+            try:
+                with self.assertRaisesRegex(ValueError, "source ID collision"):
+                    KNOWLEDGE_HISTORY.normalized_evidence_data(root, history)
+            finally:
+                KNOWLEDGE_HISTORY.source_id = original
 
 
 if __name__ == "__main__":

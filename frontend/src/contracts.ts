@@ -84,10 +84,49 @@ export interface History {
   schema_version: 1;
   dossiers: Dossier[];
 }
+export type EvidenceNodeKind = "concept" | "dossier" | "milestone" | "source";
+export type EvidenceEdgeKind = "about" | "cites_as_evidence" | "contained_in";
+export interface EvidenceDate {
+  year: number;
+  month?: number | null;
+  day?: number | null;
+}
+export interface EvidenceNode {
+  id: string;
+  kind: EvidenceNodeKind;
+  title?: string;
+  path?: string;
+  concept_id?: string;
+  dossier_id?: string;
+  milestone_id?: string;
+  milestone_kind?: string;
+  claim?: string;
+  actors?: string[];
+  date?: EvidenceDate;
+  boundaries?: string[];
+  summary?: string;
+  publisher?: string;
+  source_kind?: string;
+  canonical_url?: string;
+}
+export interface EvidenceEdge {
+  kind: EvidenceEdgeKind;
+  from: string;
+  to: string;
+  role?: string;
+  locator?: string;
+  url?: string;
+}
+export interface EvidenceGraph {
+  schema_version: 1;
+  nodes: EvidenceNode[];
+  edges: EvidenceEdge[];
+}
 export interface FrontendData {
   graph: Graph;
   learningState: LearningState;
   history: History;
+  evidenceGraph: EvidenceGraph;
 }
 export const edgeTypes: readonly EdgeType[] = [
   "prerequisites",

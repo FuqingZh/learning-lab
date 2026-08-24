@@ -16,6 +16,9 @@ for any source repository.
 - [Evidence-backed knowledge history implementation plan](implementation-plans/20260824-v1.2-evidence-backed-knowledge-history-plan.md):
   active plan for audited historical dossiers, their teaching boundary, and
   their separate generated projection.
+- [TypeScript explorer and evidence graph implementation plan](implementation-plans/20260824-v1.3-typescript-explorer-and-evidence-graph-plan.md):
+  active delivery record for the strict TypeScript frontend and explicit
+  claim-to-concept, claim-to-source evidence network.
 - [Add or update a knowledge concept](how-to-guides/20260820-v1.0-add-knowledge-concept-how-to-guide.md):
   authoring, evidence-linking, generation, validation, and recovery procedure.
 - [Add or update an evidence-backed history dossier](how-to-guides/20260824-v1.2-add-evidence-backed-history-how-to-guide.md):

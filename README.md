@@ -18,7 +18,7 @@ not authoritative product documentation and not implementation requirements.
 - [Knowledge Map](maps/README.md): generated global, track, case-lab, and focal
   dependency views.
 - [Interactive Map](site/index.html): self-contained spatial explorer with
-  search, track lenses, typed relationships, and mastery cues.
+  concept, history, and evidence-network views, plus search and mastery cues.
 - [Online Knowledge Space](https://fuqingzh.github.io/learning-lab/): generated
   GitHub Pages projection for access without opening the local HTML file.
 - [Workspace documentation](docs/README.md): active implementation plan and
@@ -33,7 +33,8 @@ not authoritative product documentation and not implementation requirements.
   including superseded intermediate states.
 - `lessons/<track>/`: reusable teaching artifacts created only when useful.
 - `histories/`: evidence-backed development dossiers linked to lessons or
-  canonical concepts; chronology is not treated as proof of causal lineage.
+  canonical concepts; schema-v2 milestones project explicit claims, sources,
+  locators, and evidence boundaries without treating chronology as causality.
 - `concepts/`: canonical transferable concept definitions and typed relations.
 - `case-labs/`: thin repository hubs; the existence of a hub does not establish
   concept membership.

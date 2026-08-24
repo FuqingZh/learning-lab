@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 id: idempotency-history
 title: History of idempotency
 summary: Documents algebraic terminology, HTTP method semantics, and retry-oriented API practice without asserting a direct lineage.
@@ -18,14 +18,21 @@ milestones:
     actors:
       - Benjamin Peirce
     claim: Benjamin Peirce's 1870 Linear Associative Algebra documents idempotent for an algebraic expression that gives itself when raised to a square or higher power.
+    subjects:
+      - idempotency
+    boundaries:
+      - Does not establish a direct lineage from algebra to HTTP.
+      - Does not establish global priority for the underlying property.
     evidence_basis: mixed
     sources:
       - url: https://www.e-rara.ch/zut/content/titleinfo/6674068
+        locator: Pages 16–17, paragraph beginning "When an expression", defining idempotent powers.
         title: Linear Associative Algebra
         publisher: National Academy of Sciences
         role: primary
         kind: monograph
       - url: https://www.unav.es/gep/GrattanGuinness.pdf
+        locator: Article page 598, section 1 "Content", paragraph beginning "The associative", discussing idempotent and nilpotent.
         title: "Benjamin Peirce’s Linear Associative Algebra (1870): New Light on its Preparation and ‘Publication’"
         publisher: Annals of Science
         role: scholarly-secondary
@@ -42,9 +49,15 @@ milestones:
       - Henrik Frystyk Nielsen
       - Tim Berners-Lee
     claim: RFC 2068 specifies HTTP method idempotence through repeated-request side effects and identifies GET, HEAD, PUT, and DELETE as idempotent methods.
+    subjects:
+      - idempotency
+      - side-effect
+    boundaries:
+      - Does not establish that every endpoint implementation lacks incidental side effects.
     evidence_basis: primary-source
     sources:
       - url: https://datatracker.ietf.org/doc/html/rfc2068#section-9.1.2
+        locator: Section 9.1.2, Idempotent Methods.
         title: RFC 2068 - Hypertext Transfer Protocol HTTP/1.1
         publisher: Internet Engineering Task Force
         role: primary
@@ -57,9 +70,15 @@ milestones:
     actors:
       - Brandur Leach
     claim: A 2017 Stripe engineering article documents using an Idempotency-Key value to correlate retries of a mutating API request after ambiguous network failure.
+    subjects:
+      - idempotency
+      - idempotency-key
+    boundaries:
+      - Documents Stripe practice rather than universal retention or replay rules.
     evidence_basis: primary-source
     sources:
       - url: https://stripe.com/blog/idempotency
+        locator: Section "Idempotency keys", retry paragraph and curl example.
         title: Designing robust and predictable APIs with idempotency
         publisher: Stripe
         role: primary
@@ -74,9 +93,15 @@ milestones:
       - Mark Nottingham
       - Julian Reschke
     claim: RFC 9110 defines idempotence by intended server effect and illustrates retrying a PUT after the connection closes before any response is received.
+    subjects:
+      - idempotency
+      - side-effect
+    boundaries:
+      - Does not guarantee exactly-once execution or identical response bytes.
     evidence_basis: primary-source
     sources:
       - url: https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.2
+        locator: Section 9.2.2, Idempotent Methods, paragraphs 1–2.
         title: RFC 9110 - HTTP Semantics
         publisher: Internet Engineering Task Force
         role: primary

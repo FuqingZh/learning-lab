@@ -1,5 +1,5 @@
 ---
-schema_version: 1
+schema_version: 2
 id: program-process-and-service-history
 title: Development of program, process, and service boundaries
 summary: Documents selected steps that separate instructions, executing processes, process communication, and an abstract service from its realizing agent without asserting one direct lineage.
@@ -17,10 +17,23 @@ milestones:
     actors:
       - Edsger W. Dijkstra
     claim: Dijkstra's EWD123 distinguishes a program as rules of behavior from a sequential process as what happens during execution, then analyzes cooperation among independently progressing processes.
+    subjects:
+      - process
+      - program
+    boundaries:
+      - Does not establish a service concept.
+      - Does not establish global priority for the program and process distinction.
     evidence_basis: primary-source
     sources:
       - url: https://www.cs.utexas.edu/~EWD/transcriptions/EWD01xx/EWD123.html
+        locator: Section 1, paragraphs beginning "The technical term"; section 2, opening cooperation paragraphs.
         title: Cooperating Sequential Processes
+        publisher: E. W. Dijkstra Archive
+        role: primary
+        kind: archive
+      - url: https://www.cs.utexas.edu/~EWD/transcriptions/EWD10xx/EWD1000.html
+        locator: Paragraph beginning "EWD123", stating that it was written in 1965 for that year's fall course.
+        title: Twenty-eight years
         publisher: E. W. Dijkstra Archive
         role: primary
         kind: archive
@@ -33,9 +46,15 @@ milestones:
       - Dennis M. Ritchie
       - Ken Thompson
     claim: The 1974 UNIX paper documents fork creating a child process whose code initially remains the shell's, followed by execute bringing in and starting the named program.
+    subjects:
+      - process
+      - program
+    boundaries:
+      - Documents the UNIX interface rather than all modern process semantics.
     evidence_basis: primary-source
     sources:
       - url: https://doi.org/10.1145/361011.361061
+        locator: Section 5.1 "Processes" and 5.3 "Execution of Programs", page 370; section 6.5 "Implementation of the Shell", page 372.
         title: The UNIX Time-Sharing System
         publisher: Communications of the ACM
         role: primary
@@ -48,9 +67,15 @@ milestones:
     actors:
       - Jon Postel
     claim: RFC 793 specifies TCP as a reliable process-to-process communication service and defines interfaces between application processes, TCP, and lower-level protocols.
+    subjects:
+      - process
+      - service
+    boundaries:
+      - Does not establish every current use of service.
     evidence_basis: primary-source
     sources:
       - url: https://www.rfc-editor.org/rfc/rfc793.html#section-1.2
+        locator: Section 1.2 "Scope"; sections 2.1–2.2 "Elements" and "Model of Operation".
         title: RFC 793 - Transmission Control Protocol
         publisher: Internet Engineering Task Force
         role: primary
@@ -63,9 +88,14 @@ milestones:
     actors:
       - Web Services Architecture Working Group
     claim: The 2004 W3C Web Services Architecture distinguishes an abstract Web service from the concrete agent that implements it and states that the agent may change while the same service remains.
+    subjects:
+      - service
+    boundaries:
+      - Applies to Web services and does not define every software service.
     evidence_basis: primary-source
     sources:
       - url: https://www.w3.org/TR/2004/NOTE-ws-arch-20040211/
+        locator: Section 1.4.1 "Agents and Services"; section 2.3.2.10 "Service".
         title: Web Services Architecture
         publisher: World Wide Web Consortium
         role: primary

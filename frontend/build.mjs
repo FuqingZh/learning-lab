@@ -28,18 +28,13 @@ function requireNode22() {
   }
 }
 
-function normalizedData(script, dataRoot) {
+function normalizedData(script, dataRoot, projection = "normalized-data") {
   const command = process.env.PYTHON ?? "python3";
   let output;
   try {
     output = execFileSync(
       command,
-      [
-        resolve(dataRoot, "scripts", script),
-        "normalized-data",
-        "--root",
-        dataRoot,
-      ],
+      [resolve(dataRoot, "scripts", script), projection, "--root", dataRoot],
       {
         cwd: dataRoot,
         encoding: "utf8",
@@ -48,16 +43,18 @@ function normalizedData(script, dataRoot) {
     );
   } catch (error) {
     const detail = error?.stderr?.toString().trim() || error?.message;
-    throw new Error(`${script} normalized-data failed: ${detail}`);
+    throw new Error(`${script} ${projection} failed: ${detail}`);
   }
   let data;
   try {
     data = JSON.parse(output);
   } catch (error) {
-    throw new Error(`${script} normalized-data emitted invalid JSON: ${error}`);
+    throw new Error(`${script} ${projection} emitted invalid JSON: ${error}`);
   }
   if (data?.schema_version !== 1) {
-    throw new Error(`${script} requires normalized schema version 1`);
+    throw new Error(
+      `${script} ${projection} requires normalized schema version 1`,
+    );
   }
   return data;
 }
@@ -81,6 +78,11 @@ async function frontendData(arguments_, dataRoot) {
       graph: normalizedData("build-knowledge-map.py", dataRoot),
       learningState: normalizedData("build-learning-state.py", dataRoot),
       history: normalizedData("build-knowledge-history.py", dataRoot),
+      evidenceGraph: normalizedData(
+        "build-knowledge-history.py",
+        dataRoot,
+        "normalized-evidence-data",
+      ),
     };
   }
   let value;
@@ -96,6 +98,7 @@ async function frontendData(arguments_, dataRoot) {
     graph: requireSchemaVersion(value.graph, "GRAPH"),
     learningState: requireSchemaVersion(value.learningState, "LEARNING_STATE"),
     history: requireSchemaVersion(value.history, "HISTORY"),
+    evidenceGraph: requireSchemaVersion(value.evidenceGraph, "EVIDENCE_GRAPH"),
   };
 }
 
@@ -108,7 +111,14 @@ function safeJson(value) {
     .replaceAll("\u2029", "\\u2029");
 }
 
-function htmlShell({ graph, learningState, history, script, style }) {
+function htmlShell({
+  graph,
+  learningState,
+  history,
+  evidenceGraph,
+  script,
+  style,
+}) {
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -125,8 +135,9 @@ function htmlShell({ graph, learningState, history, script, style }) {
 <script id="learning-lab-data">const GRAPH = ${safeJson(graph)};
 const LEARNING_STATE = ${safeJson(learningState)};
 const HISTORY = ${safeJson(history)};
+const EVIDENCE_GRAPH = ${safeJson(evidenceGraph)};
 const byId = new Map(GRAPH.nodes.map((node) => [node.id, node]));
-window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY };</script>
+window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY, evidenceGraph: EVIDENCE_GRAPH };</script>
 <script>${script.replaceAll("</script", "<\\/script")}</script>
 </body>
 </html>
@@ -146,7 +157,7 @@ async function main() {
       "Learning Lab frontend dependencies are missing. Run npm ci with Node.js 22.x.",
     );
   }
-  const { graph, learningState, history } = await frontendData(
+  const { graph, learningState, history, evidenceGraph } = await frontendData(
     arguments_,
     dataRoot,
   );
@@ -184,6 +195,7 @@ async function main() {
       graph,
       learningState,
       history,
+      evidenceGraph,
       script: script.text,
       style: style.text,
     }),
