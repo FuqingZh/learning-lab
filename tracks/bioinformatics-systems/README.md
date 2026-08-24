@@ -48,6 +48,16 @@ at the first violated boundary and the distinction between operational
 completion and semantic correctness. Contract taxonomy is now demonstrated as
 well, including schema, identity, lifecycle, transaction, authority, service,
 and compatibility promises; the learner also separates idempotency from
-physical compute deduplication. The next orientation concept is how
-cross-cutting qualities create measurable tradeoffs and budgets across every
-layer rather than belonging to one component.
+physical compute deduplication. Cross-cutting quality objectives are now also
+demonstrated: metric, target, scope, and window are explicit; performance and
+reliability are independent; and interface, state visibility, and actual
+failure-rate reduction are not conflated. The integrated first-pass walkthrough
+has now also been demonstrated with a generic microscopy analysis case:
+identity begins with a definition of sameness, identifiers do not replace
+authoritative data, physical batching can preserve logical independence, and
+computation versions remain distinct.
+
+Systems-map Pass 1 orientation is complete. Pass 2 now deepens one foundation
+at a time, beginning with program, process, and service, followed by volatile
+memory and durable state. Repositories remain case laboratories rather than the
+curriculum's organizing structure.

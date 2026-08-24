@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260821T141915+0800-partial-failure-fresh-case-transfer
+started_at: 2026-08-21T14:19:15+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: partial-failure
+  next: partial-failure
+  summary: Distinguish a missing response from an uncommitted effect, then query downstream authority before retrying.
+evidence:
+  - concept: partial-failure
+    check: fresh-case-transfer
+    outcome: partial
+    confidence: medium
+    assisted: false

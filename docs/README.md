@@ -13,10 +13,15 @@ for any source repository.
 - [Ambient Learning implementation plan](implementation-plans/20260821-v1.1-ambient-learning-implementation-plan.md):
   active plan for interruption-safe micro-sessions, concept-level evidence,
   review scheduling, the tutor skill, and the generated learning views.
+- [Evidence-backed knowledge history implementation plan](implementation-plans/20260824-v1.2-evidence-backed-knowledge-history-plan.md):
+  active plan for audited historical dossiers, their teaching boundary, and
+  their separate generated projection.
 - [Add or update a knowledge concept](how-to-guides/20260820-v1.0-add-knowledge-concept-how-to-guide.md):
   authoring, evidence-linking, generation, validation, and recovery procedure.
+- [Add or update an evidence-backed history dossier](how-to-guides/20260824-v1.2-add-evidence-backed-history-how-to-guide.md):
+  source review, uncertainty handling, authoring, validation, and recovery.
 
-There is no separate architecture document or testing standard yet. The two
-active implementation plans own the knowledge-map and ambient-learning
+There is no separate architecture document or testing standard yet. The active
+implementation plans own the knowledge-map, ambient-learning, and history
 boundaries and verification contracts until those formats are stable enough to
 promote into architecture and testing documents.

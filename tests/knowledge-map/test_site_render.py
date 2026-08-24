@@ -67,6 +67,7 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
 
         self.assertIn("const GRAPH =", content)
         self.assertIn("const LEARNING_STATE =", content)
+        self.assertIn("const HISTORY =", content)
         self.assertIn("normalized-data", SCRIPT.read_text(encoding="utf-8"))
         self.assertIn('id="space"', content)
         self.assertIn('id="nodes"', content)
@@ -102,7 +103,8 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
         self.assertIn('"direct_concepts"', content)
         self.assertIn('function canonical(path)', content)
         self.assertIn('没有匹配的知识点', content)
-        self.assertIsNone(re.search(r"file://|localhost", content.split("<script>", 1)[1]))
+        script_bodies = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", content, flags=re.DOTALL)
+        self.assertIsNone(re.search(r"file://|localhost", "\n".join(script_bodies)))
 
         embedded_match = re.search(
             r"const GRAPH = (\{.*?\});\nconst LEARNING_STATE =",
@@ -126,7 +128,7 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
         self.assertEqual(embedded, json.loads(normalized.stdout))
 
         learning_match = re.search(
-            r"const LEARNING_STATE = (\{.*?\});\nconst byId=",
+            r"const LEARNING_STATE = (\{.*?\});\nconst HISTORY =",
             content,
             flags=re.DOTALL,
         )
@@ -144,6 +146,121 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
             capture_output=True,
         )
         self.assertEqual(json.loads(learning_match.group(1)), json.loads(normalized_learning_state.stdout))
+
+        history_match = re.search(
+            r"const HISTORY = (\{.*?\});\nconst byId=",
+            content,
+            flags=re.DOTALL,
+        )
+        self.assertIsNotNone(history_match)
+        normalized_history = subprocess.run(
+            [
+                "python3",
+                str(REPOSITORY_ROOT / "scripts" / "build-knowledge-history.py"),
+                "normalized-data",
+                "--root",
+                str(REPOSITORY_ROOT),
+            ],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(json.loads(history_match.group(1)), json.loads(normalized_history.stdout))
+
+    def test_history_projection_preserves_membership_date_precision_and_safe_sources(self) -> None:
+        graph = {"schema_version": 1, "nodes": [{
+            "id": "idempotency", "title": "Idempotency", "summary": "Modern definition", "kind": "foundation",
+            "tracks": [], "case_labs": [], "lessons": [], "records": [], "path": "concepts/idempotency.md",
+            "mastery": {"status": "not-started"},
+            "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []}, "extensions": {},
+        }], "edges": [], "tracks": [], "case_labs": []}
+        history = {"schema_version": 1, "dossiers": [{
+            "id": "idempotency-history", "title": "History", "summary": "", "path": "histories/idempotency.md",
+            "concepts": ["idempotency"], "lessons": [], "tracks": [], "milestones": [
+                {"id": "http", "year": 1997, "month": 11, "day": None, "kind": "adoption", "actors": ["IETF"], "claim": "HTTP claim", "sources": [{"url": "https://example.org/rfc", "title": "RFC", "publisher": "IETF", "role": "primary", "kind": "standard"}]},
+                {"id": "algebra", "year": 1870, "month": None, "day": None, "kind": "terminology", "actors": ["Peirce"], "claim": "Algebra claim", "sources": [{"url": "javascript:alert(1)", "title": "Unsafe", "publisher": "", "role": "scholarly-secondary", "kind": "monograph"}]},
+            ],
+        }]}
+        rendered = RENDERER.render_html(graph, {"schema_version": 1, "concepts": [], "resume": None}, history)
+        self.assertIn('id="history-mode"', rendered)
+        self.assertIn("historyDossiers(id)", rendered)
+        self.assertIn("dateLabel(m)", rendered)
+        self.assertIn("a.year-b.year||(a.month||0)-(b.month||0)||(a.day||0)-(b.day||0)", rendered)
+        self.assertIn('href="${esc(safeHttps(s.url))}"', rendered)
+        self.assertIn("尚无可核查的历史谱系", rendered)
+        self.assertIn("不展示现代定义或概念关系", rendered)
+        self.assertIn("function updateGraphHash()", rendered)
+        self.assertIn("打开证据档案", rendered)
+
+    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
+    def test_browser_history_timeline_recall_and_no_history_states(self) -> None:
+        nodes = []
+        for identifier, title in (("idempotency", "Idempotency"), ("without-history", "Without history")):
+            nodes.append({"id": identifier, "title": title, "summary": "Modern definition", "kind": "foundation", "tracks": [], "case_labs": [], "lessons": [], "records": [], "path": f"concepts/{identifier}.md", "mastery": {"status": "not-started"}, "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []}, "extensions": {}})
+        graph = {"schema_version": 1, "nodes": nodes, "edges": [], "tracks": [], "case_labs": []}
+        history = {"schema_version": 1, "dossiers": [
+            {"id": "idempotency-history", "title": "History", "summary": "", "path": "histories/idempotency.md", "concepts": ["idempotency"], "lessons": [], "tracks": [], "milestones": [{"id": "early", "year": 1870, "month": None, "day": None, "kind": "terminology", "actors": ["Peirce"], "claim": "Historical claim", "sources": [{"url": "https://example.org/source", "title": "Primary source", "publisher": "", "role": "primary", "kind": "monograph"}]}]},
+            {"id": "e-value-history", "title": "History of E-value", "summary": "Lesson-only evidence", "path": "histories/e-value.md", "concepts": [], "lessons": ["lessons/e-value.md"], "tracks": [], "milestones": [{"id": "karlin", "year": 1990, "month": 3, "day": None, "kind": "formalization", "actors": ["Karlin"], "claim": "E-value claim", "sources": [{"url": "https://example.org/evalue", "title": "E-value source", "publisher": "", "role": "primary", "kind": "paper"}]}]},
+        ]}
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            output = temporary / "history.html"
+            rendered = RENDERER.render_html(graph, {"schema_version": 1, "concepts": [], "resume": None}, history)
+            output.write_text(rendered, encoding="utf-8")
+            interaction_output = temporary / "interaction.html"
+            interaction_output.write_text(
+                rendered.replace(
+                    "</body>",
+                    '<script>window.addEventListener("load",()=>{document.querySelector("#graph-mode").click();document.body.dataset.graphHash=location.hash;document.body.dataset.panelOpen=String(document.querySelector("#panel").classList.contains("open")&&!document.querySelector("#panel").hidden);document.body.dataset.introHidden=String(document.querySelector("#intro").hidden||document.querySelector("#intro").classList.contains("hidden"));document.querySelector("#history-mode").click();document.body.dataset.historyHash=location.hash})</script></body>',
+                ),
+                encoding="utf-8",
+            )
+            narrow_output = temporary / "narrow.html"
+            narrow_output.write_text(
+                rendered.replace(
+                    "</body>",
+                    '<script>window.addEventListener("load",()=>{const search=document.querySelector(".search").getBoundingClientRect(),card=document.querySelector(".learning-card").getBoundingClientRect();document.body.dataset.headerOverlap=String(search.bottom>card.top)})</script></body>',
+                ),
+                encoding="utf-8",
+            )
+            environment = os.environ.copy()
+            environment.update({"TMPDIR": str(temporary), "XDG_CONFIG_HOME": str(temporary / "config"), "XDG_CACHE_HOME": str(temporary / "cache")})
+            browser = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'user'}", "--dump-dom", output.as_uri() + "#concept=idempotency&history=idempotency-history&view=history&recall=1"], check=False, text=True, capture_output=True, timeout=25, env=environment)
+            self.assertEqual(browser.returncode, 0, browser.stderr)
+            self.assertIn('id="history-overlay"', browser.stdout)
+            self.assertIn("1870", browser.stdout)
+            self.assertIn('class="source-role">primary</span> · Primary source ↗', browser.stdout)
+            self.assertIn("这条记录解决、形式化或批评了什么？", browser.stdout)
+            history_dom = browser.stdout.split('id="history-overlay"', 1)[1].split("</main>", 1)[0]
+            self.assertNotIn("Modern definition", history_dom)
+            self.assertIn('href="https://example.org/source"', browser.stdout)
+            no_history = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'no-history-user'}", "--dump-dom", output.as_uri() + "#concept=without-history&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
+            self.assertEqual(no_history.returncode, 0, no_history.stderr)
+            self.assertIn("尚无可核查的历史谱系", no_history.stdout)
+            lesson_only = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'lesson-only-user'}", "--dump-dom", output.as_uri() + "#history=e-value-history&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
+            self.assertEqual(lesson_only.returncode, 0, lesson_only.stderr)
+            self.assertIn("History of E-value", lesson_only.stdout)
+            self.assertIn("Lesson-only evidence", lesson_only.stdout)
+            self.assertIn("lessons/e-value.md", lesson_only.stdout)
+            self.assertIn("E-value claim", lesson_only.stdout)
+            self.assertIn("打开证据档案", lesson_only.stdout)
+            overview = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'overview-user'}", "--dump-dom", output.as_uri() + "#view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
+            self.assertEqual(overview.returncode, 0, overview.stderr)
+            self.assertIn('data-history-id="e-value-history"', overview.stdout)
+            self.assertIn('data-history-id="idempotency-history"', overview.stdout)
+            invalid = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'invalid-history-user'}", "--dump-dom", output.as_uri() + "#history=missing&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
+            self.assertEqual(invalid.returncode, 0, invalid.stderr)
+            self.assertIn('data-history-id="e-value-history"', invalid.stdout)
+            self.assertNotIn("#history=missing", invalid.stdout)
+            interaction = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", f"--user-data-dir={temporary / 'interaction-user'}", "--dump-dom", interaction_output.as_uri() + "#concept=idempotency&view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
+            self.assertEqual(interaction.returncode, 0, interaction.stderr)
+            self.assertIn('data-graph-hash="#concept=idempotency"', interaction.stdout)
+            self.assertIn('data-panel-open="true"', interaction.stdout)
+            self.assertIn('data-intro-hidden="true"', interaction.stdout)
+            self.assertIn('data-history-hash="#view=history&amp;concept=idempotency"', interaction.stdout)
+            narrow = subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--no-sandbox", "--disable-breakpad", "--disable-crash-reporter", "--window-size=320,844", f"--user-data-dir={temporary / 'narrow-user'}", "--dump-dom", narrow_output.as_uri() + "#view=history"], check=False, text=True, capture_output=True, timeout=25, env=environment)
+            self.assertEqual(narrow.returncode, 0, narrow.stderr)
+            self.assertIn('data-header-overlap="false"', narrow.stdout)
 
     @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
     def test_installed_browser_executes_graph_and_accessible_node_list(self) -> None:

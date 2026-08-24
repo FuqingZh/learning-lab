@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260821T134206+0800-partial-failure-fresh-case-transfer
+started_at: 2026-08-21T13:42:06+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: partial-failure
+  next: side-effect
+  summary: Continue by distinguishing the intended result from observable side effects.
+evidence:
+  - concept: partial-failure
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: false

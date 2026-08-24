@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260821T115018+0800-idempotency-fresh-case-transfer
+started_at: 2026-08-21T11:50:18+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: idempotency
+  next: partial-failure
+  summary: Continue by deciding recovery when one step commits and a later step fails.
+evidence:
+  - concept: idempotency
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: false
