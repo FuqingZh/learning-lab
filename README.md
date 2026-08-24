@@ -32,6 +32,8 @@ not authoritative product documentation and not implementation requirements.
 - `learning-records/<track>/`: what the learner has actually demonstrated,
   including superseded intermediate states.
 - `lessons/<track>/`: reusable teaching artifacts created only when useful.
+- `histories/`: evidence-backed development dossiers linked to lessons or
+  canonical concepts; chronology is not treated as proof of causal lineage.
 - `concepts/`: canonical transferable concept definitions and typed relations.
 - `case-labs/`: thin repository hubs; the existence of a hub does not establish
   concept membership.
@@ -58,7 +60,9 @@ file. Lessons use semantic topic names rather than lesson numbers.
 Run `bash scripts/check-structure.sh` after changing workspace structure or
 adding a record, lesson, or concept. See the
 [concept authoring guide](docs/how-to-guides/20260820-v1.0-add-knowledge-concept-how-to-guide.md)
-before changing the graph schema or evidence links.
+before changing the graph schema or evidence links, and the
+[history dossier guide](docs/how-to-guides/20260824-v1.2-add-evidence-backed-history-how-to-guide.md)
+before adding historical claims.
 
 ## Ambient learning
 

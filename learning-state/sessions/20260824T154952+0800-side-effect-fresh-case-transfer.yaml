@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260824T154952+0800-side-effect-fresh-case-transfer
+started_at: 2026-08-24T15:49:52+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: side-effect
+  next: side-effect
+  summary: Classify durable database writes and external message publication as side effects, distinct from returned values.
+evidence:
+  - concept: side-effect
+    check: fresh-case-transfer
+    outcome: partial
+    confidence: medium
+    assisted: false
