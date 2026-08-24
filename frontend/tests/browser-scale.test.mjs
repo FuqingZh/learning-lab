@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { execFileSync } from "node:child_process";
+import { once } from "node:events";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -141,6 +142,21 @@ async function waitForChrome(port, child, launch) {
   );
 }
 
+async function stopChrome(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  const exited = once(child, "exit");
+  child.kill("SIGTERM");
+  const force = setTimeout(() => {
+    if (child.exitCode === null && child.signalCode === null)
+      child.kill("SIGKILL");
+  }, 2000);
+  try {
+    await exited;
+  } finally {
+    clearTimeout(force);
+  }
+}
+
 async function inspect(url) {
   const port = await freePort();
   const profile = join(temporary, `chrome-${port}`);
@@ -223,7 +239,7 @@ async function inspect(url) {
       await client.close();
     }
   } finally {
-    child.kill("SIGTERM");
+    await stopChrome(child);
   }
 }
 
@@ -274,12 +290,17 @@ async function inspectEvidence(url) {
       await client.close();
     }
   } finally {
-    child.kill("SIGTERM");
+    await stopChrome(child);
   }
 }
 
 test.after(async () => {
-  await rm(temporary, { recursive: true, force: true });
+  await rm(temporary, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 100,
+  });
 });
 
 test("1000-node production search stays bounded with a complete fallback", async (t) => {
@@ -304,10 +325,6 @@ test("1000-node production search stays bounded with a complete fallback", async
     .replace(
       /const EVIDENCE_GRAPH = .*;\nconst byId/,
       `const EVIDENCE_GRAPH = ${evidence};\nconst byId`,
-    )
-    .replace(
-      /window\.__LEARNING_LAB_DATA__ = \{ graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY \};/,
-      `window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY, evidenceGraph: ${evidence} };`,
     );
   const output = join(temporary, "synthetic-1000.html");
   await writeFile(output, html);
