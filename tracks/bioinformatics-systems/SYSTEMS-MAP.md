@@ -22,6 +22,17 @@ against cross-cutting concerns:
 correctness | performance | security | reproducibility | operability | change
 ```
 
+These qualities are system-wide axes, not isolated layers. A measurable
+quality objective needs a metric, target, scope, and observation window:
+
+```text
+for <scope>, measured over <window>, <metric> shall meet <target>
+```
+
+Different qualities require separate objectives. Low latency does not prove a
+high success rate; a well-structured error remains a failed operation even when
+it improves the interface and diagnosis experience.
+
 ## Three flows through the same system
 
 The path can be inspected from three simultaneous views:

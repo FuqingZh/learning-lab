@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260821T152359+0800-partial-failure-fresh-case-transfer
+started_at: 2026-08-21T15:23:59+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: partial-failure
+  next: partial-failure
+  summary: Recover only the first uncertain boundary; preserve already committed upstream facts.
+evidence:
+  - concept: partial-failure
+    check: fresh-case-transfer
+    outcome: partial
+    confidence: medium
+    assisted: false

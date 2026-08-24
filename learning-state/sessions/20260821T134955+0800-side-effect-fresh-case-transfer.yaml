@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260821T134955+0800-side-effect-fresh-case-transfer
+started_at: 2026-08-21T13:49:55+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: side-effect
+  next: idempotency-key
+  summary: Continue by defining the stable identity and scope of one logical operation.
+evidence:
+  - concept: side-effect
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: false
