@@ -284,7 +284,7 @@ document.body.dataset.visible=String(space.height>0&&node.width>0&&node.height>0
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "index.html"
             content = self.render(output)
-            dom = self.browser_dump(output, "", probe)
+            dom = self.browser_dump(output, "", probe, window_size="1280,900")
         evidence = self.embedded(content, "EVIDENCE_GRAPH", "byId")
         self.assertIn('data-result="true"', dom)
         self.assertIn('data-source="true"', dom)
