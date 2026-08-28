@@ -1,0 +1,17 @@
+schema_version: 2
+id: 20260828T144440+0800-scientific-ai-platforms-session
+started_at: 2026-08-28T14:44:40+08:00
+duration_minutes: 4
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: concept
+  unit_ref: program
+  checkpoint: Introduce TypeScript as a static description and checking layer over JavaScript values and function boundaries, then separate compile-time evidence from runtime behavior.
+  summary: The DOM unit distinguished HTML source text, typed DOM objects, textual node data, JavaScript runtime values, DOM access, observable mutation, serialization, rendering, and server-side persistence; the next unit places TypeScript before the same JavaScript runtime.
+evidence:
+  - concept: side-effect
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: true
