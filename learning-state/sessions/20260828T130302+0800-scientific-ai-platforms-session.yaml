@@ -1,0 +1,17 @@
+schema_version: 2
+id: 20260828T130302+0800-scientific-ai-platforms-session
+started_at: 2026-08-28T13:03:02+08:00
+duration_minutes: 3
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: concept
+  unit_ref: side-effect
+  checkpoint: Introduce the DOM as a browser-host interface, then distinguish an in-memory document representation from an observable document mutation and browser rendering.
+  summary: The ECMAScript unit established literal-to-value evaluation, expressions and bindings, function calls, the browser host boundary, and the separation between successful computation and application-level acceptance; the next historical technology unit applies those distinctions to DOM reads and mutations.
+evidence:
+  - concept: program
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: true
