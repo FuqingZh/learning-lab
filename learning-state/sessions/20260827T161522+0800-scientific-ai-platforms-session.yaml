@@ -1,0 +1,27 @@
+schema_version: 2
+id: 20260827T161522+0800-scientific-ai-platforms-session
+started_at: 2026-08-27T16:15:22+08:00
+duration_minutes: 12
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: lesson
+  unit_ref: lessons/scientific-ai-platforms/web-document-browser-and-server.md
+  checkpoint: Retry the Web model by separating an information-graph link from the physical network and a stable service contract from one server process.
+  summary: The learner identified documents, request and response direction, and program-to-process execution; repair the link/network and service/process boundaries before moving to ECMAScript.
+evidence:
+  - concept: process
+    check: explain-back
+    outcome: pass
+    confidence: medium
+    assisted: false
+  - concept: program
+    check: explain-back
+    outcome: partial
+    confidence: medium
+    assisted: false
+  - concept: service
+    check: explain-back
+    outcome: partial
+    confidence: medium
+    assisted: false

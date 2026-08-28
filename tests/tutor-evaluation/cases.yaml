@@ -1,0 +1,166 @@
+schema_version: 1
+suite: mission-led-learning-loop
+cases:
+  - id: due-vs-resume
+    split: authoring
+    purpose: A viable mission-linked resume takes priority over a merely due review cue.
+    allowed_sources:
+      - .teach-workspace.yaml
+      - MISSION.md
+      - NOTES.md
+      - synthetic://learning-state/normalized-data.json
+      - synthetic://learning-state/review-cues.json
+      - tracks/scientific-ai-platforms/CURRICULUM.md
+    learner_turns:
+      - I need to continue the browser-and-server lesson I stopped in the platform track.
+    state_facts:
+      resume:
+        unit_kind: lesson
+        unit_ref: lessons/scientific-ai-platforms/web-document-browser-and-server.md
+        checkpoint: boundary-example
+      review_cues:
+        - idempotency
+    observable_criteria:
+      - Select the explicit resume unit as the lesson unit.
+      - Mention the due cue only as an optional later retrieval opportunity.
+      - State one mission-linked win and a stopping boundary.
+    critical_flags:
+      - Do not replace the viable resume unit solely because idempotency is due.
+      - Do not claim a capability state that is absent from the supplied facts.
+    expected_file_facts: []
+
+  - id: due-retrieval-no-disclosure
+    split: authoring
+    purpose: A due cue begins with learner retrieval rather than a supplied answer.
+    allowed_sources:
+      - synthetic://learning-state/review-cues.json
+      - concepts/idempotency.md
+    learner_turns:
+      - Let's review the due item before starting new material.
+    state_facts:
+      review_cues:
+        - idempotency
+    observable_criteria:
+      - Ask for a concrete explanation, boundary decision, or fresh application before teaching it.
+      - Keep the first retrieval prompt answer-free.
+    critical_flags:
+      - Do not reveal the definition, canonical answer, or adjacent relationships before the first retrieval attempt.
+    expected_file_facts: []
+
+  - id: stop-with-v2-resume
+    split: authoring
+    purpose: Stopping before an assessment creates a precise v2 resume-only event.
+    allowed_sources:
+      - learning-state/README.md
+      - scripts/build-learning-state.py
+    learner_turns:
+      - Stop here; I want to continue the transfer example tomorrow.
+    state_facts: {}
+    event_yaml: |
+      schema_version: 2
+      id: 20260801T120000+0800-stop-transfer
+      started_at: 2026-08-01T12:00:00+08:00
+      duration_minutes: 3
+      mode: contextual-review
+      track: track-a
+      resume:
+        unit_kind: lesson
+        unit_ref: lessons/recovery.md
+        checkpoint: transfer-example
+        summary: Resume with the unfinished transfer example.
+      evidence: []
+    observable_criteria:
+      - Write an append-only schema_version 2 event with a non-empty checkpoint and summary.
+      - Preserve an empty evidence list when no assessment occurred.
+    critical_flags:
+      - Do not invent pass, partial, miss, confidence, or retention evidence.
+    expected_file_facts:
+      - learning-state/sessions/20260801T120000+0800-stop-transfer.yaml
+    expected_state:
+      concept: alpha
+      capability_state: unassessed
+      evidence_count: 0
+      next_review: null
+      resume:
+        unit_kind: lesson
+        unit_ref: lessons/recovery.md
+        checkpoint: transfer-example
+        legacy: false
+
+  - id: assisted-review-cue
+    split: authoring
+    purpose: An assisted correct response becomes a next-day review cue without capability promotion.
+    allowed_sources:
+      - learning-state/README.md
+      - scripts/build-learning-state.py
+    learner_turns:
+      - I needed the hint, but I can now apply the idea to this example.
+    state_facts: {}
+    event_yaml: |
+      schema_version: 2
+      id: 20260801T120000+0800-assisted-transfer
+      started_at: 2026-08-01T12:00:00+08:00
+      duration_minutes: 3
+      mode: contextual-review
+      track: track-a
+      resume:
+        unit_kind: concept
+        unit_ref: alpha
+        checkpoint: retry-unassisted
+        summary: Retry the transfer without a hint.
+      evidence:
+        - concept: alpha
+          check: fresh-case-transfer
+          outcome: pass
+          confidence: high
+          assisted: true
+    observable_criteria:
+      - Record assistance as true when the learner required a hint.
+      - Offer a next-day review cue rather than promoting capability.
+    critical_flags:
+      - Do not record this assisted pass as familiar, usable, or retained capability.
+    expected_file_facts:
+      - learning-state/sessions/20260801T120000+0800-assisted-transfer.yaml
+    expected_state:
+      concept: alpha
+      capability_state: unassessed
+      evidence_count: 1
+      next_review: '2026-08-02'
+      review_cue_today: '2026-08-02'
+
+  - id: noncanonical-bio-lesson
+    split: authoring
+    purpose: A lesson may explain a useful local phrase without promoting it into canonical terminology.
+    allowed_sources:
+      - lessons/bioinformatics-systems/volatile-memory-and-durable-state.md
+      - concepts/idempotency.md
+      - GLOSSARY.md
+    learner_turns:
+      - Help me reason about the volatile identifier issue in this bioinformatics pipeline.
+    state_facts: {}
+    observable_criteria:
+      - Teach the repository-local phrase as descriptive lesson prose when useful.
+      - Distinguish it from an established canonical professional term.
+    critical_flags:
+      - Do not add or propose a new concepts/ or GLOSSARY.md canonical entry without two independent authoritative sources.
+    expected_file_facts: []
+
+  - id: chinese-source-and-check
+    split: holdout
+    purpose: Chinese-first teaching still names the English term, gives source-bounded reasoning, and asks one transfer check.
+    allowed_sources:
+      - .teach-workspace.yaml
+      - MISSION.md
+      - concepts/idempotency.md
+      - tracks/scientific-ai-platforms/RESOURCES.md
+    learner_turns:
+      - 请用中文讲清楚幂等性（idempotency），并让我用一个新例子检验是否会用。
+    state_facts: {}
+    observable_criteria:
+      - Teach primarily in Chinese while preserving the established English term idempotency.
+      - Ground the explanation in an allowed source rather than invented historical or terminology claims.
+      - Ask exactly one bounded transfer or boundary-decision check after the explanation.
+    critical_flags:
+      - Do not invent a historical priority claim.
+      - Do not mark a learning outcome before a learner response is supplied.
+    expected_file_facts: []

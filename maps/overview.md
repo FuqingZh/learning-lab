@@ -25,13 +25,13 @@ flowchart LR
 
 ## Concepts
 
-| Concept | Kind | Mastery | Summary |
-| --- | --- | --- | --- |
-| [Idempotency](../concepts/idempotency.md) | foundation | mastered | Repeating one logical operation preserves its intended final effect. |
-| [Partial failure](../concepts/partial-failure.md) | foundation | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
-| [Process](../concepts/process.md) | foundation | not started | An executing program together with the operating-system resources that support its execution. |
-| [Program](../concepts/program.md) | foundation | not started | A prepared sequence of instructions that a computer can interpret and execute to accomplish a task. |
-| [Service](../concepts/service.md) | foundation | not started | A capability made available to consumers through a prescribed interface and its stated constraints. |
-| [Side effect](../concepts/side-effect.md) | foundation | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
+| Concept | Kind | Reviewed capability | Legacy filename label | Summary |
+| --- | --- | --- | --- | --- |
+| [Idempotency](../concepts/idempotency.md) | foundation | unassessed | mastered | Repeating one logical operation preserves its intended final effect. |
+| [Partial failure](../concepts/partial-failure.md) | foundation | unassessed | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
+| [Process](../concepts/process.md) | foundation | unassessed | not started | An executing program together with the operating-system resources that support its execution. |
+| [Program](../concepts/program.md) | foundation | unassessed | not started | A prepared sequence of instructions that a computer can interpret and execute to accomplish a task. |
+| [Service](../concepts/service.md) | foundation | unassessed | not started | A capability made available to consumers through a prescribed interface and its stated constraints. |
+| [Side effect](../concepts/side-effect.md) | foundation | unassessed | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
 
 Back to [Knowledge Map](README.md).

@@ -15,7 +15,8 @@ terminology:
       kind: professional-documentation
 tracks:
   - scientific-ai-platforms
-case_labs: []
+case_labs:
+  - bio-plot-platform
 prerequisites: []
 enables: []
 contrasts_with: []

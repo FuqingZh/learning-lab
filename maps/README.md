@@ -30,4 +30,5 @@ This is a generated navigation layer over the canonical concept files and learni
 - `enables`: capability the source concept makes materially easier or possible.
 - `contrasts with`: deliberate distinction from an easily confused concept.
 - `related to`: useful non-dependency association.
-- Mastery status is derived from linked learning records: `not started`, `developing`, or `mastered`.
+- Reviewed capability is derived only from structured learning records: `unassessed`, `encountered`, `familiar`, `usable`, or `retained`.
+- Legacy record filename labels remain visible only as compatibility context; they are not reviewed capability.

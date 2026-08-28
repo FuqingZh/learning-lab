@@ -8,9 +8,9 @@ Canonical case-lab hub: [Bio Plot Platform](../../case-labs/bio-plot-platform.md
 
 ## Strict membership
 
-No concepts match this view.
-
-No concepts have explicit pinned evidence for this case lab yet; the hub alone does not create membership.
+| Concept | Kind | Reviewed capability | Legacy filename label | Summary |
+| --- | --- | --- | --- | --- |
+| [Side effect](../../concepts/side-effect.md) | foundation | unassessed | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
 
 ## One-hop prerequisite context
 
@@ -20,6 +20,9 @@ No contextual prerequisites are available without direct case-lab membership.
 
 ## Typed relationships
 
-No concepts are available for this view.
+```mermaid
+flowchart LR
+  side_effect["Side effect"]
+```
 
 Back to [Knowledge Map](../README.md).

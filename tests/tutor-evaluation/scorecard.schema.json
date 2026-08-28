@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Learning Lab tutor evaluation scorecard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "fixture_hash", "runner", "split", "aggregate", "limitations", "case_results"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "fixture_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "immutable_digest", "runner_name", "runner_version", "reasoning_effort", "tool_policy", "sandbox"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "model": {"type": "string", "minLength": 1},
+        "immutable_digest": {"type": "string", "minLength": 1},
+        "runner_name": {"type": "string", "minLength": 1},
+        "runner_version": {"type": "string", "minLength": 1},
+        "reasoning_effort": {"type": "string", "minLength": 1},
+        "tool_policy": {"type": "string", "minLength": 1},
+        "sandbox": {"type": "string", "minLength": 1}
+      }
+    },
+    "split": {"enum": ["authoring", "holdout", "combined"]},
+    "aggregate": {"enum": ["pass", "fail", "mixed", "incomplete"]},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "case_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "attempt_index", "status", "observable_criteria", "critical_flags"],
+        "properties": {
+          "case_id": {"type": "string", "minLength": 1},
+          "attempt_index": {"type": "integer", "minimum": 1},
+          "status": {"enum": ["pass", "fail", "not-run"]},
+          "observable_criteria": {"type": "object", "additionalProperties": {"type": "boolean"}},
+          "critical_flags": {"type": "object", "additionalProperties": {"type": "boolean"}}
+        }
+      }
+    }
+  }
+}

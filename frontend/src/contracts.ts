@@ -4,6 +4,12 @@ export type EdgeType =
   | "contrasts_with"
   | "related";
 export type MasteryStatus = "mastered" | "developing" | "not-started" | string;
+export type ReviewedCapabilityState =
+  | "unassessed"
+  | "encountered"
+  | "familiar"
+  | "usable"
+  | "retained";
 
 export interface Source {
   url: string;
@@ -28,6 +34,12 @@ export interface Concept {
   records: string[];
   case_labs: string[];
   mastery: { status: MasteryStatus; effective_record?: string | null };
+  reviewed_capability: {
+    state: ReviewedCapabilityState;
+    effective_record: string | null;
+    demonstrated_at: string | null;
+    evidence_sessions: string[];
+  };
   relationships: Partial<Record<EdgeType, string[]>>;
   extensions?: { terminology?: Terminology };
 }
@@ -54,11 +66,24 @@ export interface LearningConcept {
   capability_state: string;
   next_review: string | null;
   latest_outcome: string | null;
+  review_state?: string;
+  evidence_count?: number;
 }
+export type Resume = {
+  event_id: string;
+  track: string;
+  unit_kind: "concept" | "lesson" | "track";
+  unit_ref: string;
+  checkpoint: string | null;
+  summary: string;
+  legacy: boolean;
+  from?: string;
+  next?: string;
+};
 export interface LearningState {
   schema_version: 1;
   concepts: LearningConcept[];
-  resume?: { next: string; summary?: string } | null;
+  resume?: Resume | null;
 }
 export interface Milestone {
   id: string;

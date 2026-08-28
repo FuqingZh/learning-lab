@@ -15,6 +15,7 @@ terminology:
       kind: standard
 tracks:
   - bioinformatics-systems
+  - scientific-ai-platforms
 case_labs: []
 prerequisites: []
 enables: []
@@ -23,6 +24,7 @@ related:
   - "[[concepts/process]]"
 lessons:
   - lessons/bioinformatics-systems/program-process-and-service.md
+  - lessons/scientific-ai-platforms/web-document-browser-and-server.md
 records: []
 ---
 

@@ -24,10 +24,31 @@ content identity, and sandboxed execution are also distinguished. Authentication
 authorization, and the confused-deputy boundary are demonstrated. Typed
 contracts and structural, domain, and state invariants are demonstrated.
 Idempotency foundations and their distributed-failure motivation are also
-demonstrated, but that detail was reached before the knowledge dependency map
-was made explicit. The next active lesson is therefore the Level A foundations
-survey; later lessons will place demonstrated concepts on that map before
-descending further.
+demonstrated. The Level A dependency map has now been surveyed, while the
+append-only learning state still records partial boundaries around recent
+`side-effect` and `idempotency-key` transfer cases. The state engine, rather
+than this prose, remains authoritative for the latest evidence and due dates:
+
+```bash
+python3 scripts/build-learning-state.py normalized-data
+python3 scripts/build-learning-state.py list-review-cues --today YYYY-MM-DD
+```
+
+The review-cue command is the preferred interface; `list-due` remains a
+compatibility alias with the same output. Session evidence records observation
+and resume context, while reviewed learning records carry the separate
+capability claim.
+
+The active route now enters a beginner, history-backed technology spiral
+instead of extending a run of isolated foundation terms or assuming prior web
+development knowledge. It starts with
+[the Web's document, browser, and server model](../../lessons/scientific-ai-platforms/web-document-browser-and-server.md),
+then proceeds through JavaScript, DOM, TypeScript, and React before PostgreSQL,
+FastAPI, and one vertical slice. Every historical increment is limited to what
+its linked source establishes; chronology is not treated as proof of causality.
+Previously demonstrated concepts are retrieved inside these technology
+laboratories, while product APIs and version numbers remain case coordinates
+rather than mastery targets.
 
 Each topic follows: foundational parent concept, modern synthesis pattern,
 counterexample or failure, repository case lab, and a fresh transfer task. The

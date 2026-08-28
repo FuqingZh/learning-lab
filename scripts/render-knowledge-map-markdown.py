@@ -23,10 +23,17 @@ RELATIONSHIP_LABELS = {
     "contrasts_with": "contrasts with",
     "related": "related to",
 }
-STATUS_LABELS = {
+LEGACY_STATUS_LABELS = {
     "not-started": "not started",
     "developing": "developing",
     "mastered": "mastered",
+}
+CAPABILITY_LABELS = {
+    "unassessed": "unassessed",
+    "encountered": "encountered",
+    "familiar": "familiar",
+    "usable": "usable",
+    "retained": "retained",
 }
 SAFE_MERMAID_ID = re.compile(r"[^a-zA-Z0-9_]")
 
@@ -124,7 +131,8 @@ def relationship_legend() -> list[str]:
         "- `enables`: capability the source concept makes materially easier or possible.",
         "- `contrasts with`: deliberate distinction from an easily confused concept.",
         "- `related to`: useful non-dependency association.",
-        "- Mastery status is derived from linked learning records: `not started`, `developing`, or `mastered`.",
+        "- Reviewed capability is derived only from structured learning records: `unassessed`, `encountered`, `familiar`, `usable`, or `retained`.",
+        "- Legacy record filename labels remain visible only as compatibility context; they are not reviewed capability.",
         "",
     ]
 
@@ -133,11 +141,12 @@ def node_table(page: Path, root: Path, nodes: Iterable[dict[str, Any]]) -> list[
     rows = sorted(nodes, key=lambda node: node["id"])
     if not rows:
         return ["No concepts match this view.", ""]
-    lines = ["| Concept | Kind | Mastery | Summary |", "| --- | --- | --- | --- |"]
+    lines = ["| Concept | Kind | Reviewed capability | Legacy filename label | Summary |", "| --- | --- | --- | --- | --- |"]
     for node in rows:
         link = source_link(page, root, node["path"], node["title"])
-        status = STATUS_LABELS[node["mastery"]["status"]]
-        lines.append(f"| {link} | {node['kind']} | {status} | {node['summary']} |")
+        capability = CAPABILITY_LABELS[node["reviewed_capability"]["state"]]
+        legacy = LEGACY_STATUS_LABELS[node["mastery"]["status"]]
+        lines.append(f"| {link} | {node['kind']} | {capability} | {legacy} | {node['summary']} |")
     lines.append("")
     return lines
 
@@ -277,14 +286,24 @@ def render_concept(page: Path, root: Path, output: Path, graph: dict[str, Any], 
     neighbouring_ids = outbound_ids | {edge["source"] for edge in inbound_edges}
     neighbours = [node, *(node_by_id[identifier] for identifier in sorted(neighbouring_ids))]
     lines = [f"# Concept: {node['title']}", ""] + generated_warning()
-    lines += [node["summary"], "", "## Status", "", f"- Kind: `{node['kind']}`", f"- Mastery: `{STATUS_LABELS[node['mastery']['status']]}`"]
-    if node["mastery"]["effective_record"]:
+    reviewed = node["reviewed_capability"]
+    lines += [
+        node["summary"],
+        "",
+        "## Status",
+        "",
+        f"- Kind: `{node['kind']}`",
+        f"- Reviewed capability: `{CAPABILITY_LABELS[reviewed['state']]}`",
+        f"- Demonstrated at: `{reviewed['demonstrated_at'] or 'not reviewed'}`",
+        f"- Legacy filename label: `{LEGACY_STATUS_LABELS[node['mastery']['status']]}`",
+    ]
+    if reviewed["effective_record"]:
         lines.append(
-            "- Effective evidence: "
-            + source_link(page, root, node["mastery"]["effective_record"], "learning record")
+            "- Effective reviewed record: "
+            + source_link(page, root, reviewed["effective_record"], "learning record")
         )
     else:
-        lines.append("- Effective evidence: none linked.")
+        lines.append("- Effective reviewed record: none.")
     lines += ["", "## Direct relationships", ""]
     for relationship_type in RELATIONSHIP_LABELS:
         identifiers = set(node["relationships"][relationship_type])

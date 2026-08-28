@@ -1,0 +1,17 @@
+schema_version: 2
+id: 20260827T202553+0800-scientific-ai-platforms-session
+started_at: 2026-08-27T20:25:53+08:00
+duration_minutes: 3
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: concept
+  unit_ref: program
+  checkpoint: Begin ECMAScript by locating a JavaScript program inside the browser host and distinguishing its instructions from the executing process and exchanged messages.
+  summary: The Web foundation retry now separates process identity, stable service contract, information reference, and physical transport; next use that model to introduce executable browser programs.
+evidence:
+  - concept: service
+    check: explain-back
+    outcome: pass
+    confidence: medium
+    assisted: false

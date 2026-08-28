@@ -49,10 +49,13 @@ export function renderGraph(
     const pos = positions.get(node.id)!;
     const control = button(
       node.title,
-      `concept ${node.mastery.status}${node.id === options.selected ? " selected" : ""}`,
+      `concept ${node.reviewed_capability.state}${node.id === options.selected ? " selected" : ""}`,
     );
     control.dataset.id = node.id;
-    control.setAttribute("aria-label", `${node.title}，${node.mastery.status}`);
+    control.setAttribute(
+      "aria-label",
+      `${node.title}，已审阅能力：${node.reviewed_capability.state}`,
+    );
     control.style.left = `${pos.x / 10}%`;
     control.style.top = `${pos.y / 7}%`;
     control.onclick = () => options.onSelect(node.id);

@@ -92,21 +92,68 @@ not the curriculum spine.
    descending into mechanisms.
 2. Close the orientation lesson with one map-level explain-back and transfer
    check.
-3. Study one bounded foundational capability at a time; include all connected
-   concepts required for its tangible win instead of enforcing one-term turns.
+3. Study one coherent foundational unit at a time; include all connected
+   concepts and historical context required for a complete mental model instead
+   of enforcing one-term or one-mechanism turns.
 4. Periodically synthesize mastered foundations into one Level B pattern.
 5. Use a Level C case only after predicting its design from first principles.
 
-Bounded lessons must be map-first, not detail-first. Coverage is not mastery; a
+Lessons must be map-first, not detail-first. Their scope follows conceptual
+coherence rather than a fixed duration or information quota. Coverage is not mastery; a
 capability is established only after unaided use on a fresh case.
+
+## Historical technology spiral
+
+Frameworks and products are neither a second curriculum spine nor material to
+postpone until every foundational discipline is complete. They also cannot be
+used as unexplained starting points. For a learner without prior web-programming
+knowledge, the route first reconstructs the documented problem sequence and
+only then introduces the modern mechanism:
+
+```text
+documented historical problem
+  -> historically documented proposal or formalization
+  -> modern implementation-independent boundary
+  -> one technology realization
+  -> Bio Plot Platform case evidence
+  -> transfer to a fresh system
+```
+
+The technology name identifies the laboratory; the transferable capability is
+the learning target. The beginner route is:
+
+| Sequence | Historical and technical unit | Map location | Learning outcome |
+| --- | --- | --- | --- |
+| 1 | Linked documents, browser, and server | Networks plus program/process/service | Explain what the early Web proposal meant by browser, server, node, link, and navigation before treating a page as an application. |
+| 2 | ECMAScript in a host environment | Computation and information | Understand values, expressions, variables, functions, and a program executed by a browser host before adding static types. |
+| 3 | DOM as a programmatic document interface | Representation plus side effects | Distinguish a document representation from programmatic reads and observable document mutation. |
+| 4 | TypeScript after JavaScript | Computation and information | Use static types to describe possible JavaScript values and function boundaries while recognizing type erasure and runtime limits. |
+| 5 | React after JavaScript and DOM | UI state and computation | Compare imperative DOM updates with components whose render step derives a UI description from inputs. |
+| 6 | React state, events, and Effects | UI runtime | Separate state snapshots, event-triggered work, React commit, and synchronization with external systems. |
+| 7 | PostgreSQL | Data systems | Model identity and invariants with relations, keys, constraints, and transactions before studying concurrency and durability. |
+| 8 | FastAPI | Networks, services, contracts, and authority | Define an HTTP boundary whose runtime validation, authorization, and transaction ownership are explicit. |
+| 9 | Vertical slice | Modern system synthesis | Trace one operation from React through FastAPI into PostgreSQL, including identity, failure, commit, and response boundaries. |
+
+This is a dependency order, not a requirement to finish one technology in
+isolation. JavaScript is a prerequisite for TypeScript here, and the browser,
+document, and DOM models are prerequisites for React. Earlier concepts are
+retrieved inside later laboratories: for example, `side-effect` is revisited
+in DOM mutation, React render, PostgreSQL mutation, and FastAPI request handling
+rather than extended through standalone terminology sessions.
+
+The first technology lesson is
+[The Web before JavaScript: document, browser, and server](../../lessons/scientific-ai-platforms/web-document-browser-and-server.md).
+It uses the sourced 1990 setting to build the complete document/browser/server
+model before JavaScript, TypeScript, React, or repository component APIs.
 
 ## Lesson loop for this track
 
-1. State the map location, lesson type, tangible win, and stopping condition.
-2. Teach one coherent framework or capability without interrupting every term
-   with a question.
+1. Give an advance organizer: map location, historical setting, prior
+   capability, unresolved problem, prerequisites, and intended mental model.
+2. Teach one coherent framework or capability with enough connected background;
+   do not interrupt every term or paragraph with a question.
 3. Answer direct questions before asking for evidence.
-4. At the stopping condition, use one mastery check suited to the target:
+4. At a natural conceptual boundary, use a mastery check suited to the target:
    retrieval for facts, performance for procedures, or explain-back plus
    transfer and boundary for concepts and designs.
 5. If needed, repair only the first blocking gap through a different

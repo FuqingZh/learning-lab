@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as datetime_module
+import importlib.util
 import json
 import math
 import re
@@ -563,6 +564,41 @@ def scan_case_labs(root: Path) -> list[dict[str, Any]]:
     return hubs
 
 
+def load_learning_record_projection(root: Path, graph: dict[str, Any]) -> dict[str, Any]:
+    """Load learner-owned reviewed capability without changing graph schema v1.
+
+    The records validator owns the interpretation of structured review records.
+    It receives the already validated graph so this projection never treats
+    legacy filename suffixes as a current capability claim.
+    """
+
+    path = Path(__file__).with_name("learning_records.py")
+    specification = importlib.util.spec_from_file_location("learning_lab_records", path)
+    if specification is None or specification.loader is None:
+        raise KnowledgeMapError(f"cannot import learning-record projection: {path}")
+    module = importlib.util.module_from_spec(specification)
+    sys.modules[specification.name] = module
+    specification.loader.exec_module(module)
+    try:
+        return module.build_projection(root, graph=graph)
+    except module.LearningRecordsError as error:
+        raise KnowledgeMapError(f"learning records validation failed: {error}") from error
+
+
+def attach_reviewed_capability(root: Path, graph: dict[str, Any]) -> None:
+    """Attach structured-record capability to each graph node in place.
+
+    ``mastery`` remains the legacy linked-record filename projection for
+    compatibility.  ``reviewed_capability`` is the sole reviewed capability
+    field and is intentionally ``unassessed`` when only legacy records exist.
+    """
+
+    projection = load_learning_record_projection(root, graph)
+    capabilities = projection["capabilities"]
+    for node in graph["nodes"]:
+        node["reviewed_capability"] = capabilities[node["id"]]
+
+
 def load_knowledge_graph(root: Path) -> dict[str, Any]:
     """Read, validate, and normalize all knowledge-map source files."""
 
@@ -606,13 +642,15 @@ def load_knowledge_graph(root: Path) -> dict[str, Any]:
     ]
     edges.sort(key=lambda edge: (edge["source"], edge["type"], edge["target"]))
     tracks = sorted(path.name for path in (root / "tracks").iterdir() if path.is_dir())
-    return {
+    graph = {
         "schema_version": SCHEMA_VERSION,
         "tracks": tracks,
         "case_labs": hubs,
         "nodes": sorted(concepts, key=lambda concept: concept["id"]),
         "edges": edges,
     }
+    attach_reviewed_capability(root, graph)
+    return graph
 
 
 def validate_knowledge_graph(root: Path) -> dict[str, Any]:

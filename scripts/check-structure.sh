@@ -109,6 +109,7 @@ fi
 
 python3 scripts/build-knowledge-map.py validate
 python3 scripts/build-learning-state.py validate
+python3 scripts/build-learning-records.py validate
 python3 scripts/build-knowledge-history.py validate
 npm run frontend:verify
 python3 tests/knowledge-map/test_validation.py
@@ -117,7 +118,10 @@ python3 tests/knowledge-map/test_site_render.py
 python3 tests/knowledge-map/test_frontend_contract.py
 python3 tests/knowledge-history/test_validation.py
 python3 tests/learning-state/test_learning_state.py
+python3 tests/learning-records/test_learning_records.py
 python3 tests/learning-skill/test_learning_lab_tutor.py
+python3 scripts/run-tutor-evaluation.py verify-static
+python3 tests/learning-skill/test_tutor_evaluation_contract.py
 python3 scripts/check-knowledge-map-generated.py
 
 echo "learning-lab structure: ok"

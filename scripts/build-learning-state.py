@@ -18,6 +18,7 @@ from yaml.resolver import BaseResolver
 
 
 SCHEMA_VERSION = 1
+EVENT_SCHEMA_VERSIONS = frozenset({1, 2})
 SCHEDULER = {"id": "fixed-v1", "pass_intervals_days": [1, 7, 21, 60]}
 MODES = frozenset(
     {"guided-lesson", "contextual-review", "real-work-application", "consolidation"}
@@ -34,7 +35,9 @@ EVENT_ID = re.compile(
 EVENT_FIELDS = frozenset(
     {"schema_version", "id", "started_at", "duration_minutes", "mode", "track", "resume", "evidence"}
 )
-RESUME_FIELDS = frozenset({"from", "next", "summary"})
+V1_RESUME_FIELDS = frozenset({"from", "next", "summary"})
+V2_RESUME_FIELDS = frozenset({"unit_kind", "unit_ref", "checkpoint", "summary"})
+RESUME_UNIT_KINDS = frozenset({"concept", "track", "lesson"})
 EVIDENCE_FIELDS = frozenset({"concept", "check", "outcome", "confidence", "assisted"})
 MAX_DURATION_MINUTES = 24 * 60
 
@@ -74,14 +77,17 @@ UniqueKeySafeLoader.add_constructor(BaseResolver.DEFAULT_MAPPING_TAG, construct_
 
 def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("validate", "normalized-data", "list-due"))
+    parser.add_argument(
+        "command", choices=("validate", "normalized-data", "list-due", "list-review-cues")
+    )
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--today", help="ISO calendar date used only by list-due")
     parsed = parser.parse_args(arguments)
-    if parsed.command == "list-due" and parsed.today is None:
-        parser.error("list-due requires --today YYYY-MM-DD")
-    if parsed.command != "list-due" and parsed.today is not None:
-        parser.error("--today is only valid with list-due")
+    due_commands = {"list-due", "list-review-cues"}
+    if parsed.command in due_commands and parsed.today is None:
+        parser.error(f"{parsed.command} requires --today YYYY-MM-DD")
+    if parsed.command not in due_commands and parsed.today is not None:
+        parser.error("--today is only valid with list-due or list-review-cues")
     return parsed
 
 
@@ -129,10 +135,52 @@ def read_yaml(path: Path) -> dict[str, Any]:
     return require_exact_fields(parsed, fields=EVENT_FIELDS, label="event", path=path)
 
 
-def parse_event(path: Path, *, concepts: set[str], tracks: set[str]) -> dict[str, Any]:
+def parse_v2_resume(
+    resume: Any, *, path: Path, root: Path, concepts: set[str], tracks: set[str]
+) -> dict[str, Any]:
+    """Validate a v2 recovery cue without coupling it to the event's track."""
+    resume = require_exact_fields(resume, fields=V2_RESUME_FIELDS, label="resume", path=path)
+    unit_kind = require_string(resume["unit_kind"], field="resume.unit_kind", path=path)
+    if unit_kind not in RESUME_UNIT_KINDS:
+        raise LearningStateError(
+            f"{path}: resume.unit_kind must be one of {', '.join(sorted(RESUME_UNIT_KINDS))}"
+        )
+    unit_ref = require_string(resume["unit_ref"], field="resume.unit_ref", path=path)
+    if unit_kind == "concept":
+        if unit_ref not in concepts:
+            raise LearningStateError(f"{path}: unknown resume concept: {unit_ref}")
+    elif unit_kind == "track":
+        if unit_ref not in tracks:
+            raise LearningStateError(f"{path}: unknown resume track: {unit_ref}")
+    else:
+        lesson_root = (root / "lessons").resolve()
+        candidate = Path(unit_ref)
+        if (
+            candidate.is_absolute()
+            or candidate.suffix != ".md"
+            or candidate.as_posix() != unit_ref
+            or not candidate.parts
+            or candidate.parts[0] != "lessons"
+            or ".." in candidate.parts
+        ):
+            raise LearningStateError(f"{path}: resume lesson must be a canonical lessons-relative .md path")
+        resolved = (root / candidate).resolve()
+        if lesson_root not in resolved.parents or not resolved.is_file():
+            raise LearningStateError(f"{path}: unknown resume lesson: {unit_ref}")
+    return {
+        "unit_kind": unit_kind,
+        "unit_ref": unit_ref,
+        "checkpoint": require_string(resume["checkpoint"], field="resume.checkpoint", path=path),
+        "summary": require_string(resume["summary"], field="resume.summary", path=path),
+        "legacy": False,
+    }
+
+
+def parse_event(path: Path, *, root: Path, concepts: set[str], tracks: set[str]) -> dict[str, Any]:
     raw = read_yaml(path)
-    if raw["schema_version"] != SCHEMA_VERSION:
-        raise LearningStateError(f"{path}: schema_version must be {SCHEMA_VERSION}")
+    event_schema_version = raw["schema_version"]
+    if isinstance(event_schema_version, bool) or event_schema_version not in EVENT_SCHEMA_VERSIONS:
+        raise LearningStateError(f"{path}: schema_version must be 1 or 2")
     identifier = require_string(raw["id"], field="id", path=path)
     event_id = EVENT_ID.fullmatch(identifier)
     if event_id is None:
@@ -152,12 +200,23 @@ def parse_event(path: Path, *, concepts: set[str], tracks: set[str]) -> dict[str
     if track not in tracks:
         raise LearningStateError(f"{path}: unknown track: {track}")
 
-    resume = require_exact_fields(raw["resume"], fields=RESUME_FIELDS, label="resume", path=path)
-    for field in ("from", "next"):
-        value = require_string(resume[field], field=f"resume.{field}", path=path)
-        if value not in concepts:
-            raise LearningStateError(f"{path}: unknown resume concept: {value}")
-    summary = require_string(resume["summary"], field="resume.summary", path=path)
+    if event_schema_version == 1:
+        legacy_resume = require_exact_fields(raw["resume"], fields=V1_RESUME_FIELDS, label="resume", path=path)
+        for field in ("from", "next"):
+            value = require_string(legacy_resume[field], field=f"resume.{field}", path=path)
+            if value not in concepts:
+                raise LearningStateError(f"{path}: unknown resume concept: {value}")
+        resume = {
+            "unit_kind": "concept",
+            "unit_ref": legacy_resume["next"].strip(),
+            "checkpoint": None,
+            "summary": require_string(legacy_resume["summary"], field="resume.summary", path=path),
+            "legacy": True,
+            "from": legacy_resume["from"].strip(),
+            "next": legacy_resume["next"].strip(),
+        }
+    else:
+        resume = parse_v2_resume(raw["resume"], path=path, root=root, concepts=concepts, tracks=tracks)
 
     if not isinstance(raw["evidence"], list):
         raise LearningStateError(f"{path}: evidence must be a list")
@@ -194,7 +253,7 @@ def parse_event(path: Path, *, concepts: set[str], tracks: set[str]) -> dict[str
         "duration_minutes": duration,
         "mode": mode,
         "track": track,
-        "resume": {"from": resume["from"].strip(), "next": resume["next"].strip(), "summary": summary},
+        "resume": resume,
         "evidence": evidence,
     }
 
@@ -219,7 +278,10 @@ def load_events(root: Path, graph: dict[str, Any]) -> list[dict[str, Any]]:
         raise LearningStateError(f"missing session directory: {directory}")
     concepts = {node["id"] for node in graph["nodes"]}
     tracks = set(graph["tracks"])
-    events = [parse_event(path, concepts=concepts, tracks=tracks) for path in sorted(directory.glob("*.yaml"))]
+    events = [
+        parse_event(path, root=root, concepts=concepts, tracks=tracks)
+        for path in sorted(directory.glob("*.yaml"))
+    ]
     identifiers = [event["id"] for event in events]
     if len(set(identifiers)) != len(identifiers):
         raise LearningStateError("duplicate event ids")
@@ -227,7 +289,7 @@ def load_events(root: Path, graph: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def capability_state(history: list[dict[str, Any]]) -> str:
-    passing = [item for item in history if item["outcome"] == "pass"]
+    passing = [item for item in history if item["outcome"] == "pass" and not item["assisted"]]
     if not passing:
         return "unassessed"
     result = "encountered" if any(item["check"] == "exposure" for item in passing) else "unassessed"
@@ -237,7 +299,7 @@ def capability_state(history: list[dict[str, Any]]) -> str:
     if transfer:
         result = "usable"
     for candidate in transfer:
-        if not candidate["assisted"] and any(
+        if any(
             earlier["started_at_value"].date() <= candidate["started_at_value"].date() - dt.timedelta(days=7)
             for earlier in passing
             if earlier is not candidate
@@ -250,10 +312,10 @@ def next_review(history: list[dict[str, Any]]) -> str | None:
     if not history:
         return None
     latest = history[-1]
-    if latest["outcome"] in {"partial", "miss"}:
+    if latest["assisted"] or latest["outcome"] in {"partial", "miss"}:
         interval = 1
     else:
-        successes = sum(item["outcome"] == "pass" for item in history)
+        successes = sum(item["outcome"] == "pass" and not item["assisted"] for item in history)
         interval = SCHEDULER["pass_intervals_days"][min(successes, 4) - 1]
     return (latest["started_at_value"].date() + dt.timedelta(days=interval)).isoformat()
 

@@ -9,8 +9,10 @@ A distributed operation can have some effects occur while another participant ca
 ## Status
 
 - Kind: `foundation`
-- Mastery: `not started`
-- Effective evidence: none linked.
+- Reviewed capability: `unassessed`
+- Demonstrated at: `not reviewed`
+- Legacy filename label: `not started`
+- Effective reviewed record: none.
 
 ## Direct relationships
 

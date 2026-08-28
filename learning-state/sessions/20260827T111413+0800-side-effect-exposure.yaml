@@ -1,0 +1,11 @@
+schema_version: 1
+id: 20260827T111413+0800-side-effect-exposure
+started_at: 2026-08-27T11:14:13+08:00
+duration_minutes: 2
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  from: idempotency-key
+  next: side-effect
+  summary: Begin the TypeScript and React technology spiral by separating static type acceptance from the rule that observable side effects stay outside render.
+evidence: []
