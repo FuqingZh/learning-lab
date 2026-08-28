@@ -1,0 +1,17 @@
+schema_version: 2
+id: 20260828T165150+0800-scientific-ai-platforms-session
+started_at: 2026-08-28T16:51:50+08:00
+duration_minutes: 20
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: track
+  unit_ref: scientific-ai-platforms
+  checkpoint: Enter the React unit by comparing imperative DOM mutation with a render function that derives a UI description from typed props.
+  summary: The learner inferred an object shape, checked required and optional properties against a structural function boundary, and kept external JSON as untrusted runtime input until validation.
+evidence:
+  - concept: program
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: false
