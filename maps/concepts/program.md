@@ -9,8 +9,10 @@ A prepared sequence of instructions that a computer can interpret and execute to
 ## Status
 
 - Kind: `foundation`
-- Mastery: `not started`
-- Effective evidence: none linked.
+- Reviewed capability: `unassessed`
+- Demonstrated at: `not reviewed`
+- Legacy filename label: `not started`
+- Effective reviewed record: none.
 
 ## Direct relationships
 
@@ -26,6 +28,7 @@ A prepared sequence of instructions that a computer can interpret and execute to
 ## Tracks
 
 - [Bioinformatics Systems](../tracks/bioinformatics-systems.md)
+- [Scientific AI Platforms](../tracks/scientific-ai-platforms.md)
 
 ## Case labs
 
@@ -34,6 +37,7 @@ No explicitly evidenced case-lab memberships.
 ## Linked learning artifacts
 
 - [program-process-and-service](../../lessons/bioinformatics-systems/program-process-and-service.md)
+- [web-document-browser-and-server](../../lessons/scientific-ai-platforms/web-document-browser-and-server.md)
 No linked learning records.
 
 ## Typed local graph

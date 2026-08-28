@@ -1,0 +1,11 @@
+schema_version: 1
+id: 20260827T115550+0800-program-exposure
+started_at: 2026-08-27T11:55:50+08:00
+duration_minutes: 2
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  from: side-effect
+  next: program
+  summary: Resume with a full historical and systems-level Web lesson; first contrast the learner's identity-centered architecture with the linked-document problem, then develop document, link, browser program/process, server program/process, request, and response as one connected model before any evidence check.
+evidence: []

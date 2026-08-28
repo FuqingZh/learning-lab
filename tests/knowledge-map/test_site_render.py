@@ -35,6 +35,10 @@ def concept(identifier: str, title: str, summary: str = "Modern definition") -> 
         "id": identifier, "title": title, "summary": summary, "kind": "foundation",
         "tracks": [], "case_labs": [], "lessons": [], "records": [],
         "path": f"concepts/{identifier}.md", "mastery": {"status": "not-started"},
+        "reviewed_capability": {
+            "state": "unassessed", "effective_record": None,
+            "demonstrated_at": None, "evidence_sessions": [],
+        },
         "relationships": {"prerequisites": [], "enables": [], "contrasts_with": [], "related": []},
         "extensions": {},
     }
@@ -174,6 +178,45 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
         self.assertIn("History of idempotency", invalid)
         self.assertIn('data-route="#view=history"', invalid)
 
+    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
+    def test_reviewed_capability_and_resume_cues_do_not_become_curriculum(self) -> None:
+        node = concept("term", "Term")
+        node["mastery"] = {"status": "mastered", "effective_record": "learning-records/track/legacy-mastered.md"}
+        node["reviewed_capability"] = {
+            "state": "usable",
+            "effective_record": "learning-records/track/review.md",
+            "demonstrated_at": "2026-08-21",
+            "evidence_sessions": ["session-a"],
+        }
+        resumes = [
+            ("concept", "term"),
+            ("lesson", "lessons/track/context.md"),
+            ("track", "track"),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            temporary = Path(directory)
+            for unit_kind, unit_ref in resumes:
+                state = {
+                    "schema_version": 1,
+                    "concepts": [{"id": "term", "capability_state": "familiar", "next_review": "2026-08-22", "latest_outcome": "pass"}],
+                    "resume": {
+                        "event_id": "session-a", "track": "track", "unit_kind": unit_kind,
+                        "unit_ref": unit_ref, "checkpoint": "boundary", "summary": "Continue exactly here.", "legacy": False,
+                    },
+                }
+                output = temporary / f"{unit_kind}.html"
+                output.write_text(RENDERER.render_html(graph(node), state), encoding="utf-8")
+                panel = self.rendered_region(output, "#concept=term", "#panel")
+                learning = self.rendered_region(output, "#learning=continue", "#learning-view")
+                self.assertIn("已审阅能力", panel)
+                self.assertIn("usable", panel)
+                self.assertIn("旧记录文件名标签", panel)
+                self.assertIn("mastered", panel)
+                self.assertIn(unit_kind, learning)
+                self.assertIn(unit_ref, learning)
+                self.assertIn("检查点：boundary", learning)
+                self.assertIn("Continue exactly here.", learning)
+
     def test_wrapper_is_deterministic_self_contained_and_embeds_exact_canonical_data(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             temporary = Path(directory)
@@ -222,7 +265,7 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
             stdout="",
             stderr=(
                 "knowledge map frontend build failed: Learning Lab frontend "
-                "dependencies are missing. Run npm ci with Node.js 22.x."
+                "dependencies are missing. Run npm ci with Node.js 24.x."
             ),
         )
         with (

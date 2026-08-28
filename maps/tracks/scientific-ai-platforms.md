@@ -8,12 +8,15 @@ Direct concepts are explicitly taught or reused by this track. Contextual concep
 
 ## Direct concepts
 
-| Concept | Kind | Mastery | Summary |
-| --- | --- | --- | --- |
-| [Idempotency](../../concepts/idempotency.md) | foundation | mastered | Repeating one logical operation preserves its intended final effect. |
-| [Idempotency key](../../concepts/idempotency-key.md) | pattern | mastered | A stable identifier retained across attempts for one scoped logical operation. |
-| [Partial failure](../../concepts/partial-failure.md) | foundation | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
-| [Side effect](../../concepts/side-effect.md) | foundation | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
+| Concept | Kind | Reviewed capability | Legacy filename label | Summary |
+| --- | --- | --- | --- | --- |
+| [Idempotency](../../concepts/idempotency.md) | foundation | unassessed | mastered | Repeating one logical operation preserves its intended final effect. |
+| [Idempotency key](../../concepts/idempotency-key.md) | pattern | unassessed | mastered | A stable identifier retained across attempts for one scoped logical operation. |
+| [Partial failure](../../concepts/partial-failure.md) | foundation | unassessed | not started | A distributed operation can have some effects occur while another participant cannot determine the final outcome. |
+| [Process](../../concepts/process.md) | foundation | unassessed | not started | An executing program together with the operating-system resources that support its execution. |
+| [Program](../../concepts/program.md) | foundation | unassessed | not started | A prepared sequence of instructions that a computer can interpret and execute to accomplish a task. |
+| [Service](../../concepts/service.md) | foundation | unassessed | not started | A capability made available to consumers through a prescribed interface and its stated constraints. |
+| [Side effect](../../concepts/side-effect.md) | foundation | unassessed | mastered | An observable change to execution or its environment caused by evaluation or an operation. |
 
 ## One-hop prerequisite context
 
@@ -26,10 +29,15 @@ flowchart LR
   idempotency["Idempotency"]
   idempotency_key["Idempotency key"]
   partial_failure["Partial failure"]
+  process["Process"]
+  program["Program"]
+  service["Service"]
   side_effect["Side effect"]
   idempotency -->|prerequisite| partial_failure
   idempotency -->|prerequisite| side_effect
   idempotency_key -->|prerequisite| idempotency
+  process -->|prerequisite| program
+  service ---|related to| process
 ```
 
 Back to [Knowledge Map](../README.md).

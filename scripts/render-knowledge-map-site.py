@@ -14,13 +14,13 @@ from typing import Any
 
 
 RUNTIME_DIAGNOSTIC = (
-    "Learning Lab site generation requires Node.js 22.x and frontend dependencies "
+    "Learning Lab site generation requires Node.js 24.x and frontend dependencies "
     "installed with `npm ci`."
 )
 
 
 def node_runtime() -> str:
-    """Return a Node 22 executable or fail with the supported recovery command."""
+    """Return a Node 24 executable or fail with the supported recovery command."""
     node = shutil.which("node")
     if node is None:
         raise RuntimeError(RUNTIME_DIAGNOSTIC)
@@ -34,7 +34,7 @@ def node_runtime() -> str:
     except OSError as error:
         raise RuntimeError(RUNTIME_DIAGNOSTIC) from error
     version = result.stdout.strip()
-    if result.returncode or not version.startswith("v22."):
+    if result.returncode or not version.startswith("v24."):
         raise RuntimeError(RUNTIME_DIAGNOSTIC)
     return node
 

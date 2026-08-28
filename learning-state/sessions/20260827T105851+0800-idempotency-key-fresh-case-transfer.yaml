@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260827T105851+0800-idempotency-key-fresh-case-transfer
+started_at: 2026-08-27T10:58:51+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: idempotency-key
+  next: idempotency-key
+  summary: Continue by separating one stable logical event ID from changing delivery-attempt IDs, and reject payload drift under the stable ID.
+evidence:
+  - concept: idempotency-key
+    check: fresh-case-transfer
+    outcome: partial
+    confidence: medium
+    assisted: false

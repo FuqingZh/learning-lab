@@ -19,11 +19,11 @@ function requiredOutput(arguments_) {
   return resolve(root, value);
 }
 
-function requireNode22() {
+function requireNode24() {
   const major = Number(process.versions.node.split(".")[0]);
-  if (major !== 22) {
+  if (major !== 24) {
     throw new Error(
-      `Learning Lab frontend requires Node.js 22.x; found ${process.version}. Install Node.js 22 and run npm ci.`,
+      `Learning Lab frontend requires Node.js 24.x; found ${process.version}. Install Node.js 24 and run npm ci.`,
     );
   }
 }
@@ -145,7 +145,7 @@ window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, hi
 }
 
 async function main() {
-  requireNode22();
+  requireNode24();
   const arguments_ = process.argv.slice(2);
   const output = requiredOutput(arguments_);
   const dataRoot = resolve(root, optionValue(arguments_, "--root") ?? root);
@@ -154,7 +154,7 @@ async function main() {
     ({ build } = await import("esbuild"));
   } catch {
     throw new Error(
-      "Learning Lab frontend dependencies are missing. Run npm ci with Node.js 22.x.",
+      "Learning Lab frontend dependencies are missing. Run npm ci with Node.js 24.x.",
     );
   }
   const { graph, learningState, history, evidenceGraph } = await frontendData(

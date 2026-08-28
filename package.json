@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22 <23"
+    "node": ">=24 <25"
   },
   "scripts": {
     "frontend:check": "tsc --project frontend/tsconfig.json --noEmit",

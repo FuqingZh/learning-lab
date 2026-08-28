@@ -89,6 +89,8 @@ class TestKnowledgeMapValidation(unittest.TestCase):
         (root / "concepts").mkdir()
         (root / "case-labs").mkdir()
         (root / "tracks" / "track-a").mkdir(parents=True)
+        (root / "learning-state" / "sessions").mkdir(parents=True)
+        (root / "learning-records" / "track-a").mkdir(parents=True)
         return temporary
 
     def write_concept(self, root: Path, filename: str, identifier: str, **overrides: object) -> None:
@@ -114,7 +116,7 @@ class TestKnowledgeMapValidation(unittest.TestCase):
             root = Path(temporary)
             record = "learning-records/track-a/20260820-alpha-mastered.md"
             record_path = root / record
-            record_path.parent.mkdir(parents=True)
+            record_path.parent.mkdir(parents=True, exist_ok=True)
             record_path.write_text("# alpha evidence\n", encoding="utf-8")
             (root / "case-labs" / "case-a.md").write_text(
                 "---\nid: case-a\ntitle: Case A\nsummary: A case laboratory.\n---\n",
@@ -137,6 +139,15 @@ class TestKnowledgeMapValidation(unittest.TestCase):
             graph = json.loads(first.stdout)
             alpha = next(node for node in graph["nodes"] if node["id"] == "alpha")
             self.assertEqual(alpha["mastery"], {"effective_record": record, "status": "mastered"})
+            self.assertEqual(
+                alpha["reviewed_capability"],
+                {
+                    "state": "unassessed",
+                    "effective_record": None,
+                    "demonstrated_at": None,
+                    "evidence_sessions": [],
+                },
+            )
             self.assertEqual(
                 alpha["extensions"],
                 {
@@ -318,7 +329,7 @@ class TestKnowledgeMapValidation(unittest.TestCase):
             developing = "learning-records/track-a/20260819-alpha-developing.md"
             mastered = "learning-records/track-a/20260820-alpha-mastered.md"
             developing_path = root / developing
-            developing_path.parent.mkdir(parents=True)
+            developing_path.parent.mkdir(parents=True, exist_ok=True)
             developing_path.write_text("# developing\n", encoding="utf-8")
             (root / mastered).write_text(
                 f"---\nsupersedes: {developing}\n---\n\n# mastered\n",

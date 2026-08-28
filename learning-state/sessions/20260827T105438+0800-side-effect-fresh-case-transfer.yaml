@@ -1,0 +1,16 @@
+schema_version: 1
+id: 20260827T105438+0800-side-effect-fresh-case-transfer
+started_at: 2026-08-27T10:54:38+08:00
+duration_minutes: 3
+mode: contextual-review
+track: scientific-ai-platforms
+resume:
+  from: side-effect
+  next: side-effect
+  summary: Continue by distinguishing a returned control-flow result from an observable state mutation.
+evidence:
+  - concept: side-effect
+    check: fresh-case-transfer
+    outcome: partial
+    confidence: medium
+    assisted: false

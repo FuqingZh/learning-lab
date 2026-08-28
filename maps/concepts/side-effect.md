@@ -9,8 +9,10 @@ An observable change to execution or its environment caused by evaluation or an 
 ## Status
 
 - Kind: `foundation`
-- Mastery: `mastered`
-- Effective evidence: [learning record](../../learning-records/scientific-ai-platforms/0016-idempotency-foundations-mastered.md)
+- Reviewed capability: `unassessed`
+- Demonstrated at: `not reviewed`
+- Legacy filename label: `mastered`
+- Effective reviewed record: none.
 
 ## Direct relationships
 
@@ -29,7 +31,7 @@ An observable change to execution or its environment caused by evaluation or an 
 
 ## Case labs
 
-No explicitly evidenced case-lab memberships.
+- [Bio Plot Platform](../case-labs/bio-plot-platform.md)
 
 ## Linked learning artifacts
 

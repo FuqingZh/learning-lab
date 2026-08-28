@@ -30,6 +30,12 @@ function syntheticGraph(size) {
       records: [],
       case_labs: [],
       mastery: { status: "not-started", effective_record: null },
+      reviewed_capability: {
+        state: "unassessed",
+        effective_record: null,
+        demonstrated_at: null,
+        evidence_sessions: [],
+      },
       relationships: {
         prerequisites: prerequisite,
         enables: [],

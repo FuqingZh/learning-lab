@@ -1,0 +1,11 @@
+schema_version: 1
+id: 20260827T113113+0800-program-exposure
+started_at: 2026-08-27T11:31:13+08:00
+duration_minutes: 2
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  from: side-effect
+  next: program
+  summary: Begin the beginner web route with the 1990 browser-process, server-process, node, and link problem before introducing JavaScript, TypeScript, or React.
+evidence: []

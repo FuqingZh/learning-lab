@@ -9,8 +9,10 @@ Repeating one logical operation preserves its intended final effect.
 ## Status
 
 - Kind: `foundation`
-- Mastery: `mastered`
-- Effective evidence: [learning record](../../learning-records/scientific-ai-platforms/0016-idempotency-foundations-mastered.md)
+- Reviewed capability: `unassessed`
+- Demonstrated at: `not reviewed`
+- Legacy filename label: `mastered`
+- Effective reviewed record: none.
 
 ## Direct relationships
 

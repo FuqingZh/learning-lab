@@ -14,6 +14,7 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = REPOSITORY_ROOT / "scripts" / "build-learning-state.py"
 GRAPH_SCRIPT = REPOSITORY_ROOT / "scripts" / "build-knowledge-map.py"
+RECORDS_SCRIPT = REPOSITORY_ROOT / "scripts" / "learning_records.py"
 
 
 def concept_document(identifier: str) -> str:
@@ -68,6 +69,26 @@ resume:
 """
 
 
+def v2_event_document(
+    identifier: str, *, unit_kind: str = "concept", unit_ref: str = "beta", checkpoint: str = "transfer",
+    evidence: str | None = "[]",
+) -> str:
+    evidence_block = "evidence: []" if evidence == "[]" else f"evidence:\n{evidence}"
+    return f"""schema_version: 2
+id: {identifier}
+started_at: 2026-08-01T12:00:00+08:00
+duration_minutes: 3
+mode: contextual-review
+track: track-a
+resume:
+  unit_kind: {unit_kind}
+  unit_ref: {unit_ref}
+  checkpoint: {checkpoint}
+  summary: Continue from an explicit recovery boundary.
+{evidence_block}
+"""
+
+
 class TestLearningState(unittest.TestCase):
     def create_root(self) -> tempfile.TemporaryDirectory[str]:
         temporary = tempfile.TemporaryDirectory()
@@ -75,9 +96,14 @@ class TestLearningState(unittest.TestCase):
         (root / "concepts").mkdir()
         (root / "case-labs").mkdir()
         (root / "tracks" / "track-a").mkdir(parents=True)
+        (root / "lessons").mkdir()
+        (root / "lessons" / "recovery.md").write_text("# Recovery\n", encoding="utf-8")
         (root / "learning-state" / "sessions").mkdir(parents=True)
+        (root / "learning-records" / "track-a").mkdir(parents=True)
         (root / "scripts").mkdir()
         shutil.copy2(GRAPH_SCRIPT, root / "scripts" / "build-knowledge-map.py")
+        shutil.copy2(SCRIPT, root / "scripts" / "build-learning-state.py")
+        shutil.copy2(RECORDS_SCRIPT, root / "scripts" / "learning_records.py")
         (root / "concepts" / "alpha.md").write_text(concept_document("alpha"), encoding="utf-8")
         (root / "concepts" / "beta.md").write_text(concept_document("beta"), encoding="utf-8")
         return temporary
@@ -214,6 +240,108 @@ class TestLearningState(unittest.TestCase):
             self.assertEqual(alpha["capability_state"], "unassessed")
             self.assertIsNone(alpha["next_review"])
             self.assertEqual(state["resume"]["event_id"], "20260801T120000+0800-resume-only")
+            self.assertEqual(state["resume"]["unit_kind"], "concept")
+            self.assertEqual(state["resume"]["unit_ref"], "beta")
+            self.assertIsNone(state["resume"]["checkpoint"])
+            self.assertTrue(state["resume"]["legacy"])
+            self.assertEqual(state["resume"]["from"], "alpha")
+            self.assertEqual(state["resume"]["next"], "beta")
+
+    def test_v2_resume_supports_concept_track_and_existing_lesson_references(self) -> None:
+        for unit_kind, unit_ref in (("concept", "beta"), ("track", "track-a"), ("lesson", "lessons/recovery.md")):
+            with self.subTest(unit_kind=unit_kind), self.create_root() as temporary:
+                root = Path(temporary)
+                identifier = f"20260801T120000+0800-v2-{unit_kind}"
+                path = root / "learning-state" / "sessions" / f"{identifier}.yaml"
+                path.write_text(v2_event_document(identifier, unit_kind=unit_kind, unit_ref=unit_ref), encoding="utf-8")
+                result = self.run_cli(root)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                resume = json.loads(result.stdout)["resume"]
+                self.assertEqual(resume["unit_kind"], unit_kind)
+                self.assertEqual(resume["unit_ref"], unit_ref)
+                self.assertEqual(resume["checkpoint"], "transfer")
+                self.assertFalse(resume["legacy"])
+
+    def test_v2_resume_rejects_invalid_or_unsafe_references_and_empty_recovery_text(self) -> None:
+        cases = (
+            ("concept", "missing", "unknown resume concept"),
+            ("track", "missing", "unknown resume track"),
+            ("lesson", "lessons/missing.md", "unknown resume lesson"),
+            ("lesson", "../lessons/recovery.md", "canonical lessons-relative"),
+            ("lesson", "lessons/../lessons/recovery.md", "canonical lessons-relative"),
+            ("lesson", "/tmp/recovery.md", "canonical lessons-relative"),
+        )
+        for unit_kind, unit_ref, expected in cases:
+            with self.subTest(unit_kind=unit_kind, unit_ref=unit_ref), self.create_root() as temporary:
+                root = Path(temporary)
+                identifier = "20260801T120000+0800-v2-invalid"
+                path = root / "learning-state" / "sessions" / f"{identifier}.yaml"
+                path.write_text(v2_event_document(identifier, unit_kind=unit_kind, unit_ref=unit_ref), encoding="utf-8")
+                self.assert_rejected(root, expected)
+
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            identifier = "20260801T120000+0800-v2-empty-checkpoint"
+            path = root / "learning-state" / "sessions" / f"{identifier}.yaml"
+            path.write_text(
+                v2_event_document(identifier).replace("checkpoint: transfer", "checkpoint: ''"), encoding="utf-8"
+            )
+            self.assert_rejected(root, "resume.checkpoint must be a non-empty string")
+
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            identifier = "20260801T120000+0800-v2-empty-summary"
+            path = root / "learning-state" / "sessions" / f"{identifier}.yaml"
+            path.write_text(
+                v2_event_document(identifier).replace(
+                    "summary: Continue from an explicit recovery boundary.", "summary: ''"
+                ),
+                encoding="utf-8",
+            )
+            self.assert_rejected(root, "resume.summary must be a non-empty string")
+
+    def test_assisted_evidence_cannot_promote_capability_or_lengthen_review_interval(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_event(
+                root, "20260801T120000+0800-assisted-transfer",
+                evidence="""  - concept: alpha
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: high
+    assisted: true""",
+            )
+            state = json.loads(self.run_cli(root).stdout)
+            alpha = next(item for item in state["concepts"] if item["id"] == "alpha")
+            self.assertEqual(alpha["capability_state"], "unassessed")
+            self.assertEqual(alpha["next_review"], "2026-08-02")
+
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_event(root, "20260801T120000+0800-alpha-exposure")
+            self.write_event(
+                root, "20260808T120000+0800-assisted-transfer",
+                timestamp="2026-08-08T12:00:00+08:00",
+                evidence="""  - concept: alpha
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: high
+    assisted: true""",
+            )
+            state = json.loads(self.run_cli(root).stdout)
+            alpha = next(item for item in state["concepts"] if item["id"] == "alpha")
+            self.assertEqual(alpha["capability_state"], "encountered")
+            self.assertEqual(alpha["next_review"], "2026-08-09")
+
+    def test_list_review_cues_matches_legacy_list_due_output(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_event(root, "20260801T120000+0800-alpha-exposure")
+            due = self.run_cli(root, "list-due", "--today", "2026-08-02")
+            cues = self.run_cli(root, "list-review-cues", "--today", "2026-08-02")
+            self.assertEqual(due.returncode, 0, due.stderr)
+            self.assertEqual(cues.returncode, 0, cues.stderr)
+            self.assertEqual(cues.stdout, due.stdout)
 
     def test_rejects_resume_only_event_without_a_complete_resume_block(self) -> None:
         with self.create_root() as temporary:

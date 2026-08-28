@@ -7,6 +7,7 @@ import type {
   EvidenceNodeKind,
   FrontendData,
   LearningConcept,
+  Resume,
 } from "./contracts.js";
 import { edgeTypes } from "./contracts.js";
 import {
@@ -29,7 +30,7 @@ interface State extends UrlState {
   scopeValue: string;
   query: string;
   edgeType: EdgeType | "all";
-  mastery: string;
+  capability: string;
   evidenceKind: EvidenceNodeKind | "all";
   evidenceEdge: EvidenceEdgeKind | "all";
 }
@@ -66,7 +67,7 @@ export function mountKnowledgeExplorer(
     scopeValue: "",
     query: "",
     edgeType: "all",
-    mastery: "all",
+    capability: "all",
     evidenceKind: "all",
     evidenceEdge: "all",
   };
@@ -114,13 +115,20 @@ export function mountKnowledgeExplorer(
     option.textContent = value === "all" ? "所有关系" : pretty(value);
     edge.append(option);
   }
-  const mastery = element("select");
-  mastery.setAttribute("aria-label", "掌握状态");
-  for (const value of ["all", "mastered", "developing", "not-started"]) {
+  const capability = element("select");
+  capability.setAttribute("aria-label", "已审阅能力");
+  for (const value of [
+    "all",
+    "unassessed",
+    "encountered",
+    "familiar",
+    "usable",
+    "retained",
+  ]) {
     const option = element("option");
     option.value = value;
-    option.textContent = value === "all" ? "所有掌握状态" : pretty(value);
-    mastery.append(option);
+    option.textContent = value === "all" ? "所有已审阅能力" : pretty(value);
+    capability.append(option);
   }
   const evidenceKind = element("select"),
     evidenceEdge = element("select");
@@ -164,7 +172,7 @@ export function mountKnowledgeExplorer(
     scope,
     scopeValue,
     edge,
-    mastery,
+    capability,
     evidenceKind,
     evidenceEdge,
     graphMode,
@@ -209,7 +217,10 @@ export function mountKnowledgeExplorer(
 
   const candidates = (): Concept[] =>
     data.graph.nodes.filter((node) => {
-      if (state.mastery !== "all" && node.mastery.status !== state.mastery)
+      if (
+        state.capability !== "all" &&
+        node.reviewed_capability.state !== state.capability
+      )
         return false;
       if (
         state.scope === "focal" &&
@@ -305,7 +316,9 @@ export function mountKnowledgeExplorer(
   const renderFallback = () => {
     fallback.replaceChildren(
       ...data.graph.nodes.map((node) => {
-        const item = button(`${node.title} — ${pretty(node.mastery.status)}`);
+        const item = button(
+          `${node.title} — 已审阅能力：${pretty(node.reviewed_capability.state)}`,
+        );
         item.dataset.accessible = node.id;
         item.onclick = () => selectConcept(node.id);
         return item;
@@ -583,7 +596,7 @@ export function mountKnowledgeExplorer(
     title.textContent = node.title;
     panel.append(close, title);
     const tags = element("p", "tags");
-    tags.textContent = `${pretty(node.mastery.status)} · ${pretty(node.kind)} · ${node.tracks.map(pretty).join(" / ")}`;
+    tags.textContent = `已审阅能力：${pretty(node.reviewed_capability.state)} · ${pretty(node.kind)} · ${node.tracks.map(pretty).join(" / ")}`;
     panel.append(tags);
     const definition = element("p", "definition");
     definition.textContent = state.recall
@@ -610,13 +623,29 @@ export function mountKnowledgeExplorer(
     const learningItem = learningById.get(node.id);
     const progress = element("section", "section"),
       progressHeading = element("h2");
-    progressHeading.textContent = "能力与复习";
+    progressHeading.textContent = "会话观察与复习提示";
     const progressText = element("p");
     progressText.textContent = learningItem
-      ? `能力：${learningItem.capability_state}\n下次复习：${learningItem.next_review ?? "尚未安排"}\n最近结果：${learningItem.latest_outcome ?? "尚无证据"}`
-      : "尚无明确学习证据；从一次三分钟尝试开始。";
+      ? `会话观察：${learningItem.capability_state}\n复习提示：${learningItem.next_review ?? "尚未安排"}\n最近结果：${learningItem.latest_outcome ?? "尚无证据"}`
+      : "尚无会话观察；从一个有完整背景的学习单元开始。";
     progress.append(progressHeading, progressText);
     panel.append(progress);
+    const reviewed = element("section", "section"),
+      reviewedHeading = element("h2"),
+      reviewedText = element("p");
+    reviewedHeading.textContent = "已审阅能力";
+    reviewedText.textContent = `状态：${node.reviewed_capability.state}\n演示日期：${node.reviewed_capability.demonstrated_at ?? "尚未审阅"}\n证据会话：${node.reviewed_capability.evidence_sessions.join("、") || "尚无"}`;
+    reviewed.append(reviewedHeading, reviewedText);
+    if (node.reviewed_capability.effective_record) {
+      const link = element("a", "evidence");
+      link.href = repositoryLink(node.reviewed_capability.effective_record);
+      link.textContent = "打开有效审阅记录";
+      reviewed.append(link);
+    }
+    panel.append(reviewed);
+    const legacy = element("p", "legacy-label");
+    legacy.textContent = `旧记录文件名标签：${pretty(node.mastery.status)}`;
+    panel.append(legacy);
     const terminology = node.extensions?.terminology;
     if (terminology) {
       const section = element("section", "section"),
@@ -765,41 +794,48 @@ export function mountKnowledgeExplorer(
     learning.classList.add("open");
     learning.replaceChildren();
     const heading = element("h1");
-    heading.textContent = kind === "today" ? "现在适合回忆的概念" : "Continue";
+    heading.textContent = kind === "today" ? "复习提示" : "继续上次学习";
     learning.append(heading);
     const entries: LearningConcept[] =
-      kind === "today"
-        ? currentLearning()
-        : data.learningState.resume?.next
-          ? [
-              learningById.get(data.learningState.resume.next) ?? {
-                id: data.learningState.resume.next,
-                capability_state: "",
-                next_review: null,
-                latest_outcome: null,
-              },
-            ]
-          : [];
-    if (!entries.length) {
+      kind === "today" ? currentLearning() : [];
+    const resumeCue: Resume | null =
+      kind === "continue" ? (data.learningState.resume ?? null) : null;
+    if (!entries.length && !resumeCue) {
       const empty = element("p");
       empty.textContent =
         kind === "today"
-          ? "今天没有到期复习。可以从 Continue 开始。"
-          : "还没有可恢复的会话。选择一个概念，给自己三分钟。";
+          ? "今天没有复习提示。可以继续上次学习。"
+          : "还没有可恢复的会话。选择一个主题，从整体背景开始。";
       learning.append(empty);
     }
     for (const item of entries) {
       const node = byId.get(item.id),
         choice = button(node?.title ?? item.id, "learning-item");
       const meta = element("small");
-      meta.textContent =
-        kind === "continue"
-          ? (data.learningState.resume?.summary ?? "从上次停下的地方继续。")
-          : `下次复习：${item.next_review} · ${item.capability_state}`;
+      meta.textContent = `复习提示：${item.next_review} · 会话观察：${item.capability_state}`;
       choice.append(meta);
       choice.onclick = () => {
         learning.hidden = true;
         selectConcept(item.id);
+      };
+      learning.append(choice);
+    }
+    if (resumeCue) {
+      const choice = button("继续学习单元", "learning-item");
+      const meta = element("small");
+      meta.textContent = `${resumeCue.unit_kind} · ${resumeCue.unit_ref}\n检查点：${resumeCue.checkpoint ?? "无"}\n${resumeCue.summary}`;
+      choice.append(meta);
+      choice.onclick = () => {
+        learning.hidden = true;
+        if (resumeCue.unit_kind === "concept" && byId.has(resumeCue.unit_ref)) {
+          selectConcept(resumeCue.unit_ref);
+          return;
+        }
+        const path =
+          resumeCue.unit_kind === "lesson"
+            ? resumeCue.unit_ref
+            : `tracks/${resumeCue.unit_ref}/CURRICULUM.md`;
+        window.location.assign(repositoryLink(path));
       };
       learning.append(choice);
     }
@@ -809,7 +845,7 @@ export function mountKnowledgeExplorer(
     populateScopeValues();
     scope.value = state.scope;
     edge.value = state.edgeType;
-    mastery.value = state.mastery;
+    capability.value = state.capability;
     graphMode.classList.toggle("active", state.view === "graph");
     historyMode.classList.toggle("active", state.view === "history");
     evidenceMode.classList.toggle("active", state.view === "evidence");
@@ -823,7 +859,7 @@ export function mountKnowledgeExplorer(
     scope.hidden = evidenceView;
     scopeValue.hidden = evidenceView;
     edge.hidden = evidenceView;
-    mastery.hidden = evidenceView;
+    capability.hidden = evidenceView;
     evidenceKind.hidden = !evidenceView;
     evidenceEdge.hidden = !evidenceView;
     syncOverlayTop();
@@ -907,8 +943,8 @@ export function mountKnowledgeExplorer(
     state.edgeType = edge.value as EdgeType | "all";
     render();
   };
-  mastery.onchange = () => {
-    state.mastery = mastery.value;
+  capability.onchange = () => {
+    state.capability = capability.value;
     render();
   };
   evidenceKind.onchange = () => {

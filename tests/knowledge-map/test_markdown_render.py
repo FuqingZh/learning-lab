@@ -63,7 +63,9 @@ class TestKnowledgeMapMarkdownRender(unittest.TestCase):
             idempotency = (output / "concepts" / "idempotency.md").read_text(encoding="utf-8")
             self.assertIn("## Typed local graph", idempotency)
             self.assertIn("|prerequisite|", idempotency)
-            self.assertIn("Effective evidence", idempotency)
+            self.assertIn("Reviewed capability: `unassessed`", idempotency)
+            self.assertIn("Legacy filename label: `mastered`", idempotency)
+            self.assertIn("Effective reviewed record: none", idempotency)
             self.assertIn("Prerequisite: [Partial failure]", idempotency)
             for retired in (
                 "authoritative-readback.md",

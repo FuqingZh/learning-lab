@@ -2,6 +2,42 @@
 
 ## Knowledge
 
+- [WorldWideWeb: Proposal for a HyperText Project](https://www.w3.org/Proposal.html)
+  Publisher: World Wide Web Consortium historical archive. Applies to: the
+  proposal dated 1990-11-12. Checked: 2026-08-27. Use for: the documented
+  browser-process, server-process, nodes, links, and network architecture that
+  precedes web scripting in this route.
+- [ECMA-262, first edition](https://ecma-international.org/wp-content/uploads/ECMA-262_1st_edition_june_1997.pdf)
+  Publisher: Ecma International. Applies to: the June 1997 first edition. Use
+  for: ECMAScript as a programming language executing within a host environment
+  and scripting existing facilities. Checked: 2026-08-27.
+- [Document Object Model Level 1](https://www.w3.org/TR/1998/REC-DOM-Level-1-19981001/)
+  Publisher: World Wide Web Consortium. Applies to: the 1998-10-01
+  Recommendation. Use for: the platform- and language-neutral interface through
+  which programs and scripts access and update document content, structure,
+  and style. Checked: 2026-08-27.
+- [TypeScript: JavaScript Development at Application Scale](https://learn.microsoft.com/en-us/archive/blogs/somasegar/typescript-javascript-development-at-application-scale)
+  Publisher: Microsoft. Applies to: the archived announcement dated
+  2012-10-01. Use for: the documented large-JavaScript-program problem,
+  optional static checking, interoperability, and erased type annotations.
+  Checked: 2026-08-27.
+- [Why did we build React?](https://legacy.reactjs.org/blog/2013/06/05/why-react.html)
+  Publisher: React project. Applies to: the official project post dated
+  2013-06-05. Use for: the documented component model, render description,
+  reconciliation, and DOM-update framing at that time. Checked: 2026-08-27.
+- [TypeScript for the New Programmer](https://www.typescriptlang.org/docs/handbook/typescript-from-scratch)
+  Publisher: TypeScript project. Applies to: the official handbook as checked
+  2026-08-27. Use for: the boundary between static checking and JavaScript
+  runtime behavior, including erasure of type annotations.
+- [React: Components and Hooks must be pure](https://react.dev/reference/rules/components-and-hooks-must-be-pure)
+  Publisher: React project. Applies to: the official React rules reference as
+  checked 2026-08-27. Use for: render calculation, repeated rendering,
+  non-local mutation, and keeping side effects outside render.
+- [React: Synchronizing with Effects](https://react.dev/learn/synchronizing-with-effects)
+  Publisher: React project. Applies to: the official React learning guide as
+  checked 2026-08-27. Use for: distinguishing rendering code, event handlers,
+  and React Effects that synchronize with external systems.
+
 - [NIST: AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
   Publisher: U.S. National Institute of Standards and Technology. Applies to:
   AI RMF 1.0 and the linked Generative AI Profile NIST AI 600-1; NIST reports
@@ -46,6 +82,16 @@
   at repository commit `36594c4392412dabed4c7207007094efd9702363`.
   Checked: 2026-08-17. Use for: state authority, opaque capabilities, result
   inspection, and the boundary between artifact validity and scientific truth.
+- [Bio Plot Platform: frontend dependency manifest](https://github.com/FuqingZh/bio_plot_platform/blob/f31be7a2a240a958be3e7c10321fa78922333473/frontend/package.json)
+  Publisher: Bio Plot Platform project. Applies to: repository commit
+  `f31be7a2a240a958be3e7c10321fa78922333473`, declaring React 18.3.1 and
+  TypeScript 5.9.3. Checked: 2026-08-27. Use for: the first technology case-lab
+  coordinate, not for the transferable definition of render or side effect.
+- [Bio Plot Platform: backend dependency manifest](https://github.com/FuqingZh/bio_plot_platform/blob/f31be7a2a240a958be3e7c10321fa78922333473/pyproject.toml)
+  Publisher: Bio Plot Platform project. Applies to: repository commit
+  `f31be7a2a240a958be3e7c10321fa78922333473`, declaring FastAPI, Pydantic, and
+  psycopg dependency bounds. Checked: 2026-08-27. Use for: later API and
+  database case-lab coordinates, not as framework-independent evidence.
 - [JSON Schema Validation: A Vocabulary for Structural Validation of JSON](https://json-schema.org/draft/2020-12/json-schema-validation)
   Publisher: JSON Schema specification authors. Applies to: Draft 2020-12,
   published 2022-06-16. Checked: 2026-08-18. Use for: assertion keywords,
@@ -109,3 +155,6 @@ when it is clearly distinguished from normative product contracts.
   container isolation, AI evaluation, and scientific reproducibility as their
   lessons begin; project contracts are case evidence, not substitutes for
   those foundations.
+- Add a scholarly secondary source only if a later lesson needs to claim a
+  causal lineage, motive, or priority across Web, ECMAScript, DOM, TypeScript,
+  and React. The current dossier deliberately makes none of those claims.

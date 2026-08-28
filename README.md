@@ -14,23 +14,28 @@ not authoritative product documentation and not implementation requirements.
 - [CURRICULUM.md](CURRICULUM.md): active track index and reading order.
 - [RESOURCES.md](RESOURCES.md): source policy and track resource indexes.
 - [NOTES.md](NOTES.md): teaching preferences shared by every track.
-- [GLOSSARY.md](GLOSSARY.md): vocabulary added only after demonstrated use.
+- [GLOSSARY.md](GLOSSARY.md): professionally established terminology admitted
+  through the two-source terminology gate; it is not learner capability state.
 - [Knowledge Map](maps/README.md): generated global, track, case-lab, and focal
   dependency views.
 - [Interactive Map](site/index.html): self-contained spatial explorer with
-  concept, history, and evidence-network views, plus search and mastery cues.
+  concept, history, and evidence-network views, plus search, reviewed
+  capability, review cues, and structured resume.
 - [Online Knowledge Space](https://fuqingzh.github.io/learning-lab/): generated
   GitHub Pages projection for access without opening the local HTML file.
-- [Workspace documentation](docs/README.md): active implementation plan and
-  concept-authoring procedure.
+- [Workspace documentation](docs/README.md): active implementation plans,
+  concept-authoring procedure, and recorded observational reviews. The
+  [2026-08-27 learning-method review](docs/reviews/20260827-v1.0-learning-method-review.md)
+  is not a teaching contract.
 
 ## Content boundaries
 
 - `tracks/`: one independent mission and curriculum per transferable capability
   track. Repositories are anchors and case laboratories, not the top-level
   taxonomy.
-- `learning-records/<track>/`: what the learner has actually demonstrated,
-  including superseded intermediate states.
+- `learning-records/<track>/`: reviewed capability records and readable legacy
+  evidence. Only validated structured metadata establishes current capability;
+  filenames and legacy prose do not.
 - `lessons/<track>/`: reusable teaching artifacts created only when useful.
 - `histories/`: evidence-backed development dossiers linked to lessons or
   canonical concepts; schema-v2 milestones project explicit claims, sources,
@@ -38,10 +43,13 @@ not authoritative product documentation and not implementation requirements.
 - `concepts/`: canonical transferable concept definitions and typed relations.
 - `case-labs/`: thin repository hubs; the existence of a hub does not establish
   concept membership.
+- `docs/reviews/`: observational method reviews; not teaching contracts and
+  not implementation plans.
 - `maps/` and `site/`: generated projections; never edit them as authorities.
-- `learning-state/sessions/`: append-only, concept-level evidence from short
-  learning encounters; generated due and capability state is not hand-edited.
-- `.agents/skills/learning-lab-tutor/`: the low-friction three-minute learning
+- `learning-state/sessions/`: append-only observations and durable resume from
+  learning encounters; generated review cues are not curriculum progression or
+  reviewed capability.
+- `.agents/skills/learning-lab-tutor/`: the history-grounded, map-first learning
   workflow used by compatible AI agents.
 - `reference/`: compressed cross-track recall material, created only when real
   reuse exists.
@@ -68,7 +76,7 @@ before adding historical claims.
 ## Build and validation
 
 The interactive map is a generated, single-file offline artifact. It requires
-Python 3 and Node.js 22.x; install the locked frontend tools once per clean
+Python 3 and Node.js 24.x; install the locked frontend tools once per clean
 checkout:
 
 ```bash
@@ -89,18 +97,20 @@ npm ci && bash scripts/check-structure.sh
 ```
 
 For frontend-only diagnostics, run `npm run frontend:verify`. The renderer and
-generated-drift check intentionally fail if Node.js 22.x or the dependencies
+generated-drift check intentionally fail if Node.js 24.x or the dependencies
 installed by `npm ci` are unavailable; they never download browser dependencies
 implicitly. GitHub Pages uploads only the generated `site/` directory.
 
 ## Ambient learning
 
 Ask a compatible agent to use `$learning-lab-tutor`, or simply say that you
-have a few minutes and want to continue. The default session restores the last
-thread in at most two short sentences, advances one coherent knowledge
-increment, uses at most one retrieval or transfer check, and records the next
-resume point automatically. The full design and evidence boundaries are in the
-[Ambient Learning implementation plan](docs/implementation-plans/20260821-v1.1-ambient-learning-implementation-plan.md).
+want to continue. The default session restores the last thread briefly, gives
+the learner an advance organizer, and teaches a coherent lesson unit before
+checking understanding at a natural conceptual boundary. A unit may include
+multiple connected concepts when splitting them would remove necessary
+context. The tutor records a structured lesson, concept, or track resume point
+automatically. The current authority and evidence boundaries are in the
+[mission-led learning-loop plan](docs/implementation-plans/20260827-v1.4-mission-led-learning-loop-implementation-plan.md).
 
 ## 2026-08-17 migration
 
