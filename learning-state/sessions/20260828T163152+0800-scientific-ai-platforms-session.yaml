@@ -1,0 +1,17 @@
+schema_version: 2
+id: 20260828T163152+0800-scientific-ai-platforms-session
+started_at: 2026-08-28T16:31:52+08:00
+duration_minutes: 28
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: concept
+  unit_ref: program
+  checkpoint: Model a small UI state object and function boundary with TypeScript, then distinguish its declared static shape from runtime input validation before entering React.
+  summary: The learner traced a typed function through parsing, static checking, type erasure, and JavaScript execution; after repair, they distinguished encoded domain prerequisites from the broader evidence needed for scientific correctness.
+evidence:
+  - concept: program
+    check: fresh-case-transfer
+    outcome: pass
+    confidence: medium
+    assisted: true
