@@ -90,13 +90,14 @@ not the curriculum spine.
 
 1. Survey the complete Level A dependency map without quizzing every node or
    descending into mechanisms.
-2. Close the orientation lesson with one map-level explain-back and transfer
-   check.
+2. At a meaningful boundary, invite a map-level explanation or application;
+   do not require a quiz merely to close a reply.
 3. Study one coherent foundational unit at a time; include all connected
    concepts and historical context required for a complete mental model instead
    of enforcing one-term or one-mechanism turns.
 4. Periodically synthesize mastered foundations into one Level B pattern.
-5. Use a Level C case only after predicting its design from first principles.
+5. Use a Level C case after explaining the relevant general model. For a
+   beginner, work through a complete example before asking for independent design.
 
 Lessons must be map-first, not detail-first. Their scope follows conceptual
 coherence rather than a fixed duration or information quota. Coverage is not mastery; a
@@ -156,6 +157,27 @@ model before JavaScript, TypeScript, React, or repository component APIs.
 4. At a natural conceptual boundary, use a mastery check suited to the target:
    retrieval for facts, performance for procedures, or explain-back plus
    transfer and boundary for concepts and designs.
-5. If needed, repair only the first blocking gap through a different
-   representation and offer one focused retry.
+5. If needed, explain the blocking prerequisite with a connected example;
+   invite another attempt when useful, without a fixed retry quota.
 6. Record mastery only after the lesson-level evidence is sufficient.
+
+## Current pilot: return to the React bridge
+
+The learner's feedback identifies insufficient setup and unexplained syntax.
+Earlier systems reasoning and TypeScript answers do not establish React or
+JavaScript syntax fluency. Keep previous evidence; do not restart everything
+or infer that typed props are the next appropriate task.
+
+The prepared next unit is
+[From document updates to React](../../lessons/scientific-ai-platforms/react-from-document-updates.md).
+It develops one display-update problem through ordinary JavaScript, DOM access,
+and a React description. Object access, function arguments, and conversion are
+explained where needed; destructuring, JSX syntax, hooks, and imports are not
+assumed. State/event-triggered updates remain the following unit, subject to
+the learner's questions and actual evidence. PostgreSQL and FastAPI stay on the
+larger route, not inside this introduction.
+
+Detailed position and meaningful branches live in
+[navigation](../../learning-state/navigation/README.md), separately from
+capability. The pilot is prepared, not taught or accepted. Its success requires
+a real learner encounter, not just passing repository checks.

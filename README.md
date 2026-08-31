@@ -49,6 +49,11 @@ not authoritative product documentation and not implementation requirements.
 - `learning-state/sessions/`: append-only observations and durable resume from
   learning encounters; generated review cues are not curriculum progression or
   reviewed capability.
+- `learning-state/navigation/`: lightweight discussion position and return points,
+  separate from mastery; valid snapshots take precedence over legacy resume for
+  discussion only. The generated site still displays the legacy session resume.
+- `.learning-private/`: optional authorized original exports, excluded from Git;
+  not an automatic collector, encryption mechanism, or backup.
 - `.agents/skills/learning-lab-tutor/`: the history-grounded, map-first learning
   workflow used by compatible AI agents.
 - `reference/`: compressed cross-track recall material, created only when real
@@ -110,7 +115,10 @@ checking understanding at a natural conceptual boundary. A unit may include
 multiple connected concepts when splitting them would remove necessary
 context. The tutor records a structured lesson, concept, or track resume point
 automatically. The current authority and evidence boundaries are in the
-[mission-led learning-loop plan](docs/implementation-plans/20260827-v1.4-mission-led-learning-loop-implementation-plan.md).
+[coherent-tutoring plan](docs/implementation-plans/20260830-coherent-tutoring-implementation-plan.md).
+The learner's current request comes first. Clarifications need not end in a
+quiz. The existing v1.4 session and evaluation contracts remain compatible;
+new discussion navigation neither rewrites evidence nor establishes mastery.
 
 ## 2026-08-17 migration
 

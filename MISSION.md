@@ -23,7 +23,8 @@ first principles, and transfer sound design judgment to unfamiliar repositories.
   biological or computer fundamentals is welcome.
 - Ground current-product claims in primary repository contracts and distinguish
   implemented behavior, approved architecture, proposals, and general theory.
-- Advance through bounded lessons with retrieval practice; coverage alone is
+- Advance through coherent lessons with checks at meaningful boundaries, not
+  fixed-size fragments or mandatory questions after each reply; coverage alone is
   not treated as mastery.
 
 ## Out of scope

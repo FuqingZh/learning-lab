@@ -158,3 +158,17 @@ when it is clearly distinguished from normative product contracts.
 - Add a scholarly secondary source only if a later lesson needs to claim a
   causal lineage, motive, or priority across Web, ECMAScript, DOM, TypeScript,
   and React. The current dossier deliberately makes none of those claims.
+
+## React bridge pilot sources (checked 2026-08-31)
+
+- [Why did we build React? (2013)](https://legacy.reactjs.org/blog/2013/06/05/why-react.html):
+  a contemporary explanation, not proof of a unique origin or universal superiority.
+- [React createElement](https://react.dev/reference/react/createElement):
+  element descriptions and arguments, distinct from DOM nodes.
+- [React DOM createRoot](https://react.dev/reference/react-dom/client/createRoot):
+  root creation and render requests; not proof that every render changes pixels.
+- [MDN Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent):
+  text read/write behavior for the ordinary DOM bridge.
+
+These support the prepared lesson, not claims about the current implementation
+of any case repository or the learner's mastery.

@@ -1,0 +1,19 @@
+# Audited source-turn window, not whole-lesson or active study time.
+# See docs/audits/20260831-session-timing-audit.md for original ID and source.
+schema_version: 2
+id: 20260828T160244+0800-scientific-ai-platforms-session
+started_at: 2026-08-28T16:02:44+08:00
+duration_minutes: 1
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: concept
+  unit_ref: program
+  checkpoint: Separate TypeScript static evidence from JavaScript runtime behavior by tracing one typed function through source parsing, checking, type erasure, and execution.
+  summary: The learner distinguished language grammar, external static checking, and runtime execution; explained why Python annotations are recognized by Python rather than added by Pyright; and transferred that model to a hypothetical ECMAScript annotation syntax.
+evidence:
+  - concept: program
+    check: explain-back
+    outcome: pass
+    confidence: medium
+    assisted: false

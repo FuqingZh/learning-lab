@@ -4,11 +4,15 @@
 from __future__ import annotations
 
 import json
+import datetime as dt
+import math
 import shutil
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+
+import yaml
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -90,6 +94,27 @@ resume:
 
 
 class TestLearningState(unittest.TestCase):
+    def test_audited_import_windows_match_records(self) -> None:
+        audit_text = (REPOSITORY_ROOT / "docs/audits/20260831-session-timing-audit.md").read_text(encoding="utf-8")
+        audit = yaml.safe_load(audit_text.split("---", 2)[1])
+        self.assertEqual(len(audit["events"]), 6)
+        previous_end = None
+        for entry in audit["events"]:
+            start = dt.datetime.fromisoformat(entry["source_start"])
+            end = dt.datetime.fromisoformat(entry["source_end"])
+            self.assertGreater(end, start)
+            duration = math.ceil((end - start).total_seconds() / 60)
+            if previous_end is not None:
+                self.assertGreaterEqual(start, previous_end)
+            previous_end = start + dt.timedelta(minutes=duration)
+            path = REPOSITORY_ROOT / "learning-state/sessions" / (entry["corrected_id"] + ".yaml")
+            event = yaml.safe_load(path.read_text(encoding="utf-8"))
+            self.assertEqual(event["id"], entry["corrected_id"])
+            self.assertEqual(event["started_at"], start)
+            self.assertEqual(event["duration_minutes"], duration)
+            self.assertEqual(entry["duration_minutes"], duration)
+            self.assertFalse((path.parent / (entry["original_id"] + ".yaml")).exists())
+
     def create_root(self) -> tempfile.TemporaryDirectory[str]:
         temporary = tempfile.TemporaryDirectory()
         root = Path(temporary.name)
@@ -342,6 +367,36 @@ class TestLearningState(unittest.TestCase):
             self.assertEqual(due.returncode, 0, due.stderr)
             self.assertEqual(cues.returncode, 0, cues.stderr)
             self.assertEqual(cues.stdout, due.stdout)
+
+    def test_same_day_passes_do_not_lengthen_review_interval(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_event(root, "20260801T120000+0800-first")
+            self.write_event(root, "20260801T124900+0800-repeated",
+                             timestamp="2026-08-01T12:49:00+08:00")
+            state = json.loads(self.run_cli(root).stdout)
+            alpha = next(item for item in state["concepts"] if item["id"] == "alpha")
+            self.assertEqual(alpha["evidence_count"], 2)
+            self.assertEqual(alpha["next_review"], "2026-08-02")
+            self.write_event(root, "20260802T120000+0800-next-day",
+                             timestamp="2026-08-02T12:00:00+08:00")
+            state = json.loads(self.run_cli(root).stdout)
+            alpha = next(item for item in state["concepts"] if item["id"] == "alpha")
+            self.assertEqual(alpha["next_review"], "2026-08-09")
+
+    def test_day_deduplication_uses_one_timezone(self) -> None:
+        with self.create_root() as temporary:
+            root = Path(temporary)
+            self.write_event(root, "20260801T230000+0000-first",
+                             timestamp="2026-08-01T23:00:00+00:00")
+            self.write_event(root, "20260802T003000+0100-same-utc-day",
+                             timestamp="2026-08-02T00:30:00+01:00")
+            result = self.run_cli(root)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            state = json.loads(result.stdout)
+            alpha = next(item for item in state["concepts"] if item["id"] == "alpha")
+            self.assertEqual(alpha["evidence_count"], 2)
+            self.assertEqual(alpha["next_review"], "2026-08-03")
 
     def test_rejects_resume_only_event_without_a_complete_resume_block(self) -> None:
         with self.create_root() as temporary:

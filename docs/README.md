@@ -7,6 +7,9 @@ for any source repository.
 
 ## Read first
 
+- [Coherent tutoring implementation plan](implementation-plans/20260830-coherent-tutoring-implementation-plan.md):
+  current approved teaching/navigation changes; lightweight files, no database,
+  no fixed lesson quotas, and real classroom acceptance still required.
 - [Knowledge map implementation plan](implementation-plans/20260820-v1.0-knowledge-map-implementation-plan.md):
   active plan for the concept graph, repository views, generated frontend, and
   Obsidian compatibility.
@@ -35,6 +38,13 @@ follow-up is routed through the v1.4 plan above.
 
 ## Audits and evaluation
 
+- [Session timing and review-count audit](audits/20260831-session-timing-audit.md):
+  authorized correction of six imported records, source-window limits, and
+  distinct-day review scheduling; does not establish new mastery.
+- [Coherent tutoring review cases](evaluations/20260830-coherent-tutoring-cases.md):
+  supplemental content-review scenarios, not model-run results.
+- [Coherent tutoring implementation status](evaluations/20260831-coherent-tutoring-status.md):
+  scoped checks, partial conversation provenance, and classroom acceptance boundary.
 - [Learning-record legacy audit](audits/20260827-learning-record-audit.md):
   all 37 legacy records accounted for without filename inference.
 - [Canonical terminology audit](audits/20260827-terminology-audit.md):

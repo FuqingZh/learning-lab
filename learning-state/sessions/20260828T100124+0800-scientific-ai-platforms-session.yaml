@@ -1,0 +1,14 @@
+# Audited source-turn window, not whole-lesson or active study time.
+# See docs/audits/20260831-session-timing-audit.md for original ID and source.
+schema_version: 2
+id: 20260828T100124+0800-scientific-ai-platforms-session
+started_at: 2026-08-28T10:01:24+08:00
+duration_minutes: 31
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: concept
+  unit_ref: program
+  checkpoint: Trace values, expressions, variable bindings, and a function call in a small ECMAScript program, then separate core computation from browser-host capabilities.
+  summary: The lesson moves from the 1990 browser process to the 1997 ECMAScript host-environment boundary and introduces the minimum computation model needed before DOM, TypeScript, or React.
+evidence: []

@@ -42,3 +42,35 @@ The normalized `capability_state` remains a compatibility projection over raw
 session observations. It is not reviewed demonstrated capability. Structured
 records under `learning-records/` own that separate conclusion, while this
 producer owns observation history, resume, and review cues.
+
+## Audited timing and review counting
+
+The authorized [2026-08-31 timing audit](../docs/audits/20260831-session-timing-audit.md)
+corrects six imported event timestamps/durations against verified source-turn
+windows. Original values remain in Git and the audit maps old IDs to corrected
+IDs. This is an explicitly authorized correction, not routine rewriting of
+append-only observations. Those durations are rounded-up source-turn wall time,
+not whole-lesson duration or active study time; one turn includes Git delivery.
+Do not sum them as learning effort or infer unobserved reading time.
+
+`fixed-v2-distinct-days` replaces the `fixed-v1` counting policy, not the event
+schema or interval ladder. Each concept earns at most one unassisted-success
+count per UTC calendar day, regardless of how many event files/checks were
+written. UTC normalization prevents offset spelling from creating extra days.
+The due-date anchor remains the latest observation's recorded local date.
+Latest assisted/partial/miss still requests next-day review; evidence counts,
+raw outcomes, and reviewed capability are not collapsed or promoted.
+
+This is a conservative scheduling bucket, not an inferred encounter identity
+or evidence of retention. Separate encounters in one UTC day are deliberately
+coalesced; an encounter crossing UTC midnight can span two buckets. The policy
+does not assert that either boundary matches a pedagogical learning session.
+
+## Discussion navigation (separate from learning evidence)
+
+See [navigation/README.md](navigation/README.md). A valid per-track snapshot
+owns detailed discussion position and branches, not reviewed capability or
+review cues. Missing navigation falls back to the existing producer's resume
+only when it belongs to the requested track; invalid navigation fails closed.
+The current request always takes precedence. The generated site continues to
+show the legacy session resume; navigation is not yet a site projection.
