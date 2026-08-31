@@ -19,7 +19,8 @@ from yaml.resolver import BaseResolver
 
 SCHEMA_VERSION = 1
 EVENT_SCHEMA_VERSIONS = frozenset({1, 2})
-SCHEDULER = {"id": "fixed-v1", "pass_intervals_days": [1, 7, 21, 60]}
+SCHEDULER = {"id": "fixed-v2-distinct-days", "pass_intervals_days": [1, 7, 21, 60],
+             "success_unit": "utc-calendar-day"}
 MODES = frozenset(
     {"guided-lesson", "contextual-review", "real-work-application", "consolidation"}
 )
@@ -315,7 +316,10 @@ def next_review(history: list[dict[str, Any]]) -> str | None:
     if latest["assisted"] or latest["outcome"] in {"partial", "miss"}:
         interval = 1
     else:
-        successes = sum(item["outcome"] == "pass" and not item["assisted"] for item in history)
+        # Repeated checks in one day are observations, not spaced successes.
+        # Normalize offsets before bucketing; raw evidence and capability stay intact.
+        successes = len({item["started_at_value"].astimezone(dt.timezone.utc).date()
+                         for item in history if item["outcome"] == "pass" and not item["assisted"]})
         interval = SCHEDULER["pass_intervals_days"][min(successes, 4) - 1]
     return (latest["started_at_value"].date() + dt.timedelta(days=interval)).isoformat()
 

@@ -38,6 +38,9 @@ follow-up is routed through the v1.4 plan above.
 
 ## Audits and evaluation
 
+- [Session timing and review-count audit](audits/20260831-session-timing-audit.md):
+  authorized correction of six imported records, source-window limits, and
+  distinct-day review scheduling; does not establish new mastery.
 - [Coherent tutoring review cases](evaluations/20260830-coherent-tutoring-cases.md):
   supplemental content-review scenarios, not model-run results.
 - [Coherent tutoring implementation status](evaluations/20260831-coherent-tutoring-status.md):

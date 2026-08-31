@@ -1,7 +1,9 @@
+# Audited source-turn window, not whole-lesson or active study time.
+# See docs/audits/20260831-session-timing-audit.md for original ID and source.
 schema_version: 2
-id: 20260828T160301+0800-scientific-ai-platforms-session
-started_at: 2026-08-28T16:03:01+08:00
-duration_minutes: 78
+id: 20260828T160244+0800-scientific-ai-platforms-session
+started_at: 2026-08-28T16:02:44+08:00
+duration_minutes: 1
 mode: guided-lesson
 track: scientific-ai-platforms
 resume:

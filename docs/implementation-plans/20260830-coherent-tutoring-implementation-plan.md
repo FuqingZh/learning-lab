@@ -3,6 +3,11 @@
 Date: 2026-08-30
 Status: approved for local implementation; classroom acceptance pending
 
+2026-08-31 follow-up: the user explicitly authorized auditing/correcting the
+six imported timing records and review counting after PR #9 feedback. The
+[audit](../audits/20260831-session-timing-audit.md) records this bounded exception
+to the original no-record-rewrite scope; routine recording remains append-only.
+
 ## 目标与决策来源
 
 用户在当前教学设计讨论中确认本方案，并要求先落库、再实施。这里保存

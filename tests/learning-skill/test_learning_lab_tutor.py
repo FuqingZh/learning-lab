@@ -57,6 +57,11 @@ class LearningLabTutorSkillTests(unittest.TestCase):
         ):
             self.assertTrue((ROOT / relative).is_file(), relative)
 
+    def test_react_lesson_is_registered_with_history_producer(self) -> None:
+        text = (ROOT / "histories/web-programming-history.md").read_text(encoding="utf-8")
+        history = yaml.safe_load(text.split("---", 2)[1])
+        self.assertIn("lessons/scientific-ai-platforms/react-from-document-updates.md", history["lessons"])
+
 
 if __name__ == "__main__":
     unittest.main()

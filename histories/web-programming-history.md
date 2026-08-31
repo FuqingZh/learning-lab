@@ -9,6 +9,7 @@ concepts:
   - service
   - side-effect
 lessons:
+  - lessons/scientific-ai-platforms/react-from-document-updates.md
   - lessons/scientific-ai-platforms/web-document-browser-and-server.md
 tracks:
   - scientific-ai-platforms
