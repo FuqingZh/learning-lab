@@ -1,0 +1,17 @@
+schema_version: 1
+track: scientific-ai-platforms
+updated_at: '2026-08-31T08:40:35+08:00'
+source:
+  enabled: true
+  locator: 'codex:thread:01a00e46-1bee-7081-a01d-111f587fdfbd'
+  coverage: partial
+  verified_range: 'Read-only two-turn probe: 01a052e6-4d6f-7511-98e1-3f7dbd933148 and 01a052e6-86a5-7673-9a46-eb143578203a.'
+  gaps:
+    - Older history was not retrieved; the source reports hasMore=true.
+    - The implementation turn is still in progress; outputs were excluded and messages have a retrieval cap.
+    - No complete original transcript has been exported or independently reconciled.
+main:
+  unit_ref: lessons/scientific-ai-platforms/react-from-document-updates.md
+  checkpoint: 'Prepared next encounter, not yet taught: start at the complete display-update problem and bridge ordinary JavaScript/DOM before React names; ask whether to begin or clarify, without assuming typed-props readiness.'
+active_branch: null
+branches: []

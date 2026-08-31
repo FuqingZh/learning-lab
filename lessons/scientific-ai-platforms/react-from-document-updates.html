@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>报告文字：JavaScript 与 DOM 示例</title>
+<h1>计算文字，再更新文档</h1>
+<p>这是无依赖的 JavaScript/DOM 示例，不是 React runtime 演示。</p>
+<p id="summary"></p>
+<script>
+  const report = { sampleCount: 3 };
+
+  function summaryText(report) {
+    const count = report.sampleCount;
+    return "样本数：" + String(count);
+  }
+
+  const node = document.querySelector("#summary");
+  node.textContent = summaryText(report);
+  report.sampleCount = 5;
+  node.textContent = summaryText(report);
+</script>
+</html>

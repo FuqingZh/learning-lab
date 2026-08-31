@@ -42,3 +42,12 @@ The normalized `capability_state` remains a compatibility projection over raw
 session observations. It is not reviewed demonstrated capability. Structured
 records under `learning-records/` own that separate conclusion, while this
 producer owns observation history, resume, and review cues.
+
+## Discussion navigation (separate from learning evidence)
+
+See [navigation/README.md](navigation/README.md). A valid per-track snapshot
+owns detailed discussion position and branches, not reviewed capability or
+review cues. Missing navigation falls back to the existing producer's resume
+only when it belongs to the requested track; invalid navigation fails closed.
+The current request always takes precedence. The generated site continues to
+show the legacy session resume; navigation is not yet a site projection.

@@ -39,16 +39,20 @@ compatibility alias with the same output. Session evidence records observation
 and resume context, while reviewed learning records carry the separate
 capability claim.
 
-The active route now enters a beginner, history-backed technology spiral
-instead of extending a run of isolated foundation terms or assuming prior web
-development knowledge. It starts with
+The route follows a beginner, history-backed technology spiral rather than
+isolated foundation terms or assumed web-development knowledge. It began with
 [the Web's document, browser, and server model](../../lessons/scientific-ai-platforms/web-document-browser-and-server.md),
 then proceeds through JavaScript, DOM, TypeScript, and React before PostgreSQL,
 FastAPI, and one vertical slice. Every historical increment is limited to what
 its linked source establishes; chronology is not treated as proof of causality.
 Previously demonstrated concepts are retrieved inside these technology
 laboratories, while product APIs and version numbers remain case coordinates
-rather than mastery targets.
+rather than mastery targets. Following feedback about unexplained prerequisites,
+the prepared next encounter is the
+[React bridge](../../lessons/scientific-ai-platforms/react-from-document-updates.md),
+not an assumed-ready typed-props exercise. It has not yet been taught or assessed.
+Use [navigation](../../learning-state/navigation/README.md) for the detailed
+discussion position; old session evidence remains unchanged.
 
 Each topic follows: foundational parent concept, modern synthesis pattern,
 counterexample or failure, repository case lab, and a fresh transfer task. The
