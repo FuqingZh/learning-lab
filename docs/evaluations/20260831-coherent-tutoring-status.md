@@ -1,8 +1,8 @@
 # 连贯教学改造实施与验收状态
 
 Date: 2026-08-31
-Scope: local implementation of the approved 2026-08-30 plan
-Status: local implementation complete; checked seams passed; classroom trial pending
+Scope: approved 2026-08-30 implementation plus the authorized 2026-08-31 audit and delivery follow-up
+Status: implementation and corrective checks passed; PR delivery in progress; classroom trial pending
 
 ## 已落库与实施
 
@@ -11,7 +11,8 @@ Status: local implementation complete; checked seams passed; classroom trial pen
 - 重组 tutor 入口与四份阶段参考，统一 NOTES、MISSION、track curriculum
   与历史使用指南。当前明确请求优先；取消固定小课和每轮小测。
 - 增加只读导航验证/恢复及每 track 轻量快照；具体分支可以沿父链返回，
-  暂存不等于解决，解决不等于掌握。没有迁移旧 session 或能力记录。
+  暂存不等于解决，解决不等于掌握。导航功能不迁移旧 session 或能力记录；
+  后续获准的六条 session 时间纠正是单独审计的例外，见下文。
 - 准备 [React 衔接样课](../../lessons/scientific-ai-platforms/react-from-document-updates.md)
   及无依赖 HTML；尚未进行课堂讲授、React runtime 或浏览器绘制验证。
 - 保留现有六场景模型评估契约，另增连贯教学内容审查，不制造模型运行结果。
@@ -22,16 +23,20 @@ Status: local implementation complete; checked seams passed; classroom trial pen
 ## 对话来源：partial，不是完整落库
 
 用户授权的来源为 `codex:thread:01a00e46-1bee-7081-a01d-111f587fdfbd`。
-只读接口成功回读最近两轮并核对 thread ID：
+初次实施时，只读接口成功回读最近两轮并核对 thread ID：
 
 - `01a052e6-4d6f-7511-98e1-3f7dbd933148`：对轻量范围的确认。
 - `01a052e6-86a5-7673-9a46-eb143578203a`：本次整理与实施请求，回读时尚未结束。
 
 接口返回 `hasMore=true`；请求排除了工具输出，并设置单条返回长度限制。
-更早历史、当前轮最终输出和完整性均未核齐，不能把这两轮或当前决策摘要
+当时更早历史、当前轮最终输出和完整性均未核齐，不能把这两轮或当前决策摘要
 称为完整问答。没有导出原始消息、扫描其他会话或建立后台采集器。
 `.learning-private/` 已加入 Git ignore，仅提供未来授权导出的私有位置约定，
 不是加密或备份。公开文件只保存必要的脱敏摘要和不授予访问权的来源标识。
+
+随后用户授权纠正旧记录，追加核对同一 thread 中六条记录对应的原始轮次；
+范围与来源见[时间审计](../audits/20260831-session-timing-audit.md)。这仍是定向、
+partial 回读，不是完整历史导出，也不把初次导航快照的两轮覆盖声明改称完整。
 
 ## 样课内容自审
 
@@ -54,6 +59,8 @@ Status: local implementation complete; checked seams passed; classroom trial pen
 
 ## 可执行检查
 
+下表保留初次实施时的检查结果；后续纠正后的新增检查另列于下节。
+
 | 检查 | 结果 / 证明范围 |
 | --- | --- |
 | skill-creator quick_validate | 通过；frontmatter 与入口基本格式 |
@@ -70,6 +77,26 @@ Status: local implementation complete; checked seams passed; classroom trial pen
 迁至可审查场景，而非通过保持旧措辞来证明行为。现有状态、历史、术语、
 frontend 与 scorecard 必需检查没有关闭或降级。
 
+## 后续获准纠正与交付
+
+用户随后授权 commit、push、merge，并明确允许先审计旧会话及纠正复习计数。
+因此，下列变更是对初次实施范围的明确例外，而非继续宣称旧数据未动：
+
+- 六条 8 月 28 日 session 已重命名，修正 `started_at` 和 `duration_minutes`。
+  它们记录可核实的原始轮次 wall-time，不代表整课或有效学习时长；旧 ID、
+  旧值及来源映射保存在[时间审计](../audits/20260831-session-timing-audit.md)，
+  原始文件可从 Git 恢复。其证据、assisted 标记和能力记录未改写。
+- 调度改为同一概念在同一 UTC 日期最多计一次 unassisted pass，不删除原始
+  观察，不把日期去重视为准确 encounter 身份或长期保持证据。
+- 历史 dossier 补入 React 样课的关联路径，重新生成 site；未改历史叙述、
+  canonical concepts 或 reviewed learning records。
+- 修复后的 15 项 learning-state 测试、4 项 tutor 测试、完整
+  `bash scripts/check-structure.sh` 及提交 `1e8adb77ab5e26849bead8d59964d1174fcca335`
+  的 PR CI 均通过。完整检查包括现有导航与静态评估检查，不是新模型试验。
+
+上述提交及原有五笔本地提交已推送至 PR #9；合并与主工作区同步仍待完成。
+检查结果只支持相应代码、数据和结构声明，不证明教学效果。
+
 ## 剩余验收与操作边界
 
 下一步是用户真实试学：从完整展示问题进入，允许追问，在自然节点分别
@@ -80,8 +107,7 @@ frontend 与 scorecard 必需检查没有关闭或降级。
 导航的网页投影均未验证或未实现。网页仍显示旧 session resume；tutor 用
 新导航读回详细位置。这一差异已在入口说明。
 
-本地实施不包含 commit、push、merge 或发布；保留开始时 main 上已有的
-五个本地提交。旧 sessions、learning-records、canonical concepts、历史 dossier
-均未改写。全套检查发现既有 site 仍嵌入 8 月 27 日状态，遗漏已存在的
-8 月 28 日 sessions；使用仓库生成器同步这一派生文件，不改原始证据。
+初次实施没有执行 commit、push、merge；后续交付和旧记录纠正范围以上节为准。
+初次全套检查发现既有 site 仍嵌入 8 月 27 日状态，遗漏已存在的 8 月 28 日
+sessions；其后两次生成分别同步既有状态和获准纠正后的状态。
 这不是把新导航接入网站，也不是本轮新产生的能力判定。
