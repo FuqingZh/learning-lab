@@ -110,6 +110,39 @@ class NavigationTests(unittest.TestCase):
         self.assertEqual(result.stdout, "")
         self.assertIn("checkpoint", result.stderr)
 
+    def test_public_projection_matches_resolve_and_excludes_capture(self):
+        self.data["source"].update(locator="private:test-only", coverage="partial",
+                                   verified_range="private range")
+        self.data["branches"] = [branch("library"), branch("call", "library")]
+        self.data["active_branch"] = "call"
+        self.save()
+        resolved = NAV.resolve(self.root, "track-a")
+        self.assertEqual(resolved["resume"]["checkpoint"], "What does this call mean?")
+        self.assertEqual(resolved["resume"]["summary"], "Explain a prerequisite.")
+        public = NAV.normalized_data(self.root)
+        self.assertEqual(public["positions"][0]["resume"], resolved["resume"])
+        self.assertEqual(public["positions"][0]["breadcrumb"], ["library", "call"])
+        self.assertNotIn("private:test-only", json.dumps(public))
+        self.assertNotIn("private range", json.dumps(public))
+        self.assertNotIn("capture", public["positions"][0])
+
+    def test_public_projection_handles_parked_missing_and_corrupt_tracks(self):
+        self.data["branches"] = [branch("paused")]
+        self.data["branches"][0].update(status="parked", unresolved=["Return later."])
+        self.save()
+        (self.root / "tracks/track-b").mkdir()
+        (self.root / "learning-records/track-b").mkdir()
+        data = NAV.normalized_data(self.root)
+        self.assertEqual(data["positions"][0]["resume"]["checkpoint"], self.data["main"]["checkpoint"])
+        self.assertEqual(data["positions"][0]["parked_branches"][0]["id"], "paused")
+        self.assertEqual(data["positions"][1], {"source": "none", "track": "track-b", "resume": None})
+        self.path.unlink()
+        self.assertEqual(NAV.normalized_data(self.root)["positions"][0]["source"], "legacy-resume")
+        self.path.write_text("invalid: true\n", encoding="utf-8")
+        result = self.cli("normalized-data")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+
     def test_structural_negative_controls(self):
         base = snapshot()
         base["branches"] = [branch("library"), branch("call", "library")]

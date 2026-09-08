@@ -1,0 +1,57 @@
+schema_version: 1
+kind: retrospective-classroom-observation
+date: '2026-09-07'
+source:
+  coverage: partial
+  locator: null
+  description: 当前可见任务中，从 durable_submit 的直接澄清到 JavaScript 单线程、执行者与异步历史的连续问答；未经独立原文导出定位。
+runtime:
+  model_label: GPT-6（会话提供的标签，非不可变版本证明）
+  immutable_model_id: null
+  reasoning_setting: null
+  environment: Codex 当前任务；回答中使用仓库只读查询与 web 来源核对。
+materials:
+  version: 本轮优化前的可见教学回答；不是优化后的试验或 A/B。
+  files:
+    - .agents/skills/learning-lab-tutor/SKILL.md
+    - docs/evaluations/20260831-coherent-tutoring-status.md
+    - docs/learning-observations/20260907-http-classroom-notes.md
+reviewer: 实施教师对已发生轨迹的回顾，不是独立评估。
+observations:
+  - case_id: clarification-return
+    results:
+      - status: observed
+        evidence: 用户询问 durable_submit 后，回答先解释其为案例函数及可靠保存要求；单线程和执行者追问均先获得直接解释。
+      - status: not-observed
+        evidence: 随后用户明确转向仓库设计审视；尚未发生返回完整绘图案例的续课，不能判定返回能力。
+      - status: observed
+        evidence: 回答没有把好、继续提问或教师讲解登记为独立能力；本次前置审阅亦保留未知。
+  - case_id: simplify-preserve
+    results:
+      - status: not-observed
+        evidence: 当前这段没有明确要求简化表达；较早 React 反馈有独立历史记录，不合并成这次结果。
+      - status: observed
+        evidence: 用户追问历史后，回答引用早期 I/O 手册和网页邮箱来源，区分早期场景与唯一发明优先权。
+      - status: observed
+        evidence: 这段直接澄清没有逐轮强制测验，也没有每轮重播历史年表。
+  - case_id: explicit-redirection
+    results:
+      - status: observed
+        evidence: 用户要求先审视学习库后，教师开展仓库与历史调查，没有继续强推绘图课程。
+      - status: observed
+        evidence: 审视结论保留异步操作与持久化任务的课程返回点，没有宣布永久更改路线。
+      - status: observed
+        evidence: 设计审视没有生成主题学习 session；能力状态仍未提升。
+  - case_id: interruption-resume
+    results:
+      - status: not-observed
+        evidence: 当前不是一次已核对开始结束时间的学习停止事件，不据此判定事件记录行为。
+      - status: not-observed
+        evidence: 当前实现后的新上下文恢复尚未发生；resolver 和浏览器检查属于软件测试。
+      - status: not-observed
+        evidence: 没有对应的实际冲突恢复轨迹，不把合成结构测试计为模型行为结果。
+limitations:
+  - 不是执行合成案例；部分真实提问只覆盖相邻行为。
+  - 没有不可变模型标识、原始消息 locator、独立评分或版本对照。
+  - 未保存被观察回答当时的完整材料哈希，不能据此重建相同运行条件。
+  - 没有证明新实现改善体验、独立应用、长期保持或模型总体可靠性。

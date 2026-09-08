@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>样本浏览器 · React 练习</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f1f5f4;
+        color: #203b3b;
+        font:
+          16px/1.7 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 860px;
+        margin: 56px auto;
+        padding: 24px;
+      }
+      .eyebrow {
+        color: #356a64;
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      h1 {
+        font-size: 36px;
+        margin: 10px 0;
+      }
+      h2 {
+        margin-top: 0;
+        font-size: 19px;
+      }
+      h3 {
+        font-size: 26px;
+      }
+      header p,
+      footer {
+        color: #596e6b;
+      }
+      .toolbar {
+        display: flex;
+        gap: 16px;
+        justify-content: space-between;
+        align-items: center;
+        margin: 28px 0 16px;
+        flex-wrap: wrap;
+      }
+      output {
+        font:
+          14px ui-monospace,
+          monospace;
+      }
+      .panels {
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+        gap: 20px;
+      }
+      section {
+        padding: 24px;
+        background: white;
+        border: 1px solid #d5e2df;
+        border-radius: 16px;
+        min-height: 260px;
+      }
+      button {
+        font: inherit;
+        padding: 10px 18px;
+        border-radius: 9px;
+        border: 1px solid #b6ccc6;
+        background: white;
+        color: #203b3b;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #e6f3ed;
+      }
+      button:focus-visible {
+        outline: 3px solid #11755d;
+        outline-offset: 3px;
+      }
+      section button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        margin: 12px 0;
+      }
+      button[aria-pressed="true"] {
+        background: #d8f3e7;
+        border-color: #11755d;
+      }
+      small {
+        display: block;
+        color: #596e6b;
+      }
+      #clear {
+        background: #203b3b;
+        color: white;
+      }
+      footer {
+        font-size: 13px;
+        margin-top: 20px;
+      }
+      @media (max-width: 580px) {
+        main {
+          margin: 12px auto;
+        }
+        .panels {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      /* APP_BUNDLE */
+    </script>
+  </body>
+</html>

@@ -239,6 +239,40 @@ class TestKnowledgeMapSiteRender(unittest.TestCase):
         self.assertNotRegex(content, r"\bfetch\s*\(")
         self.assertNotRegex(content, r"\bimport\s*\(")
 
+    @unittest.skipUnless(CHROME, "Chrome or Chromium is not installed")
+    def test_navigation_wins_over_stale_session_and_shows_return_context(self) -> None:
+        state = {"schema_version": 1, "concepts": [], "resume": {
+            "event_id": "old", "track": "track", "unit_kind": "lesson",
+            "unit_ref": "lessons/old.md", "checkpoint": "STALE CHECKPOINT",
+            "summary": "Old summary", "legacy": False,
+        }}
+        position = {
+            "source": "navigation", "track": "track",
+            "main": {"unit_ref": "lessons/current.md", "checkpoint": "Whole problem"},
+            "resume": {"track": "track", "unit_kind": "lesson", "unit_ref": "lessons/current.md",
+                       "checkpoint": "Current question", "summary": "Why this branch matters"},
+            "active_branch": {"id": "branch", "question": "Current question", "purpose": "Why",
+                              "unit_ref": "lessons/current.md", "unresolved": [],
+                              "return_to": {"node": "main", "checkpoint": "Return to whole problem"}},
+            "parked_branches": [{"id": "later", "question": "A parked question", "purpose": "Later",
+                                 "unit_ref": "lessons/current.md", "unresolved": ["Explicitly postponed"],
+                                 "return_to": {"node": "main", "checkpoint": "Later"}}],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "navigation.html"
+            output.write_text(RENDERER.render_html(graph(), state, navigation={
+                "schema_version": 1, "positions": [position]}), encoding="utf-8")
+            dom = self.rendered_region(output, "#learning=continue", "#learning-view")
+            for expected in ("Current question", "Why this branch matters", "Whole problem",
+                             "Return to whole problem", "A parked question", "Explicitly postponed"):
+                self.assertIn(expected, dom)
+            self.assertNotIn("STALE CHECKPOINT", dom)
+            output.write_text(RENDERER.render_html(graph(), state, navigation={
+                "schema_version": 1, "positions": []}), encoding="utf-8")
+            dom = self.rendered_region(output, "#learning=continue", "#learning-view")
+            self.assertNotIn("STALE CHECKPOINT", dom)
+            self.assertIn("还没有可恢复的会话", dom)
+
     def test_wrapper_reports_the_node_22_and_npm_ci_recovery_contract(self) -> None:
         with mock.patch.object(RENDERER.shutil, "which", return_value=None):
             with self.assertRaises(RuntimeError) as missing:

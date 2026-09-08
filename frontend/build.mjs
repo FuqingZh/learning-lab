@@ -77,6 +77,7 @@ async function frontendData(arguments_, dataRoot) {
     return {
       graph: normalizedData("build-knowledge-map.py", dataRoot),
       learningState: normalizedData("build-learning-state.py", dataRoot),
+      navigation: normalizedData("check-teaching-navigation.py", dataRoot),
       history: normalizedData("build-knowledge-history.py", dataRoot),
       evidenceGraph: normalizedData(
         "build-knowledge-history.py",
@@ -99,6 +100,10 @@ async function frontendData(arguments_, dataRoot) {
     learningState: requireSchemaVersion(value.learningState, "LEARNING_STATE"),
     history: requireSchemaVersion(value.history, "HISTORY"),
     evidenceGraph: requireSchemaVersion(value.evidenceGraph, "EVIDENCE_GRAPH"),
+    navigation:
+      value.navigation === undefined
+        ? undefined
+        : requireSchemaVersion(value.navigation, "NAVIGATION"),
   };
 }
 
@@ -116,6 +121,7 @@ function htmlShell({
   learningState,
   history,
   evidenceGraph,
+  navigation,
   script,
   style,
 }) {
@@ -137,7 +143,8 @@ const LEARNING_STATE = ${safeJson(learningState)};
 const HISTORY = ${safeJson(history)};
 const EVIDENCE_GRAPH = ${safeJson(evidenceGraph)};
 const byId = new Map(GRAPH.nodes.map((node) => [node.id, node]));
-window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY, evidenceGraph: EVIDENCE_GRAPH };</script>
+const NAVIGATION = ${navigation === undefined ? "undefined" : safeJson(navigation)};
+window.__LEARNING_LAB_DATA__ = { graph: GRAPH, learningState: LEARNING_STATE, history: HISTORY, evidenceGraph: EVIDENCE_GRAPH, navigation: NAVIGATION };</script>
 <script>${script.replaceAll("</script", "<\\/script")}</script>
 </body>
 </html>
@@ -157,10 +164,8 @@ async function main() {
       "Learning Lab frontend dependencies are missing. Run npm ci with Node.js 24.x.",
     );
   }
-  const { graph, learningState, history, evidenceGraph } = await frontendData(
-    arguments_,
-    dataRoot,
-  );
+  const { graph, learningState, history, evidenceGraph, navigation } =
+    await frontendData(arguments_, dataRoot);
   const result = await build({
     entryPoints: [resolve(frontend, "src/entry.ts")],
     bundle: true,
@@ -196,6 +201,7 @@ async function main() {
       learningState,
       history,
       evidenceGraph,
+      navigation,
       script: script.text,
       style: style.text,
     }),

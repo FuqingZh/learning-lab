@@ -2,7 +2,13 @@
 
 Date: 2026-08-31
 Scope: approved 2026-08-30 implementation plus the authorized 2026-08-31 audit and delivery follow-up
-Status: implementation and corrective checks passed; PR delivery in progress; classroom trial pending
+Status: initial delivery merged; follow-up classroom evidence and whole-conversation closeout recorded; behavioral reliability remains unverified
+
+后续更新：用户又指出历史主线在连续代码问答中丢失，并授权修改及针对性
+验证。入口披露、父课备课和续课快照的本地修复见
+[披露与续课修复验证](20260831-continuity-repair-validation.md)。该记录单独
+区分结构检查、独立内容审阅与尚未运行的正式多轮行为验证；不覆盖或改写
+下方早期交付与试讲的历史结果。
 
 ## 已落库与实施
 
@@ -14,7 +20,8 @@ Status: implementation and corrective checks passed; PR delivery in progress; cl
   暂存不等于解决，解决不等于掌握。导航功能不迁移旧 session 或能力记录；
   后续获准的六条 session 时间纠正是单独审计的例外，见下文。
 - 准备 [React 衔接样课](../../lessons/scientific-ai-platforms/react-from-document-updates.md)
-  及无依赖 HTML；尚未进行课堂讲授、React runtime 或浏览器绘制验证。
+  及无依赖 HTML；初次实施时尚未讲授，后续试讲反馈见下文。
+  React runtime 或浏览器绘制验证仍不在这些检查的证明范围内。
 - 保留现有六场景模型评估契约，另增连贯教学内容审查，不制造模型运行结果。
 
 本次 skill-creator 的路由要求促使入口缩短、执行规则分阶段加载；calibration
@@ -53,7 +60,7 @@ partial 回读，不是完整历史导出，也不把初次导航快照的两轮
 | 术语分支 | JSX/component 仅定位用途，延后语法、hooks、imports；试学仍需观察这一处理是否足够 |
 | 能力证据 | 没有代答新应用题，没有以 prepared、pass 或分支关闭登记掌握 |
 
-[补充场景](20260830-coherent-tutoring-cases.md)中的八类反例已映射到当前规则、
+[补充场景](20260830-coherent-tutoring-cases.md)中初次八类反例已映射到当时规则、
 样课和导航测试。该映射只能证明有明确设计应对与有限结构证据，不能证明
 真实模型每次遵守。自然语言返回点的教学合理性仍需人工审查。
 
@@ -94,13 +101,47 @@ frontend 与 scorecard 必需检查没有关闭或降级。
   `bash scripts/check-structure.sh` 及提交 `1e8adb77ab5e26849bead8d59964d1174fcca335`
   的 PR CI 均通过。完整检查包括现有导航与静态评估检查，不是新模型试验。
 
-上述提交及原有五笔本地提交已推送至 PR #9；合并与主工作区同步仍待完成。
+上述提交及原有五笔本地提交已通过 PR #9 合并；前轮已核对主工作区与远端
+同为 `15e5abd0535e01085870456364336eaac717efee`。本次教学微调尚未提交。
 检查结果只支持相应代码、数据和结构声明，不证明教学效果。
+
+## 首次试讲反馈与获准微调（2026-08-31）
+
+来源：同一已获准 thread 的当前可见问答；以下是脱敏复盘，不是逐字转录。
+范围仅覆盖 React 试讲、两次复杂度反馈及本次记录/微调授权；没有追加完整
+平台导出或核齐所有消息 ID，来源覆盖仍为 partial。
+
+观察：试讲先展开 HTML、DOM、对象、函数、描述与显示流程。学习者认为解释
+比问题本身复杂，先用 HTML 包装概括例子，随后主动用 SQL 的 declarative
+思路类比 React，并要求复盘。用户已授权记录症结、微调提示词后继续试学。
+这支持一次不理想的讲解体验，不支持推断其 SQL/React 熟练度或固定学习风格。
+
+原因判断（待后续验证）：把概览误作执行流程拆解；把工具陌生扩大为全套
+基础需要重讲；用创建元素的例子承担更新管理的结论；过早堆叠边界说明。
+规则较重视缺失铺垫，却未充分检查多余铺垫。不能由此断言某条提示词是唯一原因。
+
+获准调整：在 tutor 入口、讲解参考和 NOTES 中明确主旨/用途优先、利用
+有效类比、只展开当前必要细节，并要求例子体现所宣称的优势。补充两个
+内容审查场景；不新增固定字数、提问频次或授课模板，不改总路线和证据规则。
+
+后续观察：从已提出的 declarative 类比接到可复用 component 的输入/输出。
+检查是否先说清用途、是否真正展示复用、是否避免无关 DOM/像素链；同时
+保留阅读例子所需的 JSX 和参数说明，不从过度解释退回术语跳跃。
+在自然节点分别记录体验反馈和独立应用证据；不要求每轮评分或小测。
+
+当前结果：微调已写入，后续讲解体验、独立应用与长期保持均未确认。此处不
+创建 subject-mastery session，不改变旧证据、review dates 或能力等级。
+静态检查只能验证格式、引用和导航，不证明这套提示词已改善教学。
+
+本次局部验证：skill quick_validate、4 项 tutor 测试、9 项导航测试、1 项
+Markdown 渲染测试、导航 validate/resolve、generated-artifact 检查及 diff
+空白检查通过。未重跑全仓库 gate，未运行模型对比或 JSX/React runtime；
+本次没有改生产脚本、测试、旧 session、能力记录、canonical entries 或历史。
 
 ## 剩余验收与操作边界
 
-下一步是用户真实试学：从完整展示问题进入，允许追问，在自然节点分别
-记录体验和独立应用证据。没有试学前，不宣称已解决术语跳跃或已提升学习效果。
+下一步是观察微调后的继续试学：允许追问，在自然节点分别记录体验和
+独立应用证据。首次复杂度反馈说明原有内容自审不足，不能宣称已解决问题。
 不要求先开展额外模型大规模对比，也不据一次试学宣称长期保持。
 
 自动完整采集、React runtime/浏览器绘制、模型行为可靠性、长期学习效果和
@@ -111,3 +152,55 @@ frontend 与 scorecard 必需检查没有关闭或降级。
 初次全套检查发现既有 site 仍嵌入 8 月 27 日状态，遗漏已存在的 8 月 28 日
 sessions；其后两次生成分别同步既有状态和获准纠正后的状态。
 这不是把新导航接入网站，也不是本轮新产生的能力判定。
+
+## Whole-conversation closeout（2026-09-07）
+
+本节是后续 `$closeout` 对同一获准 thread 的完整可访问范围核对，不改写上文
+“初次实施时只读取两轮”的历史事实。核对使用该 thread 的精确 local session
+record，从第一条明确教学请求
+`msg_01a00e46-ba3d-74c0-a443-82cd0bd18a33`（2026-08-17）逐行解析到
+closeout 请求 `msg_01a07b00-81c7-7f31-89f7-0787d201af7f`（2026-09-07）。
+JSONL 全文件解析通过；本节只保存脱敏主题与边界，不复制原始 transcript、
+hidden reasoning、tool output 或 private host path。
+
+重要主题与 owning documents 已核对：
+
+- model proposal、deterministic gates、human/scientific acceptance、dataset
+  handle、sandbox、authentication/authorization 和 confused deputy 由
+  `learning-records/scientific-ai-platforms/0007` 至 `0015` 承担；后续课程
+  不把这些能力外推为 frontend 或 backend implementation mastery。
+- side effect、idempotency、retry、ACK、partial failure、queue delivery 与
+  exactly-once 边界由 `0016`、对应 histories 及 relational-data lesson 承担；
+  PostgreSQL/outbox/attempt/lease 的后续内容仍是 guided explanation。
+- Web/program/process/service、JavaScript literal、DOM representation、
+  TypeScript static/runtime boundary 与 React state/Effects 的发展路线由
+  histories、track curriculum、React lesson 和 sample-viewer 承担；多次
+  “术语跳跃、过细、过度解释、停止续课、丢失历史主线”反馈由 tutor skill、
+  NOTES 与本 evaluation 保存，不据局部改善宣称教学法已验证。
+- FastAPI route/handler/setup、Pydantic/raw body、HTTP response hiding、
+  transaction ownership、claim ordering、run/attempt/manifest recovery 和
+  job-level asynchrony由 HTTP lesson 承担。当前未解决点是 false acceptance：
+  `uuid4()` 只产生 response identity，没有 durable handoff，route return 后
+  不会自动有 actor 执行 R1。
+- 关于将完整问答直接产品化存入数据库的方案，经讨论后被判为首版过度设计；
+  已采用 private source locator、append-only learning events、reviewed records
+  与 lightweight YAML navigation。自动采集、数据库和 navigation 网页投影仍
+  deferred，不能从本次手工 closeout 推断它们已经实现。
+
+本次仅为最后一段有精确 source-turn timing 的异步澄清新增一个 v2
+empty-evidence event；它更新 resume，不提升 capability 或 review interval。
+完整 conversation coverage 现在写入 navigation source declaration；结构 validator
+只能检查该声明格式，完整性结论来自上述 exact session record 核对。
+
+后续应从 false-acceptance transfer 恢复，再决定是否进入一个 runnable vertical
+slice。React runtime、独立 SQL/FastAPI 实现、distributed recovery transfer、正式
+多轮 tutor behavior evaluation、长期 retention 和 scientific correctness 均未由本
+conversation 证明。Closeout 不授权 commit、push、merge 或 archive。
+
+Closeout validation：`build-learning-state.py validate/normalized-data/list-review-cues`、
+navigation validate/resolve 与 `git diff --check` 通过。首次完整
+`scripts/check-structure.sh` 正确发现新增 session 造成 generated site stale；运行两套
+repository renderer 后复跑完整 gate，通过 frontend formatting/typecheck/tests/build、
+knowledge-map tests、learning-state/record/history/navigation、tutor static fixtures 和
+generated-artifact current 检查，最终输出 `learning-lab structure: ok`。这些只证明
+repository state 与相应 contract 一致，不证明教学行为可靠性或学习者 mastery。

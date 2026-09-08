@@ -1,5 +1,6 @@
 import type {
   Concept,
+  DiscussionPosition,
   Dossier,
   EdgeType,
   EvidenceEdgeKind,
@@ -7,7 +8,6 @@ import type {
   EvidenceNodeKind,
   FrontendData,
   LearningConcept,
-  Resume,
 } from "./contracts.js";
 import { edgeTypes } from "./contracts.js";
 import {
@@ -798,9 +798,23 @@ export function mountKnowledgeExplorer(
     learning.append(heading);
     const entries: LearningConcept[] =
       kind === "today" ? currentLearning() : [];
-    const resumeCue: Resume | null =
-      kind === "continue" ? (data.learningState.resume ?? null) : null;
-    if (!entries.length && !resumeCue) {
+    // Old injected fixtures retain their session cue. Production builds always
+    // supply resolver output, including explicit empty positions: never replace
+    // an empty authoritative projection with a stale session.
+    const positions: DiscussionPosition[] =
+      kind !== "continue"
+        ? []
+        : (data.navigation?.positions ??
+          (data.learningState.resume
+            ? [
+                {
+                  source: "legacy-resume",
+                  track: data.learningState.resume.track,
+                  resume: data.learningState.resume,
+                },
+              ]
+            : []));
+    if (!entries.length && !positions.some((position) => position.resume)) {
       const empty = element("p");
       empty.textContent =
         kind === "today"
@@ -820,11 +834,23 @@ export function mountKnowledgeExplorer(
       };
       learning.append(choice);
     }
-    if (resumeCue) {
+    for (const position of positions) {
+      const resumeCue = position.resume;
+      if (!resumeCue) continue;
       const choice = button("继续学习单元", "learning-item");
       const meta = element("small");
-      meta.textContent = `${resumeCue.unit_kind} · ${resumeCue.unit_ref}\n检查点：${resumeCue.checkpoint ?? "无"}\n${resumeCue.summary}`;
+      meta.textContent = `${pretty(position.track)}\n${resumeCue.unit_kind} · ${resumeCue.unit_ref}\n检查点：${resumeCue.checkpoint ?? "无"}\n${resumeCue.summary}`;
       choice.append(meta);
+      if (position.active_branch && position.main) {
+        const context = element("p");
+        context.textContent = `主课：${position.main.checkpoint}\n返回位置：${position.active_branch.return_to.checkpoint}`;
+        choice.append(context);
+      }
+      for (const branch of position.parked_branches ?? []) {
+        const parked = element("p");
+        parked.textContent = `暂存问题：${branch.question}\n${branch.unresolved.join("；")}`;
+        choice.append(parked);
+      }
       choice.onclick = () => {
         learning.hidden = true;
         if (resumeCue.unit_kind === "concept" && byId.has(resumeCue.unit_ref)) {

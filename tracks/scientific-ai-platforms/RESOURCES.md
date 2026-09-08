@@ -144,14 +144,160 @@
   example, mixed authority sources, and why caller-controlled designators must
   not be combined with a deputy's ambient authority.
 
+## Relational data and transactions (checked 2026-08-31)
+
+- [Codd, 1970](https://cs.uwaterloo.ca/~david/cs848s14/codd-relational.pdf):
+  primary paper, university-hosted copy; §§1.1–1.3 support data independence
+  and key-based record identification. No invention or SQL-origin claim.
+- [Gray, 1981](https://www.cs.utexas.edu/~witchel/380L/papers/gray81vldb-transaction.pdf):
+  primary technical report/paper, university-hosted copy; transaction state
+  transformation and atomicity, plus printed pp. 14–15 on concurrent access
+  and locking. Not proof of PostgreSQL internals or contemporary performance.
+- [PostgreSQL Constraints](https://www.postgresql.org/docs/18/ddl-constraints.html),
+  [Transactions](https://www.postgresql.org/docs/18/tutorial-transactions.html),
+  [UPDATE](https://www.postgresql.org/docs/18/sql-update.html), and
+  [Transaction Isolation](https://www.postgresql.org/docs/18/transaction-iso.html):
+  PostgreSQL 18 official behavior, including zero-row updates and Read Committed
+  waiting/rechecking on a competing row update. Documentation verification,
+  not a local runtime experiment or a claim of universal isolation semantics.
+- [Lampson and Sturgis, 1979](https://bwlampson.site/21-CrashRecovery/WebPage.html):
+  author archive of an unpublished report; crash recovery and stable-storage
+  abstraction under explicit physical assumptions. Not a global priority claim.
+- [PostgreSQL WAL](https://www.postgresql.org/docs/18/wal-intro.html) and
+  [WAL settings](https://www.postgresql.org/docs/18/runtime-config-wal.html):
+  WAL-before-data ordering, REDO recovery, and the configuration-dependent local
+  durability boundary. Not evidence of backup, replication or external-job handoff.
+- [AWS transactional outbox](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html):
+  dual-write failure and an outbox table written with business data in one
+  transaction; vendor guidance, not a universal exactly-once guarantee.
+- [Debezium Outbox Event Router](https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html):
+  mature-project documentation for capturing outbox rows and retaining a unique
+  event ID that consumers can use for duplicate removal. One implementation,
+  not evidence that Debezium is required by the pattern.
+
+## HTTP service boundary and FastAPI (checked 2026-09-01)
+
+- [WorldWideWeb proposal](https://www.w3.org/Proposal.html): primary historical
+  source for browser processes, active server processes, remote requests and
+  returned information nodes. It does not describe modern API frameworks,
+  JSON validation, authentication or application-service organization.
+- [W3C Web Services Architecture](https://www.w3.org/TR/2004/NOTE-ws-arch-20040211/):
+  W3C Working Group Note distinguishing an abstract Web service from the concrete
+  software agent that realizes it. Its scope is that architecture, not every
+  contemporary use of `service`, and chronology does not prove FastAPI lineage.
+- [FastAPI Request Body](https://fastapi.tiangolo.com/tutorial/body/): official
+  documentation for interpreting Pydantic models as request bodies, JSON parsing,
+  conversion and validation. These mechanisms do not prove authorization or
+  domain correctness.
+- [FastAPI Dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/):
+  official documentation for composing request requirements including security,
+  authentication and roles. It provides a mechanism, not a correct policy by itself.
+- [ASGI specification](https://asgi.readthedocs.io/en/latest/specs/main.html):
+  official interface specification separating protocol servers and Python
+  applications through scope and asynchronous receive/send callables. Used here
+  only to locate the server/application boundary, not to teach message internals.
+- [FastAPI Bigger Applications](https://fastapi.tiangolo.com/tutorial/bigger-applications/):
+  official documentation for declaring path operations on `APIRouter` and
+  including routers in the main FastAPI app. It does not prescribe one business-
+  logic layering style or establish identity trust.
+
 ## Wisdom (Communities)
 
-No community source has yet been selected. Practical advice will be added only
-when it is clearly distinguished from normative product contracts.
+These are tutorials, handbooks, and textbooks. They are not standards, not
+repository contracts, and not proof of mastery. They do not replace
+[CURRICULUM.md](CURRICULUM.md) or the historical primary sources above.
+Prefer official documentation over survey courses. Re-check drift-prone
+tutorial pages before reuse.
+
+Staging below is a 2026-09-03 judgment for this learner and this track. It is
+not a new eight-to-twelve-week axis, not a job-stack migration, and not
+authorization to skip the current HTTP/FastAPI unit. Update it when the
+current unit changes or when a track-route change is confirmed.
+
+### Current unit (HTTP service boundary)
+
+Track README as of 2026-09-01 locates the live unit at
+[the HTTP/FastAPI boundary](../../lessons/scientific-ai-platforms/http-boundary-and-fastapi.md).
+Use:
+
+- [FastAPI Tutorial](https://fastapi.tiangolo.com/tutorial/)
+  Publisher: FastAPI project. Checked: 2026-09-03. Use for: request bodies,
+  validation, dependencies, and errors as a complete worked example. Official
+  tutorial, not authorization or domain correctness. Overlaps the
+  HTTP-and-FastAPI Knowledge entries; those remain the contract citations.
+- [MDN: An overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview)
+  Publisher: MDN Web Docs. Checked: 2026-09-03. Use for: methods, status
+  codes, and why a lost response is not a proven failed effect. Community
+  documentation, not RFC 9110.
+
+### On-demand dictionaries (open frontend thread)
+
+React and JavaScript remain unfinished; they are not this week's spine.
+Look up syntax here instead of restarting a beginner web course:
+
+- [React Learn](https://react.dev/learn)
+  Publisher: React project. Checked: 2026-09-03. Use for: components, state,
+  Thinking in React, and Effects. Stop before Server Components and framework
+  comparison. Complements the React bridge pilot sources; does not prove the
+  sample viewer or any case repository.
+- [javascript.info](https://javascript.info/)
+  (Chinese: [zh.javascript.info](https://zh.javascript.info/))
+  Publisher: The Modern JavaScript Tutorial. Checked: 2026-09-03. Use as a
+  dictionary for objects, functions, closures, async, and DOM. Do not treat
+  chapter completion as a lesson win.
+- [MDN JavaScript Guide](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
+  and [MDN Introduction to the DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction)
+  Publisher: MDN Web Docs. Checked: 2026-09-03. Use for precise language and
+  DOM behavior when a worked example needs a term.
+- [Eloquent JavaScript](https://eloquentjavascript.net/)
+  Publisher: Marijn Haverbeke. Applies to: the current free edition as
+  checked 2026-09-03. Use only chapters on values, functions, objects, the
+  DOM, and events. Not a replacement for the history-backed spiral.
+
+Practice vehicle for the frontend thread remains
+[sample-viewer](../../lessons/scientific-ai-platforms/sample-viewer/README.md),
+not a third-party todo app.
+
+### Next stage (one runnable HTTP slice)
+
+After the current FastAPI unit has a connected example, not before:
+
+- [Full Stack Open](https://fullstackopen.com/en/)
+  (Chinese: [fullstackopen.com/zh](https://fullstackopen.com/zh/))
+  Publisher: University of Helsinki. Checked: 2026-09-03. Use Parts 1–3 as
+  homework for a small React plus HTTP service. Later parts are optional.
+  Express/REST here is a laboratory, not a claim that the track has switched
+  stacks.
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+  Publisher: TypeScript project. Checked: 2026-09-03. Use after a JavaScript
+  example already runs. Complements the existing TypeScript Knowledge
+  entries; types erase and do not replace runtime validation.
+- [PostgreSQL Tutorial: Transactions](https://www.postgresql.org/docs/current/tutorial-transactions.html)
+  Publisher: PostgreSQL Global Development Group. Checked: 2026-09-03. Use
+  to reconnect commit versus a successful HTTP response. The PostgreSQL 18
+  Knowledge entries remain the contract citations.
+
+If a later confirmed route needs a TypeScript HTTP stack, add that stack's
+official docs at that time. Do not load them as the current spine.
+
+### Reference, not a course
+
+- [Designing Data-Intensive Applications](https://dataintensive.net/)
+  Publisher: Martin Kleppmann / O'Reilly. Checked: 2026-09-03 as the current
+  book site. Use a chapter when retries, replication, or logs must be named
+  precisely. Not a reading program and not evidence of distributed-systems
+  mastery.
+
+### Do not start now
+
+Do not add CS50, a full OSTEP pass, MIT 6.824, a Kubernetes course, a
+System Design interview book, or another Agent/RAG/MCP survey as track
+work. Those either repeat existing systems judgment or open a parallel
+curriculum.
 
 ## Gaps
 
-- Add independent primary sources for transactions, distributed retries,
+- Extend transaction sources for later recovery topics; add sources for distributed retries,
   container isolation, AI evaluation, and scientific reproducibility as their
   lessons begin; project contracts are case evidence, not substitutes for
   those foundations.
@@ -172,3 +318,10 @@ when it is clearly distinguished from normative product contracts.
 
 These support the prepared lesson, not claims about the current implementation
 of any case repository or the learner's mastery.
+
+Component continuation (React official documentation, checked 2026-08-31):
+[Your First Component](https://react.dev/learn/your-first-component),
+[Passing Props](https://react.dev/learn/passing-props-to-a-component), and
+[JavaScript in JSX](https://react.dev/learn/javascript-in-jsx-with-curly-braces).
+Used for component reuse, explicit input objects, and the minimal JSX bridge;
+not evidence of a locally executed React application or learner mastery.

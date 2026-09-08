@@ -7,6 +7,38 @@
 怎样组织页面代码。TypeScript 可以帮助检查代码，但不是理解这一问题的
 前置条件。这一课不用 TypeScript 标注，也不要求你已经理解 React 的写法。
 
+续学提示：首次试讲被反馈为过于复杂，学习者随后提出 declarative SQL 类比。
+当前按下方“当前单元主线”续课；前面的 DOM 详解保留作按需参考，不要求
+重讲。反馈及调整见
+[试讲记录](../../docs/evaluations/20260831-coherent-tutoring-status.md)。
+
+## 当前单元主线
+
+本段供续课定位，不是每轮都要朗读的开场模板。
+
+当前续课已转入[浏览器与服务器的状态职责](browser-server-state.md)。Hooks、
+Effect 与 cleanup 的机制已作说明；学习者指出常规 return 与资源清理不值得
+独立展开。本页保留为按需参考，不由讲过或一次引导回答推断全面掌握。
+
+- 主问题：从“程序能修改文档”到“数据变化后界面持续保持一致”，再到
+  “怎样组织和复用有状态的界面代码”。目标是解释这些方案解决什么问题，
+  并能用小页面说明其作用，不是记住组件调用顺序。
+- 发展位置：已讨论 DOM 与 React 的界面描述；现在连接 React 内部的
+  state 组织与 Hooks。1998 DOM、2013 React 的依据见
+  [历史档案](../../histories/web-programming-history.md)；Hooks 的动机和
+  稳定发布分别参见 [Introducing Hooks](https://legacy.reactjs.org/docs/hooks-intro.html)
+  与 [2019 React 16.8 公告](https://legacy.reactjs.org/blog/2019/02/06/react-v16.8.0.html)。
+  这是有来源的不同问题与方案，不把时间先后说成唯一因果或首创。
+- 例子的作用：[样本浏览器](sample-viewer/README.md)用选择、详情、高亮说明
+  多处界面依据同一数据更新；`useState` 展示函数组件获得 state 与更新入口。
+  它不单独承担解释 Hooks 全部动机的任务，也不是新的课程主线。
+- 当前局部位置：已经解释 `useState` 返回当前值与更新函数，并补讲 React
+  与 Hooks 的历史位置；独立应用仍未确认。下一步结合团队记录的旧写法困难，
+  讲清“保存一份 state”和“复用带 state 的逻辑”不是同一问题。必要时就地
+  解释 class 是另一种组织组件的写法，不要求先学完整 class 或再做一轮按钮题。
+- 返回方式：局部语法回答后，把它连接回上述未完问题；不重复整段 Web 历史。
+  若学习者明确要求先练代码或换方向，按其请求调整，不强制返回。
+
 ## 先把已有的东西放到一起
 
 你可以把 JavaScript 理解为我们在这里编写程序使用的语言。浏览器提供了
@@ -186,7 +218,47 @@ React 本身。本课用了普通函数调用来展示同一类描述能力，�
   2013 的实现描述泛化成现代内部实现保证。
 - Checks：结构测试、示例输出与未变更旧事件可以机械检查；讲解是否适合
   学习者需要实际试学。React runtime/浏览器绘制尚不由 Node 示例测试证明。
-- Next：先让学习者选择澄清或独立应用，再进入一个有明确输入的 component
-  例子；不得直接恢复旧的 typed-props 起点。
-- Status：prepared, not taught or mastered. Content review is separate from
-  real learner evidence.
+- Next / current continuation：以本页“当前单元主线”和 navigation 为准；下面
+  的早期 component 片段与样本浏览器都是按需例子，不各自推进成独立路线。
+  共享 state 的例子依据
+  [Sharing State Between Components](https://react.dev/learn/sharing-state-between-components)，
+  不能仅由界面执行检查证明已理解 Hooks 的历史动机或能够独立应用。
+- Status：initial trial reported over-explanation; local prompt repair authorized.
+  Follow-up experience and independent application are unconfirmed. The earlier
+  preparation and examples above are reference material, not a required script.
+
+## 续学：把界面描述做成可复用的 component
+
+当前实践例子：[样本浏览器：完整功能练习](sample-viewer/README.md)。
+它服务本页“当前单元主线”；下面的片段作为参考，不再逐个组件名称做重复问答。
+
+从“描述想要的界面”再走一步：同一种显示规则要用在很多地方，怎么办？
+可以把它写成一个接收输入、返回界面描述的函数。这就是这里要用的 function
+component；用途是组织和复用界面，而不是要求你直接管理每个 DOM 元素。
+
+下面用 JSX 表达界面：它是在 JavaScript 中写类似 HTML 标记的语法，需要
+工具处理。标记里的 `{...}` 表示取其中的 JavaScript 值。
+`props` 是函数接收到的输入对象，`props.count` 读取其中的数量。
+片段假设已配置 React/JSX 环境，不是独立运行程序：
+
+```jsx
+function SampleCount(props) {
+  return <p>样本数：{props.count}</p>;
+}
+```
+
+在其他界面描述中可以分别使用 `<SampleCount count={3} />` 和
+`<SampleCount count={5} />`，得到数量为 3 和 5 的两段内容。这里的大写名称
+引用我们定义的 component，`count={3}` 传入数值 3，`/>` 结束这个标记。
+不是向浏览器注册一个新 HTML 标签。
+
+如果要统一改为“共 X 个样本”，只改函数中的那一处文字组织规则，使用它的
+地方就能共享新定义。这展示的是复用，不是数据变化自动触发更新；交互如何
+提供新输入留到接下来的例子。可以把数量换成文件名做有支持的应用，再按
+实际反馈决定是否进入独立应用，不把读懂示例登记为掌握。
+
+来源（React 官方文档，核对于 2026-08-31）：
+[Your First Component](https://react.dev/learn/your-first-component)、
+[Passing Props](https://react.dev/learn/passing-props-to-a-component)、
+[JavaScript in JSX](https://react.dev/learn/javascript-in-jsx-with-curly-braces)。
+此续学片段经过文档核对，不纳入既有纯 JS 示例的执行证明。

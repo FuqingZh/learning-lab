@@ -24,10 +24,23 @@ explanation/application, prerequisite evidence and unknowns, the complete
 example and its syntax, deferred details, sources and their limits, a matched
 independent task, and the connection to the larger route.
 
+Keep a concise stable unit organizer in those same notes: the main
+problem/outcome, its position in the agreed development route, why the example
+helps, and the connection to later work. Navigation owns the current unresolved
+step after local questions; do not keep a second live checkpoint in the lesson.
+Historical question/answer sequences may remain in linked classroom notes. For a
+history-led track, distinguish the documented earlier problem/proposal from the
+modern mechanism being illustrated. Link the relevant dossier and sources.
+Repairing syntax or changing examples updates the local step, not silently the
+organizing problem. A deliberate learner redirection can change both.
+
 The lesson can span replies. Not every reply needs history, a diagram, a
 counterexample and a quiz. An exercise must test the intended capability, not
-incidental API spelling. Do not disclose an assessment answer before an actual
-retrieval attempt; examples used for teaching should be fully explained.
+incidental API spelling. Follow the entrypoint's explicit retrieval-exercise
+boundary; examples used for teaching and direct questions may be fully explained.
+Across the unit, however, the agreed historical/problem line must remain visible
+in the explanation. Do not treat "not every reply" as permission to omit it
+throughout continuation, or equate mentioning a date with explaining development.
 
 ## History and source review
 

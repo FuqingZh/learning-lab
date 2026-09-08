@@ -5,6 +5,7 @@ sources belong to the track that uses them:
 
 - [Bioinformatics Systems resources](tracks/bioinformatics-systems/RESOURCES.md)
 - [Scientific AI Platforms resources](tracks/scientific-ai-platforms/RESOURCES.md)
+  (includes dated community tutorials that are not the curriculum spine)
 
 ## Source policy
 

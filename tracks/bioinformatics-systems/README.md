@@ -19,45 +19,26 @@ understood, and finish with a transfer problem outside SeqEvi.
 4. [Learning records](../../learning-records/bioinformatics-systems/)
 5. [Reusable lessons](../../lessons/bioinformatics-systems/)
 
-## Current state
+## Recorded course context
 
-Biological annotation boundaries, alignment significance, orthology-aware
-transfer, exact evidence reuse, native row grain, terminal evidence states,
-deduplicated computation, and no-hit-preserving joins have been demonstrated
-through SeqEvi cases.
+Legacy classroom records describe work on biological annotation, alignment,
+orthology, exact evidence reuse, row grain, terminal evidence, joins, cache,
+concurrency and end-to-end scientific results. They also record a systems-map
+orientation and an integrated microscopy example. These are historical
+observations, not current structured capability assessments.
 
-The course is now deliberately returning to the whole-system first pass. The
-active objective is to build the seven-part systems map and trace one generic
-scientific request through it. Cache, SQL, async execution, transactions, and
-concurrency will then be revisited as connected mechanisms rather than isolated
-next topics.
+The 2026-09-07 workspace audit finds 37 legacy records and no structured reviews.
+Do not infer mastery from those filenames or extend a case answer to untested
+skills. Use reviewed records for capability, the session engine for observations
+and review cues, and navigation for current discussion position:
 
-The recently completed DuckDB relation and join exercises remain useful case
-evidence, but they do not define the next lesson sequence.
+```bash
+python3 scripts/build-learning-records.py normalized-data
+python3 scripts/build-learning-state.py normalized-data
+python3 scripts/check-teaching-navigation.py resolve --track bioinformatics-systems
+```
 
-The learner has already distinguished cache, source of truth, and materialized
-results by rebuildability and deletion impact. That remains valid progress, but
-the expiration/eviction/invalidation drill is deferred until the systems-map
-orientation is complete.
-
-In the systems-map first pass, the learner has now demonstrated the distinction
-among data flow, control flow, and state flow; local versus end-to-end success;
-and authoritative state versus caller knowledge after an ambiguous outcome.
-Layers, boundaries, and invariants are also demonstrated, including diagnosis
-at the first violated boundary and the distinction between operational
-completion and semantic correctness. Contract taxonomy is now demonstrated as
-well, including schema, identity, lifecycle, transaction, authority, service,
-and compatibility promises; the learner also separates idempotency from
-physical compute deduplication. Cross-cutting quality objectives are now also
-demonstrated: metric, target, scope, and window are explicit; performance and
-reliability are independent; and interface, state visibility, and actual
-failure-rate reduction are not conflated. The integrated first-pass walkthrough
-has now also been demonstrated with a generic microscopy analysis case:
-identity begins with a definition of sameness, identifiers do not replace
-authoritative data, physical batching can preserve logical independence, and
-computation versions remain distinct.
-
-Systems-map Pass 1 orientation is complete. Pass 2 now deepens one foundation
-at a time, beginning with program, process, and service, followed by volatile
-memory and durable state. Repositories remain case laboratories rather than the
-curriculum's organizing structure.
+The documented route proceeds from the systems-map orientation into program,
+process and service, then volatile memory and durable state. This route is
+preserved; when no matching resume exists, use the learner's current request
+and relevant records rather than importing another track's checkpoint.

@@ -1,0 +1,13 @@
+# Exact source-turn window from the verified thread record; rounded up.
+schema_version: 2
+id: 20260907T162844+0800-scientific-ai-platforms-session
+started_at: 2026-09-07T16:28:44+08:00
+duration_minutes: 3
+mode: guided-lesson
+track: scientific-ai-platforms
+resume:
+  unit_kind: lesson
+  unit_ref: lessons/scientific-ai-platforms/http-boundary-and-fastapi.md
+  checkpoint: Test whether returning an unpersisted UUID can form a real asynchronous job and identify the minimum durable handoff before route return.
+  summary: The learner described job-level asynchrony with foreground work continuing while a result is produced, then received a correction that R1 must be committed before 202, a Worker executes the task, and a1 is obtained through a later interaction tied to R1.
+evidence: []

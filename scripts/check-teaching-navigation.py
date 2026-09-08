@@ -170,7 +170,17 @@ def load(path: Path, root: Path) -> dict[str, Any]:
 
 
 def resolve(root: Path, track: str) -> dict[str, Any]:
-    """Return a position without reading raw conversations or modifying state."""
+    """Resolve one track for tutors and the site without modifying evidence.
+
+    Examples:
+        ``resolve(root, "scientific-ai-platforms")["resume"]`` returns the
+        active branch question/purpose, or the main checkpoint. It is None
+        when neither a snapshot nor a matching legacy resume exists.
+
+    Notes:
+        Existing detail fields remain compatible. Invalid snapshots raise
+        NavigationError rather than falling back to a stale session cue.
+    """
     path = track_path(root, track)
     if not path.exists() and not path.is_symlink():
         result = subprocess.run(
@@ -195,14 +205,43 @@ def resolve(root: Path, track: str) -> dict[str, Any]:
         current = nodes[current]["parent"]
     chain.reverse()
     active = nodes.get(data["active_branch"])
+    resume = {
+        "track": track, "unit_kind": "lesson",
+        "unit_ref": active["unit_ref"] if active else data["main"]["unit_ref"],
+        "checkpoint": active["question"] if active else data["main"]["checkpoint"],
+        "summary": active["purpose"] if active else "Continue the main lesson at its checkpoint.",
+    }
     return {"source": "navigation", "track": track, "main": data["main"],
             "active_branch": active, "breadcrumb": chain,
+            "resume": resume, "updated_at": data["updated_at"],
+            "parked_branches": [node for node in data["branches"] if node["status"] == "parked"],
             "capture": data["source"]}
+
+
+def normalized_data(root: Path) -> dict[str, Any]:
+    """Project every track through resolve, excluding conversation provenance.
+
+    Examples:
+        ``normalized_data(root)["positions"]`` includes tracks without a
+        resume, so consumers can distinguish no position from missing data.
+
+    Notes:
+        Never serialize capture locators/ranges to the public site. Only the
+        sanitized lesson position is public; reviewed capability is separate.
+    """
+    positions = []
+    for path in sorted((root / "tracks").iterdir()):
+        if path.is_dir():
+            position = resolve(root, path.name)
+            public_fields = ("source", "track", "resume", "main", "active_branch",
+                             "breadcrumb", "parked_branches", "updated_at")
+            positions.append({key: position[key] for key in public_fields if key in position})
+    return {"schema_version": 1, "positions": positions}
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("validate", "resolve"))
+    parser.add_argument("command", choices=("validate", "resolve", "normalized-data"))
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--track")
     args = parser.parse_args()
@@ -212,6 +251,8 @@ def main() -> int:
     try:
         if args.command == "resolve":
             print(json.dumps(resolve(root, args.track), ensure_ascii=False, sort_keys=True))
+        elif args.command == "normalized-data":
+            print(json.dumps(normalized_data(root), ensure_ascii=False, sort_keys=True))
         else:
             paths = ([track_path(root, args.track)] if args.track else
                      sorted((root / "learning-state" / "navigation").glob("*.yaml")))

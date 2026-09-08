@@ -6,6 +6,12 @@ The fixtures are privacy-safe synthetic learner turns with fixed allowed
 sources, observable criteria, critical failure flags, and expected durable
 state facts.
 
+For bounded classroom observations without a model reliability claim, use the
+[continuity observation protocol](20260907-continuity-observation-protocol.md).
+It has separate declarations and never emits this contract's scorecard or
+aggregate. Its missing runtime identifiers remain explicit limitations; the
+strict requirements below are unchanged.
+
 Run the deterministic checks from the repository root:
 
 ```bash

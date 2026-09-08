@@ -161,7 +161,27 @@ model before JavaScript, TypeScript, React, or repository component APIs.
    invite another attempt when useful, without a fixed retry quota.
 6. Record mastery only after the lesson-level evidence is sufficient.
 
-## Current pilot: return to the React bridge
+## Current unit: HTTP boundary and FastAPI
+
+The PostgreSQL stage reached a natural boundary after relations, constraints,
+transaction atomicity, Read Committed competition, durability, transactional
+outbox and recoverable worker-attempt ownership. These were guided explanations;
+independent SQL, real concurrency and external-effect recovery remain unconfirmed.
+
+The scheduled FastAPI stage now begins with
+[From HTTP request to controlled business operation](../../lessons/scientific-ai-platforms/http-boundary-and-fastapi.md).
+It first reconstructs the browser/server request boundary and separates the
+abstract service contract from a running implementation agent. It then traces
+parsing, runtime validation, authentication, authorization, application-operation
+ownership, transaction and response before introducing framework syntax.
+Bio Plot Platform remains the later case laboratory. The vertical slice remains
+the following stage rather than being silently merged into this introduction.
+
+The following React pilot notes are retained as historical preparation, not
+the current resume point. Progression does not validate the teaching method or
+establish broad framework mastery.
+
+## Earlier pilot: return to the React bridge
 
 The learner's feedback identifies insufficient setup and unexplained syntax.
 Earlier systems reasoning and TypeScript answers do not establish React or
@@ -179,5 +199,10 @@ larger route, not inside this introduction.
 
 Detailed position and meaningful branches live in
 [navigation](../../learning-state/navigation/README.md), separately from
-capability. The pilot is prepared, not taught or accepted. Its success requires
-a real learner encounter, not just passing repository checks.
+capability. The first pilot encounter received over-explanation feedback; it is
+not accepted as effective. Resume from the parent lesson's current unit organizer:
+the declarative analogy leads to data/view consistency and the documented problem
+of organizing stateful UI logic. The sample viewer is supporting practice, not a
+replacement route. Bridge syntax locally and reconnect to the unfinished problem;
+do not replay the whole DOM walkthrough. The stage route is unchanged. See the
+[trial record](../../docs/evaluations/20260831-coherent-tutoring-status.md).
