@@ -43,6 +43,13 @@ node lessons/scientific-ai-platforms/sample-viewer/check.mjs
 检查支持 `CHROME` 环境变量指定浏览器；本次没有修改主机权限或安装依赖。
 启动失败时保留独立临时 profile 供诊断，不将环境失败记为测试通过。
 
+交付复验（2026-09-08）：构建及全部交互断言通过，包含初始状态、A/B 切换、
+重复选择、清除、重新选择、刷新与错误显示负例。默认启动仍复现旧环境问题；
+当前主机的浏览器包装脚本会追加参数，干扰指定 profile。此次通过 `CHROME`
+选择实际浏览器可执行文件，并给 TMPDIR、XDG_CONFIG_HOME、XDG_CACHE_HOME 设置
+独立临时目录完成检查；没有修改主机包装脚本或权限。其他主机需按实际安装
+指定可执行文件，不把本次结果解释为默认包装脚本已修好。
+
 来源（React 官方文档，核对于 2026-08-31）：
 [Sharing State](https://react.dev/learn/sharing-state-between-components)、
 [Conditional Rendering](https://react.dev/learn/conditional-rendering)。
