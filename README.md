@@ -51,7 +51,9 @@ not authoritative product documentation and not implementation requirements.
   reviewed capability.
 - `learning-state/navigation/`: lightweight discussion position and return points,
   separate from mastery; valid snapshots take precedence over legacy resume for
-  discussion only. The generated site still displays the legacy session resume.
+  discussion only. The site and tutor use the same resolver projection.
+- `docs/learning-observations/`: bounded classroom history and prerequisite reviews;
+  these do not establish structured capability.
 - `.learning-private/`: optional authorized original exports, excluded from Git;
   not an automatic collector, encryption mechanism, or backup.
 - `.agents/skills/learning-lab-tutor/`: the history-grounded, map-first learning

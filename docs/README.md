@@ -7,6 +7,9 @@ for any source repository.
 
 ## Read first
 
+- [Continuity and evidence optimization](implementation-plans/20260907-learning-continuity-and-evidence-plan.md):
+  approved shared resume projection, bounded prerequisite review and classroom observation.
+
 - [Coherent tutoring implementation plan](implementation-plans/20260830-coherent-tutoring-implementation-plan.md):
   current approved teaching/navigation changes; lightweight files, no database,
   no fixed lesson quotas, and real classroom acceptance still required.
@@ -37,6 +40,11 @@ learning records, either track curriculum, or runtime schemas. Its accepted
 follow-up is routed through the v1.4 plan above.
 
 ## Audits and evaluation
+
+- [Current prerequisite review](learning-observations/20260907-current-prerequisite-review.md):
+  transaction, asynchronous-task and execution-actor evidence limits, with no capability promotion.
+- [Bounded continuity observations](evaluations/20260907-continuity-observation-protocol.md):
+  multi-turn protocol and retrospective classroom observations, separate from strict scores.
 
 - [Session timing and review-count audit](audits/20260831-session-timing-audit.md):
   authorized correction of six imported records, source-window limits, and

@@ -79,8 +79,15 @@ def render_html(
     learning_state: dict[str, Any],
     history: dict[str, Any] | None = None,
     evidence_graph: dict[str, Any] | None = None,
+    navigation: dict[str, Any] | None = None,
 ) -> str:
-    """Render supplied normalized fixtures through the production frontend."""
+    """Render supplied normalized fixtures through the production frontend.
+
+    Examples:
+        ``render_html(graph, state, navigation=positions)`` uses the supplied
+        resolver projection. Omitting navigation preserves pre-navigation
+        fixture behavior; this helper never imports the caller's live position.
+    """
     root = Path(__file__).resolve().parents[1]
     payload = {
         "graph": graph,
@@ -96,6 +103,8 @@ def render_html(
             else {"schema_version": 1, "nodes": [], "edges": []}
         ),
     }
+    if navigation is not None:
+        payload["navigation"] = navigation
     with tempfile.TemporaryDirectory(prefix="learning-lab-site-render-") as directory:
         temporary = Path(directory)
         data_file = temporary / "frontend-data.json"

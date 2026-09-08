@@ -122,6 +122,8 @@ python3 tests/learning-state/test_learning_state.py
 python3 tests/learning-records/test_learning_records.py
 python3 tests/learning-skill/test_learning_lab_tutor.py
 python3 tests/learning-skill/test_teaching_navigation.py
+python3 scripts/check-teaching-observations.py
+python3 tests/learning-skill/test_teaching_observations.py
 python3 scripts/run-tutor-evaluation.py verify-static
 python3 tests/learning-skill/test_tutor_evaluation_contract.py
 python3 scripts/check-knowledge-map-generated.py

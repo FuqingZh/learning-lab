@@ -8,9 +8,26 @@ purpose, return checkpoint, conclusion and unresolved questions. Do not turn
 every term/reply into a node. Manual snapshots are enough; no database or
 automatic route engine is required.
 
+Keep `main.unit_ref` on the organizing lesson while a lab supplies its example.
+Its `checkpoint` preserves the main problem, development position, example's
+role, and unresolved return step in prose; refer to the lesson's organizer for
+detail. Do not replace it with only the last exercise. Short inline clarifications
+need no new node. Intentional route changes still update the main lesson.
+
+Distinguish temporary focus from a new organizing problem. "For now, debug this"
+keeps the parent lesson and return point, using an inline pause or a substantial
+branch as needed. It does not imply permanently dropping the historical route.
+Replace `main.unit_ref` only for an explicit change of main problem; persistent
+mission/stage changes still require confirmation under the entrypoint rules.
+
 ```bash
 python3 scripts/check-teaching-navigation.py resolve --track scientific-ai-platforms
 ```
+
+Use the resolver's `resume` for the current question, `main` for its organizing
+problem, and branch return/parked information for continuity. The website uses
+the same projection; do not independently choose an old question from lesson
+prose or update README as a second checkpoint.
 
 A valid snapshot supplies discussion position only. Missing snapshots fall back
 to the existing state engine's resume. Invalid snapshots fail visibly rather

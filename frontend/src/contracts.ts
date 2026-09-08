@@ -85,6 +85,31 @@ export interface LearningState {
   concepts: LearningConcept[];
   resume?: Resume | null;
 }
+export type DiscussionResume = Pick<
+  Resume,
+  "track" | "unit_kind" | "unit_ref" | "checkpoint" | "summary"
+>;
+export interface DiscussionBranch {
+  id: string;
+  question: string;
+  purpose: string;
+  unit_ref: string;
+  return_to: { node: string; checkpoint: string };
+  unresolved: string[];
+}
+export interface DiscussionPosition {
+  source: "navigation" | "legacy-resume" | "none";
+  track: string;
+  resume: DiscussionResume | null;
+  main?: { unit_ref: string; checkpoint: string };
+  active_branch?: DiscussionBranch | null;
+  parked_branches?: DiscussionBranch[];
+  breadcrumb?: string[];
+}
+export interface Navigation {
+  schema_version: 1;
+  positions: DiscussionPosition[];
+}
 export interface Milestone {
   id: string;
   year: number;
@@ -152,6 +177,8 @@ export interface FrontendData {
   learningState: LearningState;
   history: History;
   evidenceGraph: EvidenceGraph;
+  // Optional only for pre-navigation fixture/data-file compatibility.
+  navigation?: Navigation;
 }
 export const edgeTypes: readonly EdgeType[] = [
   "prerequisites",

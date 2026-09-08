@@ -3,8 +3,8 @@
 This directory contains the strict TypeScript projection of Learning Lab's
 canonical Python data models. The browser does not parse Markdown/YAML and does
 not fetch graph data at runtime. `frontend/build.mjs` runs the repository
-builders and embeds four exact schema-v1 projections—concept graph, learning
-state, history timeline, and evidence graph—into one HTML file before the
+builders and embeds five exact schema-v1 projections—concept graph, learning
+state, history timeline, evidence graph, and discussion navigation—into one HTML file before the
 bundled application starts.
 
 Use Node.js 24.x from the repository root:
@@ -31,5 +31,13 @@ Graph nodes use `reviewed_capability` as their primary learner-facing status.
 It is produced only by validated, structured learning records; old
 filename-derived `mastery` is retained strictly as a subordinate compatibility
 label. The learning-state projection is separate: its observations and review
-cues drive `Today`, while `Continue` dispatches an explicit concept, lesson,
-or track recovery cue without inventing a curriculum step.
+cues drive `Today`. `Continue` uses `check-teaching-navigation.py normalized-data`,
+the same resolver used by the tutor, and shows each track's current question,
+main problem, branch return point and parked questions. Capture provenance is
+excluded from this public projection. Missing snapshots use only matching-track
+session cues; invalid snapshots stop generation rather than silently falling back.
+
+Pre-navigation injected test fixtures may omit `navigation` and keep their old
+session view. Production generation always includes it; explicit empty navigation
+does not revive a stale session cue. The existing four projections remain exact
+and unchanged, so observation state is not rewritten into discussion position.

@@ -49,7 +49,7 @@ test("verification builds are deterministic and leave the production site untouc
   );
 });
 
-test("the frontend embeds the exact four canonical projections", async () => {
+test("the frontend embeds canonical data and the shared navigation projection", async () => {
   const html = await build("canonical.html");
   assert.deepEqual(
     embedded(html, "GRAPH"),
@@ -67,6 +67,11 @@ test("the frontend embeds the exact four canonical projections", async () => {
     embedded(html, "EVIDENCE_GRAPH"),
     normalized("build-knowledge-history.py", "normalized-evidence-data"),
   );
+  assert.deepEqual(
+    embedded(html, "NAVIGATION"),
+    normalized("check-teaching-navigation.py"),
+  );
+  assert.equal("capture" in embedded(html, "NAVIGATION").positions[0], false);
 });
 
 test("the frontend is one offline HTML artifact with no runtime dependency", async () => {

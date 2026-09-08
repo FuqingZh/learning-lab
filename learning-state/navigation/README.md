@@ -17,8 +17,19 @@ track's snapshot. If absent, it reads the old producer's latest resume and uses
 it only if its track matches; otherwise reports no resume. It does not invent
 a per-track scheduler. If invalid, it fails visibly rather than falling back.
 The current user request always takes precedence over either stored position.
-The generated website still shows old session resume; this CLI supplies the
-tutor's detailed position and does not modify generated public projections.
+The generated website and tutor use this resolver. `resolve --track` preserves
+its existing detailed fields and adds a normalized `resume` (unit, checkpoint,
+summary), `updated_at`, and `parked_branches` for navigation-backed positions.
+The active branch supplies the current question and purpose; `main` preserves
+the organizing problem. Missing-navigation results retain their existing shape.
+
+`normalized-data` resolves every track and emits `{schema_version: 1, positions}`
+with those same positions, excluding capture provenance by an explicit field
+allowlist. A corrupt snapshot fails the build. Tracks with no matching resume
+remain explicit `source: none` entries; no cross-track fallback occurs. Old
+injected frontend fixtures without a navigation field retain their old session
+view, but production generation always supplies the navigation projection.
+Neither command mutates source evidence; regenerate the site after updates.
 
 ## Snapshot schema (version 1)
 
