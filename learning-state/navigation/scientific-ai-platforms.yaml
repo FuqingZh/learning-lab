@@ -1,15 +1,15 @@
 schema_version: 1
 track: scientific-ai-platforms
-updated_at: '2026-09-07T17:41:41+08:00'
+updated_at: '2026-09-09T14:17:54+08:00'
 source:
   enabled: true
   locator: codex:thread:01a00e46-1bee-7081-a01d-111f587fdfbd
   coverage: partial
   verified_range: Exact local session record parsed end to end for this thread, from the first explicit teaching request msg_01a00e46-ba3d-74c0-a443-82cd0bd18a33 (2026-08-17T05:51:51.357Z) through the closeout request msg_01a07b00-81c7-7f31-89f7-0787d201af7f (2026-09-07T08:33:45.928Z).
   gaps:
-  - The earlier verified range covers the named historical task only. This checkpoint also summarizes the current visible 2026-09-07 teaching exchange; its independent export and exact message locators have not been verified.
+  - 原 verified_range 只覆盖其中标注的历史任务。本轮可见问答延伸到 2026-09-09；其原始导出、逐条消息定位和准确教学时长未核对。
 main:
-  unit_ref: lessons/scientific-ai-platforms/http-boundary-and-fastapi.md
-  checkpoint: 接续 HTTP/FastAPI 主课：浏览器请求怎样成为可靠的绘图任务。当前已解释 durable_submit 是案例函数、保存任务先于响应、数据库与 Worker 的分工，以及浏览器异步 I/O 与持久化任务的区别；又用早期 I/O 与网页邮箱来源解释了异步处理的场景。随后用户暂停课程，要求审视并优化学习仓库。优化结束后从这些联系恢复，不重放 UUID 旧题作为未讲内容。下一步用导出报告的完整时间线串起提交、后台执行和后续查询；在自然节点观察独立解释，再决定是否进入可运行的纵向案例。当前仅为讲解覆盖，没有新的独立表现或掌握结论。
+  unit_ref: lessons/scientific-ai-platforms/vertical-task-workflow.md
+  checkpoint: HTTP/FastAPI 单元已讲解至依赖、连接生命周期与事务提交边界；按用户确认进入原路线第 9 阶段。下一步运行 React、FastAPI、PostgreSQL 与独立 Worker 的最小完整任务流程，先追踪一次提交与查询，再做指导修改。现有 task-demo 仅为标准库/SQLite 脚手架。视频转码回答出现了多记录联合检查，但 GET 与任务执行、客户端确认与后台完成的混淆经教师修正后尚未独立复验；SQL/React/FastAPI 独立编码未确认。详细范围见 20260909-http-unit-closeout.md，不回到旧的手动查询起点，也不继续扩展锁或租约边角。
 active_branch: null
 branches: []

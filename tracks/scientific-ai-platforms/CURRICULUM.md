@@ -161,25 +161,24 @@ model before JavaScript, TypeScript, React, or repository component APIs.
    invite another attempt when useful, without a fixed retry quota.
 6. Record mastery only after the lesson-level evidence is sufficient.
 
-## Current unit: HTTP boundary and FastAPI
+## Current unit: vertical task workflow
 
-The PostgreSQL stage reached a natural boundary after relations, constraints,
-transaction atomicity, Read Committed competition, durability, transactional
-outbox and recoverable worker-attempt ownership. These were guided explanations;
-independent SQL, real concurrency and external-effect recovery remain unconfirmed.
+The HTTP/FastAPI unit has covered request/response contracts, identity and
+resource authorization, dependencies, and the distinction between connection
+cleanup and transaction commit. Guided discussions also connected durable
+execution to frontend observation. Coverage is not independent mastery.
 
-The scheduled FastAPI stage now begins with
-[From HTTP request to controlled business operation](../../lessons/scientific-ai-platforms/http-boundary-and-fastapi.md).
-It first reconstructs the browser/server request boundary and separates the
-abstract service contract from a running implementation agent. It then traces
-parsing, runtime validation, authentication, authorization, application-operation
-ownership, transaction and response before introducing framework syntax.
-Bio Plot Platform remains the later case laboratory. The vertical slice remains
-the following stage rather than being silently merged into this introduction.
+The learner confirmed moving to the original ninth stage:
+[From React to PostgreSQL](../../lessons/scientific-ai-platforms/vertical-task-workflow.md).
+Start with one runnable demonstration task across React, FastAPI, PostgreSQL,
+and a separate Worker, then guided modification and fresh transfer. The earlier
+standard-library/SQLite lab supplies a contrast, not proof of this stack.
 
-The following React pilot notes are retained as historical preparation, not
-the current resume point. Progression does not validate the teaching method or
-establish broad framework mastery.
+[The unit closeout](../../docs/learning-observations/20260909-http-unit-closeout.md)
+records demonstrated reasoning, teacher corrections, implementation limits and
+missing capture/time evidence. Do not infer capability from “continue” or tests.
+The larger historical technology route remains unchanged; Bio Plot Platform
+is still a later case laboratory rather than the curriculum spine.
 
 ## Earlier pilot: return to the React bridge
 
