@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>任务流程实验</title>
+<style>
+body{font:18px/1.7 system-ui;max-width:760px;margin:50px auto;padding:20px;background:#f6f7fa;color:#17243a}
+button,input{font:inherit;padding:8px;margin:4px}pre{white-space:pre-wrap;background:white;padding:20px}small{display:block}
+</style>
+<h1>一份报告怎样完成</h1>
+<p>提交任务后可以暂停查询、刷新页面，后台任务仍独立执行。</p>
+<label>报告名称 <input id="label" value="示例报告" maxlength="120"></label>
+<div><button id="submit">提交 / 重试同一操作</button><button id="new">开始新操作</button></div>
+<div><button id="resume">继续查询</button><button id="pause">暂停查询</button></div>
+<p id="request">尚未查询</p><p id="error" role="alert"></p>
+<pre id="task">暂无任务记录</pre><pre id="result"></pre>
+<small>本机教学实验：原生 JavaScript + Python HTTP + SQLite；报告为演示文本。</small>
+<script>
+const $ = (id) => document.getElementById(id);
+let operation = JSON.parse(localStorage.getItem("task-demo-operation") || "null");
+let epoch = 0, timer, controller, failures = 0;
+if (operation) $("label").value = operation.label;
+function save() { localStorage.setItem("task-demo-operation", JSON.stringify(operation)); }
+function stop() {
+  epoch += 1;
+  clearTimeout(timer);
+  if (controller) controller.abort();
+  $("request").textContent = "查询已暂停；后台任务不会因此取消";
+}
+async function query(version) {
+  if (version !== epoch || !operation || !operation.runId) return;
+  const currentController = new AbortController();
+  controller = currentController;
+  const timeout = setTimeout(() => currentController.abort(), 5000);
+  let retry = true;
+  $("request").textContent = "正在查询";
+  try {
+    const response = await fetch("/exports/" + operation.runId, {signal: currentController.signal});
+    if (!response.ok) {
+      retry = response.status >= 500;
+      throw new Error("查询响应：" + response.status);
+    }
+    const task = await response.json();
+    if (version !== epoch) return;
+    failures = 0;
+    $("error").textContent = "";
+    $("task").textContent = JSON.stringify(task, null, 2);
+    $("result").textContent = task.result || "";
+    retry = !["succeeded", "failed"].includes(task.status);
+    $("request").textContent = retry ? "已更新，稍后再查" : "任务已结束";
+  } catch (error) {
+    if (version !== epoch) return;
+    failures += 1;
+    $("error").textContent = error.message + "；保留上次记录，不判定任务失败";
+    retry = retry && failures < 3;
+    $("request").textContent = retry ? "稍后重试查询" : "自动查询已暂停，可点击继续查询";
+  } finally {
+    clearTimeout(timeout);
+  }
+  if (version === epoch && retry) timer = setTimeout(() => query(version), 3000);
+}
+function resume() { stop(); failures = 0; query(epoch); }
+$("pause").onclick = stop;
+$("resume").onclick = resume;
+$("new").onclick = () => {
+  stop(); operation = null; save();
+  $("task").textContent = "下一次提交将创建新的操作编号；旧任务不会取消";
+  $("result").textContent = ""; $("error").textContent = "";
+};
+$("submit").onclick = async () => {
+  const label = $("label").value;
+  if (operation && operation.label !== label) {
+    $("error").textContent = "请先开始新操作，再更改报告内容"; return;
+  }
+  if (!operation) { operation = {key: crypto.randomUUID(), label}; save(); }
+  const pending = operation;
+  $("submit").disabled = true; $("new").disabled = true;
+  const abort = new AbortController();
+  const timeout = setTimeout(() => abort.abort(), 5000);
+  try {
+    const response = await fetch("/exports", {
+      method: "POST", signal: abort.signal,
+      headers: {"Content-Type": "application/json", "Idempotency-Key": pending.key},
+      body: JSON.stringify({label: pending.label})
+    });
+    if (!response.ok) throw new Error("提交响应：" + response.status);
+    const task = await response.json();
+    operation.runId = task.id; save(); resume();
+  } catch (error) {
+    $("error").textContent = error.message + "；保留操作编号，可重试同一操作";
+  } finally {
+    clearTimeout(timeout); $("submit").disabled = false; $("new").disabled = false;
+  }
+};
+window.addEventListener("pagehide", stop);
+if (operation && operation.runId) resume();
+</script>
+</html>
